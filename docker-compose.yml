@@ -1,0 +1,75 @@
+version: '2'
+
+services:
+
+  go:
+    build:
+      dockerfile: dev/Dockerfile
+      context: .
+    image: dev_vault
+    volumes:
+      - ./dev/lifecycle:/opt/lifecycle
+      - .:/go/src/github.com/jancajthaml-openbank/vault
+    working_dir: /go/src/github.com/jancajthaml-openbank/vault
+    environment:
+      - GOOS
+      - GOARCH
+      - GOPATH=/go
+      - COMPOSE_PROJECT_NAME
+    entrypoint: ["go"]
+    privileged: true
+
+  service:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    image: openbank/vault
+    restart: "no"
+    command: ["run"]
+
+  sync:
+    extends: go
+    entrypoint: ["dep"]
+    command: ["ensure"]
+
+  init:
+    extends: go
+    entrypoint: ["dep"]
+    command: ["init"]
+
+  update:
+    extends: go
+    entrypoint: ["dep"]
+    command: ["ensure", "-update"]
+
+  fetch:
+    extends: go
+    entrypoint: ["govendor"]
+    command: ["ensure", "-add", "github.com/stretchr/testify"]
+
+  lint:
+    extends: go
+    entrypoint: ["/opt/lifecycle/lint"]
+
+  package:
+    extends: go
+    entrypoint: ["/opt/lifecycle/package"]
+
+  test:
+    extends: go
+    environment:
+      - GOMAXPROCS=1
+    command: ["test", "-v", "./...", "-benchmem", "-bench=.", "-timeout=20s"]
+
+  bbtest:
+    build:
+      context: .
+      dockerfile: bbtest/Dockerfile
+    image: bbtest_vault
+    depends_on:
+      - service
+    environment:
+      - COMPOSE_PROJECT_NAME
+    volumes:
+      - ./bbtest:/opt/bbtest
+      - /var/run/docker.sock:/var/run/docker.sock
