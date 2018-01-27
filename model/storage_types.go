@@ -12,10 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package commands
+package model
 
-// RunParams is a structure of application parameters
-type RunParams struct {
-	Log      string
-	LogLevel string
-}
+const (
+	// EventPromise represents promise prefix
+	EventPromise = "p"
+	// EventCommit represents commit prefix
+	EventCommit = "c"
+	// EventRollback represents rollback prefix
+	EventRollback = "r"
+)

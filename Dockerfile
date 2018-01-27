@@ -24,6 +24,6 @@ RUN apt-get update && \
       libzmq5=4.2.1-4 && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-COPY bin/lake /entrypoint
+COPY bin/vault /entrypoint
 
 ENTRYPOINT ["/entrypoint"]

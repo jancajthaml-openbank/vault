@@ -25,7 +25,9 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/jancajthaml-openbank/vault/commands"
+	"github.com/jancajthaml-openbank/vault/actor"
+	"github.com/jancajthaml-openbank/vault/cron"
+	"github.com/jancajthaml-openbank/vault/utils"
 )
 
 var (
@@ -33,7 +35,7 @@ var (
 	build   string
 )
 
-func setupLogOutput(params commands.RunParams) {
+func setupLogOutput(params utils.RunParams) {
 	if len(params.Log) == 0 {
 		return
 	}
@@ -48,7 +50,7 @@ func setupLogOutput(params commands.RunParams) {
 	log.SetOutput(bufio.NewWriter(file))
 }
 
-func setupLogLevel(params commands.RunParams) {
+func setupLogLevel(params utils.RunParams) {
 	level, err := log.ParseLevel(params.LogLevel)
 	if err != nil {
 		log.Warnf("Invalid log level %v, using level WARN", params.LogLevel)
@@ -59,30 +61,45 @@ func setupLogLevel(params commands.RunParams) {
 }
 
 func init() {
-	viper.SetEnvPrefix("LAKE")
+	viper.SetEnvPrefix("VAULT")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
 	viper.SetDefault("log.level", "DEBUG")
+	viper.SetDefault("storage", "/data")
+	viper.SetDefault("journal.saturation", 100)
+}
+
+func setupRootDirectory(params utils.RunParams) {
+	// FIXME check error
+	os.MkdirAll(params.RootStorage, os.ModePerm)
 }
 
 func main() {
-	params := commands.RunParams{
-		Log:      viper.GetString("log"),
-		LogLevel: viper.GetString("log.level"),
+	params := utils.RunParams{
+		RootStorage:       viper.GetString("storage") + "/" + viper.GetString("tenant"),
+		Tenant:            viper.GetString("tenant"),
+		JournalSaturation: viper.GetInt("journal.saturation"),
+		Log:               viper.GetString("log"),
+		LogLevel:          viper.GetString("log.level"),
 	}
+
+	// FIXME validate params right here
 
 	setupLogOutput(params)
 	setupLogLevel(params)
+	setupRootDirectory(params)
 
 	log.Infof(">>> Starting <<<")
 
-	go commands.Run(params)
-	//go commands.StartQueue(params)
+	system := actor.StartSupervisor(params)
+
+	go cron.SnapshotSaturationScan(params, system.ProcessLocalMessage)
 
 	exitSignal := make(chan os.Signal)
 	signal.Notify(exitSignal, syscall.SIGINT, syscall.SIGTERM)
 	<-exitSignal
 
 	log.Infof(">>> Terminating <<<")
+	system.Stop()
 }
