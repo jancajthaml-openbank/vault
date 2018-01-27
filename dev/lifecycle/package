@@ -38,7 +38,7 @@ package_osx() {
     MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET:=10.6} \
     GOOS=darwin \
     GOARCH=${arch} \
-    go build -v -a -o ${dist}/${1}-darwin-${version} \
+    go build -a -o ${dist}/${1}-darwin-${version} \
     --ldflags "-X main.version=$version -X main.build=$build"
 }
 
@@ -46,7 +46,7 @@ package_linux() {
     CGO_ENABLED=1 \
     GOOS=linux \
     GOARCH=${arch} \
-    go build -v -a -o ${dist}/${1}-linux-${version} \
+    go build -a -o ${dist}/${1}-linux-${version} \
     --ldflags "-X main.version=$version -X main.build=$build"
 }
 
@@ -74,16 +74,16 @@ package_service() {
 echo "[info] building ${version}"
 
 for platform in "${platforms[@]}" ; do
-  package_service lake ${platform} &
+  package_service vault ${platform} &
 done
 wait
 
-if [ ! -f ${dist}/lake-linux-${version} ] ; then
-  echo "[error] ${dist}/lake-linux-${version} not found"
+if [ ! -f ${dist}/vault-linux-${version} ] ; then
+  echo "[error] ${dist}/vault-linux-${version} not found"
   exit
 fi
 
-cp ${dist}/lake-linux-${version} ${dist}/lake
+cp ${dist}/vault-linux-${version} ${dist}/vault
 
 echo "[info] done"
 

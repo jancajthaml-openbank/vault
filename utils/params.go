@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package commands
+package utils
 
-import (
-	log "github.com/sirupsen/logrus"
-)
-
-// Run starts application
-func Run(params RunParams) {
-	log.Info("hello from vault")
+// RunParams is a structure of application parameters
+type RunParams struct {
+	Tenant            string
+	RootStorage       string
+	Log               string
+	LogLevel          string
+	JournalSaturation int
 }

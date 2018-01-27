@@ -25,6 +25,8 @@ services:
       context: .
     image: openbank/vault
     restart: "no"
+    environment:
+      - VAULT_TENANT=test
     command: ["run"]
 
   sync:
