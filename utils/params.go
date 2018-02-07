@@ -14,11 +14,17 @@
 
 package utils
 
+import "time"
+
 // RunParams is a structure of application parameters
 type RunParams struct {
-	Tenant            string
-	RootStorage       string
-	Log               string
-	LogLevel          string
-	JournalSaturation int
+	Tenant               string
+	LakeHostname         string
+	RootStorage          string
+	Log                  string
+	LogLevel             string
+	JournalSaturation    int
+	SnapshotScanInterval time.Duration
+	MetricsRefreshRate   time.Duration
+	MetricsOutput        string
 }
