@@ -26,4 +26,6 @@ RUN apt-get update && \
 
 COPY bin/vault /entrypoint
 
+STOPSIGNAL SIGTERM
+
 ENTRYPOINT ["/entrypoint"]

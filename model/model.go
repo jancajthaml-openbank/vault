@@ -17,8 +17,6 @@ package model
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/json"
-	"fmt"
 	"strings"
 
 	money "gopkg.in/inf.v0"
@@ -140,11 +138,8 @@ func (entity *Snapshot) DeserializeFromStorage(data []byte) {
 
 	lines := strings.Split(string(data[4:]), "\n")
 
-	balance, _ := new(money.Dec).SetString(lines[0])
-	promised, _ := new(money.Dec).SetString(lines[1])
-
-	entity.Balance = balance
-	entity.Promised = promised
+	entity.Balance, _ = new(money.Dec).SetString(lines[0])
+	entity.Promised, _ = new(money.Dec).SetString(lines[1])
 	entity.PromiseBuffer = NewTransactionSet()
 
 	entity.PromiseBuffer.AddAll(lines[2:])
@@ -166,46 +161,5 @@ func (entity *Account) DeserializeFromStorage(data []byte) {
 	entity.IsBalanceCheck = string(data[0]) != "f"
 	entity.Currency = string(data[1:4])
 	entity.AccountName = string(data[4:])
-
-	return
-}
-
-// UnmarshalJSON is json Account unmarhalling companion
-func (entity *Account) UnmarshalJSON(data []byte) (err error) {
-	all := struct {
-		AccountNumber  *string `json:"accountNumber"`
-		Currency       *string `json:"currency"`
-		IsBalanceCheck *bool   `json:"isBalanceCheck"`
-	}{}
-
-	err = json.Unmarshal(data, &all)
-	if err != nil {
-		return
-	}
-
-	if all.AccountNumber == nil {
-		err = fmt.Errorf("Required field for accountNumber missing")
-		return
-	}
-
-	if all.Currency == nil {
-		err = fmt.Errorf("Required field for Currency missing")
-		return
-	}
-
-	if len(*all.Currency) != 3 {
-		err = fmt.Errorf("Invalid currency")
-		return
-	}
-
-	if all.IsBalanceCheck == nil {
-		err = fmt.Errorf("Required field for isBalanceCheck missing")
-		return
-	}
-
-	entity.AccountName = *all.AccountNumber
-	entity.Currency = strings.ToUpper(*all.Currency)
-	entity.IsBalanceCheck = *all.IsBalanceCheck
-
 	return
 }

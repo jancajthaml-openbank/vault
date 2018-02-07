@@ -32,9 +32,9 @@ type ActorSystem struct {
 func (system *ActorSystem) Stop() {
 	if system == nil {
 		log.Warn("Actor system not started")
-		//return fmt.Errorf("actor system not started")
 		return
 	}
+
 	// FIXME delete these
 	//system.Actors
 	log.Debugf("Actor system closed")

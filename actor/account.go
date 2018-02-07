@@ -15,28 +15,29 @@
 package actor
 
 import (
+	"github.com/jancajthaml-openbank/vault/cron"
 	"github.com/jancajthaml-openbank/vault/model"
 	"github.com/jancajthaml-openbank/vault/utils"
 
 	money "gopkg.in/inf.v0"
 )
 
-func nilAccount(params utils.RunParams, system *ActorSystem) func(model.Snapshot, model.Account, Context) {
+func nilAccount(params utils.RunParams, metrics *cron.Metrics, system *ActorSystem) func(model.Snapshot, model.Account, Context) {
 	return func(state model.Snapshot, meta model.Account, context Context) {
 		snapshotHydration := utils.LoadSnapshot(params, meta.AccountName)
 		metaHydration := utils.LoadMetadata(params, meta.AccountName)
 
 		if snapshotHydration == nil || metaHydration == nil {
-			context.Reciever.Become(state, meta, nonExistAccount(params, system))
+			context.Reciever.Become(state, meta, nonExistAccount(params, metrics, system))
 		} else {
-			context.Reciever.Become(*snapshotHydration, *metaHydration, existAccount(params, system))
+			context.Reciever.Become(*snapshotHydration, *metaHydration, existAccount(params, metrics, system))
 		}
 
 		context.Reciever.Tell(context.Data, context.Sender)
 	}
 }
 
-func nonExistAccount(params utils.RunParams, system *ActorSystem) func(model.Snapshot, model.Account, Context) {
+func nonExistAccount(params utils.RunParams, metrics *cron.Metrics, system *ActorSystem) func(model.Snapshot, model.Account, Context) {
 	return func(state model.Snapshot, meta model.Account, context Context) {
 		switch msg := context.Data.(type) {
 
@@ -49,10 +50,15 @@ func nonExistAccount(params utils.RunParams, system *ActorSystem) func(model.Sna
 
 			if snaphostResult == nil || metaResult == nil {
 				system.SendRemote("Server", model.FatalErrorMessage(context.Reciever.Name, context.Sender))
-			} else {
-				context.Reciever.Become(*snaphostResult, *metaResult, existAccount(params, system))
-				system.SendRemote("Server", model.AccountCreatedMessage(context.Reciever.Name, context.Sender))
+				return
 			}
+
+			context.Reciever.Become(*snaphostResult, *metaResult, existAccount(params, metrics, system))
+			system.SendRemote("Server", model.AccountCreatedMessage(context.Reciever.Name, context.Sender))
+			metrics.AccountCreated()
+
+		case model.Rollback:
+			system.SendRemote("Server", model.RollbackAcceptedMessage(context.Reciever.Name, context.Sender))
 
 		default:
 			system.SendRemote("Server", model.FatalErrorMessage(context.Reciever.Name, context.Sender))
@@ -63,7 +69,7 @@ func nonExistAccount(params utils.RunParams, system *ActorSystem) func(model.Sna
 	}
 }
 
-func existAccount(params utils.RunParams, system *ActorSystem) func(model.Snapshot, model.Account, Context) {
+func existAccount(params utils.RunParams, metrics *cron.Metrics, system *ActorSystem) func(model.Snapshot, model.Account, Context) {
 	return func(state model.Snapshot, meta model.Account, context Context) {
 		switch msg := context.Data.(type) {
 
@@ -96,9 +102,10 @@ func existAccount(params utils.RunParams, system *ActorSystem) func(model.Snapsh
 				next.Promised = nextPromised
 				next.PromiseBuffer.Add(msg.Transaction)
 
-				context.Reciever.Become(*next, meta, existAccount(params, system))
+				context.Reciever.Become(*next, meta, existAccount(params, metrics, system))
 
 				system.SendRemote("Server", model.PromiseAcceptedMessage(context.Reciever.Name, context.Sender))
+				metrics.PromiseAccepted()
 				return
 			}
 
@@ -126,9 +133,10 @@ func existAccount(params utils.RunParams, system *ActorSystem) func(model.Snapsh
 			next.Promised = new(money.Dec).Sub(state.Promised, msg.Amount)
 			next.PromiseBuffer.Remove(msg.Transaction)
 
-			context.Reciever.Become(*next, meta, existAccount(params, system))
+			context.Reciever.Become(*next, meta, existAccount(params, metrics, system))
 
 			system.SendRemote("Server", model.CommitAcceptedMessage(context.Reciever.Name, context.Sender))
+			metrics.CommitAccepted()
 
 		case model.Rollback:
 			if !state.PromiseBuffer.Contains(msg.Transaction) {
@@ -145,9 +153,10 @@ func existAccount(params utils.RunParams, system *ActorSystem) func(model.Snapsh
 			next.Promised = new(money.Dec).Sub(state.Promised, msg.Amount)
 			next.PromiseBuffer.Remove(msg.Transaction)
 
-			context.Reciever.Become(*next, meta, existAccount(params, system))
+			context.Reciever.Become(*next, meta, existAccount(params, metrics, system))
 
 			system.SendRemote("Server", model.RollbackAcceptedMessage(context.Reciever.Name, context.Sender))
+			metrics.RollbackAccepted()
 
 		case model.Update:
 			if msg.Version != state.Version {
@@ -164,10 +173,11 @@ func existAccount(params utils.RunParams, system *ActorSystem) func(model.Snapsh
 				return
 			}
 
-			context.Reciever.Become(*next, meta, existAccount(params, system))
+			context.Reciever.Become(*next, meta, existAccount(params, metrics, system))
 
 		default:
 			system.SendRemote("Server", model.FatalErrorMessage(context.Reciever.Name, context.Sender))
+
 		}
 
 		return
@@ -177,14 +187,16 @@ func existAccount(params utils.RunParams, system *ActorSystem) func(model.Snapsh
 // FIXME split to multiple functions
 // SpawnAccountActor returns new account actor instance registered into actor
 // system
-func (system *ActorSystem) SpawnAccountActor(params utils.RunParams, path string) string {
+func (system *ActorSystem) SpawnAccountActor(params utils.RunParams, metrics *cron.Metrics, path string) string {
 	if system == nil {
-		// FIXME check for len(x) == 0
 		return ""
 	}
 
-	accountEnvelope := NewAccountEnvelope(path)
-	system.RegisterActor(accountEnvelope, nilAccount(params, system))
+	envelope := NewAccountEnvelope(path)
+	err := system.RegisterActor(envelope, nilAccount(params, metrics, system))
+	if err != nil {
+		return ""
+	}
 
-	return accountEnvelope.Name
+	return envelope.Name
 }

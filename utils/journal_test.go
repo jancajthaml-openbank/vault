@@ -154,31 +154,31 @@ func TestSnapshotPromiseBuffer(t *testing.T) {
 	}
 }
 
-func removeContents(dir string) {
-	d, err := os.Open(dir)
-	if err != nil {
-		return
-	}
-	defer d.Close()
-	names, err := d.Readdirnames(-1)
-	if err != nil {
-		return
-	}
-	for _, name := range names {
-		err = os.RemoveAll(filepath.Join(dir, name))
-		if err != nil {
-			return
-		}
-	}
-	return
-}
-
 var benchmarkParams = RunParams{
 	Tenant:      "tenant",
 	RootStorage: "/benchmark",
 }
 
 func init() {
+	removeContents := func(dir string) {
+		d, err := os.Open(dir)
+		if err != nil {
+			return
+		}
+		defer d.Close()
+		names, err := d.Readdirnames(-1)
+		if err != nil {
+			return
+		}
+		for _, name := range names {
+			err = os.RemoveAll(filepath.Join(dir, name))
+			if err != nil {
+				return
+			}
+		}
+		return
+	}
+
 	removeContents(benchmarkParams.RootStorage)
 
 	meta := CreateMetadata(benchmarkParams, "bench", "cur", false)
@@ -192,19 +192,17 @@ func init() {
 	}
 }
 
-func BenchmarkReadFileFully(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		ReadFileFully(benchmarkParams.RootStorage + "/account/bench/meta")
-	}
-}
-
 func BenchmarkMetadataLoad(b *testing.B) {
+
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		LoadMetadata(benchmarkParams, "bench")
 	}
 }
 
 func BenchmarkSnapshotLoad(b *testing.B) {
+
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		LoadSnapshot(benchmarkParams, "bench")
 	}

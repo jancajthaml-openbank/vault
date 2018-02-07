@@ -27,7 +27,7 @@ services:
     restart: "no"
     environment:
       - VAULT_TENANT=test
-    command: ["run"]
+      - VAULT_LAKE_HOSTNAME=bbtest
 
   sync:
     extends: go

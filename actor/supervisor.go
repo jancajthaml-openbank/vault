@@ -17,6 +17,7 @@ package actor
 import (
 	"fmt"
 
+	"github.com/jancajthaml-openbank/vault/cron"
 	"github.com/jancajthaml-openbank/vault/model"
 	"github.com/jancajthaml-openbank/vault/utils"
 
@@ -26,45 +27,50 @@ import (
 	money "gopkg.in/inf.v0"
 )
 
-func StartSupervisor(params utils.RunParams) *ActorSystem {
+// Start starts `Vault/:tenant_id` actor system
+func (system *ActorSystem) Start(params utils.RunParams, metrics *cron.Metrics) {
+	if len(system.Name) != 0 {
+		log.Warn("ActorSystem Already started")
+		return
+	}
+
 	name := "Vault/" + params.Tenant
 
 	log.Infof("ActorSystem Starting - %v", name)
 
-	system := new(ActorSystem)
 	system.Name = name
-	system.Client = queue.NewZMQClient(name, "queue") // FIXME hostname to params
+	system.Client = queue.NewZMQClient(name, params.LakeHostname)
 
-	go system.sourceRemoteMessages(params)
+	go system.sourceRemoteMessages(params, metrics)
 
 	log.Infof("ActorSystem Started - %v", name)
 
-	return system
+	return
 }
 
-func (system *ActorSystem) sourceRemoteMessages(params utils.RunParams) {
+func (system *ActorSystem) sourceRemoteMessages(params utils.RunParams, metrics *cron.Metrics) {
 	for {
 		if system == nil {
 			return
 		}
-		system.ProcessRemoteMessage(params)
+		system.processRemoteMessage(params, metrics)
 	}
 }
 
-func (system *ActorSystem) ProcessLocalMessage(params utils.RunParams, msg interface{}, reciever string, sender string) {
+func (system *ActorSystem) ProcessLocalMessage(params utils.RunParams, metrics *cron.Metrics, msg interface{}, reciever string, sender string) {
 	if system == nil {
 		return
 	}
 
 	ref, err := system.ActorOf(reciever)
 	if err != nil {
-		ref, err = system.ActorOf(system.SpawnAccountActor(params, reciever))
+		ref, err = system.ActorOf(system.SpawnAccountActor(params, metrics, reciever))
 	}
 
 	ref.Tell(msg, sender)
 }
 
-func (system *ActorSystem) ProcessRemoteMessage(params utils.RunParams) {
+func (system *ActorSystem) processRemoteMessage(params utils.RunParams, metrics *cron.Metrics) {
 	if system == nil {
 		return
 	}
@@ -80,7 +86,7 @@ func (system *ActorSystem) ProcessRemoteMessage(params utils.RunParams) {
 
 	ref, err := system.ActorOf(parts[3])
 	if err != nil {
-		ref, err = system.ActorOf(system.SpawnAccountActor(params, parts[3]))
+		ref, err = system.ActorOf(system.SpawnAccountActor(params, metrics, parts[3]))
 	}
 
 	if err != nil {
