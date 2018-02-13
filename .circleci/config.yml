@@ -181,7 +181,7 @@ jobs:
       - run:
           name: Run blackbox tests
           command: |
-            if [ -n $(git log -1 --grep='[v?][0-9]\+\.[0-9]\+\.[0-9]\+' --pretty=%B) ] ; then
+            if git log -1 --pretty=%B | grep "[v?][0-9]\+\.[0-9]\+\.[0-9]\+" ; then
               VERSION=$(git tag | grep "[v?][0-9]\+\.[0-9]\+\.[0-9]\+" | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1 | sed 's/\v//g')
             else
               VERSION=$(git rev-parse --abbrev-ref HEAD 2> /dev/null | sed 's:.*/::')
