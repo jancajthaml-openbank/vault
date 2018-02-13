@@ -14,8 +14,6 @@ module JournalHelper
     JournalHelper.account_meta(tenant, account)
   end
 
-  private
-
   def self.account_snapshot(tenant, account, version)
     snapshots = [version.to_s.rjust(10, '0')]
 
@@ -27,17 +25,13 @@ module JournalHelper
       version = data[0..4].unpack('L')[0]
       lines = data[4..-1].split("\n").map(&:strip)
 
-      promised = BigDecimal.new(lines[1]).to_s('F')
-      buffer = lines[1..-2]
-      balance = BigDecimal.new(lines[0]).to_s('F')
-
       raise "version differs expected #{snapshots[0].to_i} actual #{version}" unless snapshots[0].to_i == version
 
       {
         :balance => '%g' % BigDecimal.new(lines[0]).to_s('F'),
         :promised => '%g' % BigDecimal.new(lines[1]).to_s('F'),
         :version => version,
-        :buffer => buffer
+        :buffer => lines[1..-2]
       }
     }
   end

@@ -86,8 +86,6 @@ module Enumerable
     result.compact
   end
 
-  private
-
   class << self; attr_accessor :parallelism ; end
 
   self.parallelism = (Integer(%x(getconf _NPROCESSORS_ONLN)) rescue 1) << 3

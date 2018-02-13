@@ -62,8 +62,6 @@ module ZMQHelper
     ZMQHelper.send("Vault/#{tenant}]")
   end
 
-  private
-
   class << self
     attr_accessor :ctx,
                   :pull_channel,
