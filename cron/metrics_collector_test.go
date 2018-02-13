@@ -45,24 +45,6 @@ func TestMetricsPersist(t *testing.T) {
 		m.TimeUpdateSaturatedSnapshots(func() {
 			time.Sleep(100 * time.Millisecond)
 		})
-		assert.True(t, m.snapshotCronLatency.Percentile(0.95) >= 100)
+		assert.True(t, m.snapshotCronLatency.Percentile(0.95) >= 100) // FIXME wrong too low value in ns
 	}
-
-	//s := m.Snapshot()
-	//assert.Equal(t, int64(50), s.ProcessedFlowsCount)
-	//assert.Equal(t, int64(1), s.WaitingFiles)
-	//assert.Equal(t, int64(1), s.FlushedFiles)
-	//assert.Equal(t, int64(17), s.DroppedFlows)
-	//assert.True(t, s.MessageProcessingLatency95th >= 100)
-
-	//m.persist(tmpDir + "/metrics.json")
-
-	//bytes, err := ioutil.ReadFile(tmpDir + "/metrics.json")
-	//if err != nil {
-	//t.Fatal(err)
-	//}
-
-	//var persisted Snapshot
-	//json.Unmarshal(bytes, &persisted)
-	//assert.Equal(t, s, persisted)
 }

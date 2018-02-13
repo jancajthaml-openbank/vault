@@ -94,6 +94,8 @@ func validParams(params utils.RunParams) bool {
 }
 
 func main() {
+	log.Infof(">>> Setup <<<")
+
 	params := utils.RunParams{
 		RootStorage:          viper.GetString("storage") + "/" + viper.GetString("tenant"),
 		Tenant:               viper.GetString("tenant"),
@@ -115,10 +117,11 @@ func main() {
 
 	log.Infof(">>> Starting <<<")
 
+	// FIXME separate into its own go routine to be stopable
 	metrics := cron.NewMetrics()
 	system := new(actor.ActorSystem)
-	system.Start(params, metrics)
-	defer system.Stop()
+	system.Start(params, metrics) // FIXME if there is no lake, application is stuck here
+	// FIXME check if nil if so then return
 
 	var wg sync.WaitGroup
 	terminationChan := make(chan struct{})
@@ -129,12 +132,13 @@ func main() {
 
 	log.Infof(">>> Started <<<")
 
-	exitSignal := make(chan os.Signal)
-	signal.Notify(exitSignal, os.Interrupt, syscall.SIGTERM)
+	exitSignal := make(chan os.Signal, 1)
+	signal.Notify(exitSignal, syscall.SIGINT, syscall.SIGTERM)
 	<-exitSignal
 
 	log.Infof(">>> Terminating <<<")
 	close(terminationChan)
+	system.Stop()
 	wg.Wait()
 	log.Infof(">>> Terminated <<<")
 }

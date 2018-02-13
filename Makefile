@@ -37,6 +37,10 @@ sync:
 test:
 	docker-compose run --rm test
 
+.PHONY: bench
+bench:
+	docker-compose run --rm bench
+
 .PHONY: bbtest
 bbtest:
 	@echo "[info] stopping older runs"

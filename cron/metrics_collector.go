@@ -12,8 +12,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// FIXME add tests
-
 type Metrics struct {
 	promisesAccepted    metrics.Counter
 	commitsAccepted     metrics.Counter

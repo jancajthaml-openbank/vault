@@ -25,6 +25,9 @@ RUN apt-get update && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY bin/vault /entrypoint
+RUN chmod +x /entrypoint
+
+STOPSIGNAL SIGTERM
 
 STOPSIGNAL SIGTERM
 

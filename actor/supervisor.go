@@ -77,6 +77,11 @@ func (system *ActorSystem) processRemoteMessage(params utils.RunParams, metrics 
 
 	parts := system.Client.Receive()
 
+	if len(parts) < 4 {
+		log.Warn("invalid message recieved")
+		return
+	}
+
 	defer func() {
 		if r := recover(); r != nil {
 			log.Errorf("procesRemoteMessage recovered in %v", r)

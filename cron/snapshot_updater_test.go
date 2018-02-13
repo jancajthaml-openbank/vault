@@ -102,5 +102,4 @@ func TestUpdateSaturated(t *testing.T) {
 			t.Error("callback was not called")
 		}
 	}
-
 }

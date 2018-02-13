@@ -46,7 +46,7 @@ services:
 
   fetch:
     extends: go
-    entrypoint: ["govendor"]
+    entrypoint: ["dep"]
     command: ["ensure", "-add", "github.com/stretchr/testify"]
 
   lint:
@@ -59,6 +59,10 @@ services:
 
   test:
     extends: go
+    command: ["test", "-v", "./...", "-timeout=20s"]
+
+  bench:
+    extends: go
     environment:
       - GOMAXPROCS=1
     command: ["test", "-v", "./...", "-benchmem", "-bench=.", "-timeout=20s"]
@@ -67,11 +71,25 @@ services:
     build:
       context: .
       dockerfile: bbtest/Dockerfile
-    image: bbtest_vault
-    depends_on:
-      - service
+    image: vault_bbtest
+    ports:
+      - "5562"
+      - "5561"
+    working_dir: /opt/bbtest
     environment:
+      - PERSISTENCE_PATH=/data
       - COMPOSE_PROJECT_NAME
+      - VERSION
     volumes:
+      - journal:/data
+      - metrics:/metrics
+      - ./logs:/logs
       - ./bbtest:/opt/bbtest
       - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/containers:/var/lib/docker/containers
+
+volumes:
+  journal:
+    driver: local
+  metrics:
+    driver: local

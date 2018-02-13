@@ -14,6 +14,7 @@ jobs:
           - CGO_ENABLED: 1
           - GOOS: linux
           - GOROOT: /usr/lib/go
+          - DIST: /go/src/github.com/jancajthaml-openbank/vault/bin
 
     working_directory: /go/src/github.com/jancajthaml-openbank/vault
     steps:
@@ -59,15 +60,13 @@ jobs:
       - run:
           name: Cleanup older buils
           command: |
-            dist=bin
-            if [ -d ${dist} ] && [ "$(ls -A ${dist})" ] ; then
-              rm -rf ${dist}/*
+            if [ -d ${DIST} ] && [ "$(ls -A ${DIST})" ] ; then
+              rm -rf ${DIST}/*
             fi
 
       - run:
           name: Package binary
           command: |
-            dist=bin
             export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 
             build=$(git rev-parse HEAD 2> /dev/null || :)
@@ -82,18 +81,13 @@ jobs:
 
             ${LD_LIBRARY_PATH}/go/bin/go clean
 
-            ${LD_LIBRARY_PATH}/go/bin/go build -a -o ${dist}/vault \
+            ${LD_LIBRARY_PATH}/go/bin/go build -a -o ${DIST}/vault \
               --ldflags "-X main.version=$version -X main.build=$build"
-
-            chmod +x ${dist}/vault
 
       - run:
           name: Verify binaries
           command: |
-            dist=bin
-            if [ -d ${dist} ] ; then
-              ls -al ${dist}
-            else
+            if [ ! -d ${DIST} ] ; then
               exit 1
             fi
 
@@ -123,9 +117,7 @@ jobs:
           name: Link artifacts
           command: |
             mkdir -p /app/bin
-
-            cp -r /go/src/github.com/jancajthaml-openbank/vault \
-              /app/bin/vault
+            cp /go/src/github.com/jancajthaml-openbank/vault/bin/vault /app/bin/vault
 
       - run:
           name: Build vault Docker image
@@ -142,9 +134,10 @@ jobs:
           command: |
             VERSION=$(git rev-parse --abbrev-ref HEAD 2> /dev/null | sed 's:.*/::')
 
-            echo "releasing vault snapshot ${VERSION}"
             docker tag vault "openbank/vault:${VERSION}"
             docker push "openbank/vault:${VERSION}"
+
+            echo "pushed openbank/vault:${VERSION}"
 
             if git log -1 --pretty=%B | grep "^[0-9]\+\.[0-9]\+\.[0-9]\+$" ; then
               git pull --tags
@@ -157,11 +150,6 @@ jobs:
               docker tag vault "openbank/vault:${VERSION}"
               docker push "openbank/vault:${VERSION}"
             fi
-
-      - run:
-          name: Verify artifacts
-          command: |
-            docker images
 
   performance:
     machine: true
@@ -187,11 +175,17 @@ jobs:
     working_directory: /home/circleci/project
 
     steps:
+      - checkout
 
       - run:
-          name: Run bbtest
+          name: Run blackbox tests
           command: |
-            echo "not implemented"
+            VERSION=$(git rev-parse --abbrev-ref HEAD 2> /dev/null | sed 's:.*/::')
+
+            echo "pulling openbank/vault:${VERSION}"
+            docker pull openbank/vault:${VERSION}
+
+            VERSION=${VERSION} docker-compose run --rm bbtest
 
   report:
     docker:
