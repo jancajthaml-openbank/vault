@@ -132,13 +132,6 @@ jobs:
       - deploy:
           name: Push images to DockerHUB
           command: |
-            VERSION=$(git rev-parse --abbrev-ref HEAD 2> /dev/null | sed 's:.*/::')
-
-            docker tag vault "openbank/vault:${VERSION}"
-            docker push "openbank/vault:${VERSION}"
-
-            echo "pushed openbank/vault:${VERSION}"
-
             if [ -n $(git log -1 --grep='[v?][0-9]\+\.[0-9]\+\.[0-9]\+' --pretty=%B) ] ; then
               echo "release commit"
 
@@ -150,6 +143,13 @@ jobs:
               docker push "openbank/vault:latest"
               docker tag vault "openbank/vault:${VERSION}"
               docker push "openbank/vault:${VERSION}"
+            else
+              VERSION=$(git rev-parse --abbrev-ref HEAD 2> /dev/null | sed 's:.*/::')
+
+              docker tag vault "openbank/vault:${VERSION}"
+              docker push "openbank/vault:${VERSION}"
+
+              echo "pushed openbank/vault:${VERSION}"
             fi
 
   performance:
@@ -181,7 +181,11 @@ jobs:
       - run:
           name: Run blackbox tests
           command: |
-            VERSION=$(git rev-parse --abbrev-ref HEAD 2> /dev/null | sed 's:.*/::')
+            if [ -n $(git log -1 --grep='[v?][0-9]\+\.[0-9]\+\.[0-9]\+' --pretty=%B) ] ; then
+              VERSION=$(git tag | grep "[v?][0-9]\+\.[0-9]\+\.[0-9]\+" | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1 | sed 's/\v//g')
+            else
+              VERSION=$(git rev-parse --abbrev-ref HEAD 2> /dev/null | sed 's:.*/::')
+            fi
 
             echo "pulling openbank/vault:${VERSION}"
             docker pull openbank/vault:${VERSION}
