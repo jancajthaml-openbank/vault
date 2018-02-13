@@ -76,6 +76,7 @@ func BenchmarkItoa(b *testing.B) {
 		return strconv.Itoa(input)
 	}
 
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		testItoa(1)
 	}
@@ -86,6 +87,7 @@ func BenchmarkFmtPad(b *testing.B) {
 		return fmt.Sprintf("%010d", input)
 	}
 
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		testPad(1)
 	}
@@ -97,6 +99,7 @@ func BenchmarkSnapshotPath(b *testing.B) {
 		RootStorage: "/tmp",
 	}
 
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		SnapshotPath(params, "X", 0)
 	}
@@ -108,6 +111,7 @@ func BenchmarkSnapshotsPath(b *testing.B) {
 		RootStorage: "/tmp",
 	}
 
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		SnapshotsPath(params, "X")
 	}
@@ -119,6 +123,7 @@ func BenchmarkEventPath(b *testing.B) {
 		RootStorage: "/tmp",
 	}
 
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		EventPath(params, "X", 0)
 	}
@@ -130,6 +135,7 @@ func BenchmarkEventsPath(b *testing.B) {
 		RootStorage: "/tmp",
 	}
 
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		EventsPath(params, "X")
 	}
@@ -141,6 +147,7 @@ func BenchmarkMetadataPath(b *testing.B) {
 		RootStorage: "/tmp",
 	}
 
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		MetadataPath(params, "X")
 	}

@@ -18,7 +18,9 @@ import (
 	"bufio"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
+	"sync"
 	"syscall"
 
 	log "github.com/sirupsen/logrus"
@@ -68,38 +70,75 @@ func init() {
 	viper.SetDefault("log.level", "DEBUG")
 	viper.SetDefault("storage", "/data")
 	viper.SetDefault("journal.saturation", 100)
+	viper.SetDefault("snasphot.scaninteval", "1m")
+	viper.SetDefault("metrics.refreshrate", "1s")
 }
 
-func setupRootDirectory(params utils.RunParams) {
-	// FIXME check error
-	os.MkdirAll(params.RootStorage, os.ModePerm)
+func validParams(params utils.RunParams) bool {
+	if len(params.Tenant) == 0 || len(params.LakeHostname) == 0 {
+		log.Error("missing required parameter to run")
+		return false
+	}
+
+	if os.MkdirAll(params.RootStorage, os.ModePerm) != nil {
+		log.Error("unable to assert storage directory")
+		return false
+	}
+
+	if len(params.MetricsOutput) != 0 && os.MkdirAll(filepath.Dir(params.MetricsOutput), os.ModePerm) != nil {
+		log.Error("unable to assert metrics output")
+		return false
+	}
+
+	return true
 }
 
 func main() {
+	log.Infof(">>> Setup <<<")
+
 	params := utils.RunParams{
-		RootStorage:       viper.GetString("storage") + "/" + viper.GetString("tenant"),
-		Tenant:            viper.GetString("tenant"),
-		JournalSaturation: viper.GetInt("journal.saturation"),
-		Log:               viper.GetString("log"),
-		LogLevel:          viper.GetString("log.level"),
+		RootStorage:          viper.GetString("storage") + "/" + viper.GetString("tenant"),
+		Tenant:               viper.GetString("tenant"),
+		LakeHostname:         viper.GetString("lake.hostname"),
+		JournalSaturation:    viper.GetInt("journal.saturation"),
+		Log:                  viper.GetString("log"),
+		LogLevel:             viper.GetString("log.level"),
+		SnapshotScanInterval: viper.GetDuration("snasphot.scaninteval"),
+		MetricsRefreshRate:   viper.GetDuration("metrics.refreshrate"),
+		MetricsOutput:        viper.GetString("metrics.output"),
 	}
 
-	// FIXME validate params right here
+	if !validParams(params) {
+		return
+	}
 
 	setupLogOutput(params)
 	setupLogLevel(params)
-	setupRootDirectory(params)
 
 	log.Infof(">>> Starting <<<")
 
-	system := actor.StartSupervisor(params)
+	// FIXME separate into its own go routine to be stopable
+	metrics := cron.NewMetrics()
+	system := new(actor.ActorSystem)
+	system.Start(params, metrics) // FIXME if there is no lake, application is stuck here
+	// FIXME check if nil if so then return
 
-	go cron.SnapshotSaturationScan(params, system.ProcessLocalMessage)
+	var wg sync.WaitGroup
+	terminationChan := make(chan struct{})
+	wg.Add(2)
 
-	exitSignal := make(chan os.Signal)
+	go cron.SnapshotSaturationScan(&wg, terminationChan, params, metrics, system.ProcessLocalMessage)
+	go cron.PersistMetrics(&wg, terminationChan, params, metrics)
+
+	log.Infof(">>> Started <<<")
+
+	exitSignal := make(chan os.Signal, 1)
 	signal.Notify(exitSignal, syscall.SIGINT, syscall.SIGTERM)
 	<-exitSignal
 
 	log.Infof(">>> Terminating <<<")
+	close(terminationChan)
 	system.Stop()
+	wg.Wait()
+	log.Infof(">>> Terminated <<<")
 }

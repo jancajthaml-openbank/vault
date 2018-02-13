@@ -91,23 +91,6 @@ func TouchFile(absPath string) bool {
 	return true
 }
 
-// ReadFile reads size bytes of file given absolute path and size
-func ReadFile(absPath string, size int) (bool, []byte) {
-	f, err := os.OpenFile(absPath, os.O_RDONLY, os.ModePerm)
-	if err != nil {
-		return false, nil
-	}
-	defer f.Close()
-
-	buf := make([]byte, size)
-	_, err = f.Read(buf)
-	if err != nil && err != io.EOF {
-		return false, nil
-	}
-
-	return true, buf
-}
-
 // ReadFileFully reads whole file given absolute path
 func ReadFileFully(absPath string) (bool, []byte) {
 	f, err := os.OpenFile(absPath, os.O_RDONLY, os.ModePerm)

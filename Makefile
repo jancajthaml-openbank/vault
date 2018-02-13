@@ -37,6 +37,10 @@ sync:
 test:
 	docker-compose run --rm test
 
+.PHONY: bench
+bench:
+	docker-compose run --rm bench
+
 .PHONY: bbtest
 bbtest:
 	@echo "[info] stopping older runs"
@@ -49,14 +53,12 @@ bbtest:
 
 .PHONY: package
 package:
+	\
 	VERSION=$(VERSION) \
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
+	\
 	docker-compose run --rm package
 	docker-compose build service
-
-.PHONY: run
-run:
-	docker-compose run --rm --service-ports service run
 
 .PHONY: version
 version:

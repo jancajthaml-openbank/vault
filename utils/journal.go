@@ -23,10 +23,7 @@ import (
 	money "gopkg.in/inf.v0"
 )
 
-func snapshotExists(params RunParams, name string) bool {
-	return Exists(SnapshotsPath(params, name))
-}
-
+// LoadMetadata rehydrates account entity meta data from storage
 func LoadMetadata(params RunParams, name string) *model.Account {
 	metaPath := MetadataPath(params, name)
 
@@ -42,6 +39,7 @@ func LoadMetadata(params RunParams, name string) *model.Account {
 	return result
 }
 
+// LoadSnapshot rehydrates account entity state from storage
 func LoadSnapshot(params RunParams, name string) *model.Snapshot {
 	allPath := SnapshotsPath(params, name)
 	snapshots := ListDirectory(allPath, false)
@@ -51,7 +49,6 @@ func LoadSnapshot(params RunParams, name string) *model.Snapshot {
 	}
 
 	ok, data := ReadFileFully(allPath + "/" + snapshots[0])
-
 	if !ok {
 		return nil
 	}
@@ -60,38 +57,35 @@ func LoadSnapshot(params RunParams, name string) *model.Snapshot {
 	result.DeserializeFromStorage(data)
 
 	events := ListDirectory(EventPath(params, name, result.Version), false)
-
 	for _, event := range events {
 
-		s := strings.Split(event, "_")
+		s := strings.SplitN(event, "_", 3)
 		kind, amountString, transaction := s[0], s[1], s[2]
+
+		amount, _ := new(money.Dec).SetString(amountString)
 
 		switch kind {
 
 		case model.EventPromise:
-			amount, _ := new(money.Dec).SetString(amountString)
-
 			result.PromiseBuffer.Add(transaction)
 			result.Promised = new(money.Dec).Add(result.Promised, amount)
 
 		case model.EventCommit:
-			amount, _ := new(money.Dec).SetString(amountString)
-
 			result.PromiseBuffer.Remove(transaction)
 			result.Promised = new(money.Dec).Sub(result.Promised, amount)
 			result.Balance = new(money.Dec).Add(result.Balance, amount)
 
 		case model.EventRollback:
-			amount, _ := new(money.Dec).SetString(amountString)
-
 			result.PromiseBuffer.Remove(transaction)
 			result.Promised = new(money.Dec).Sub(result.Promised, amount)
+
 		}
 	}
 
 	return result
 }
 
+// CreateMetadata persist account entity meta data to storage
 func CreateMetadata(params RunParams, name string, currency string, isBalanceCheck bool) *model.Account {
 	return StoreMetadata(params, &model.Account{
 		AccountName:    name,
@@ -100,7 +94,7 @@ func CreateMetadata(params RunParams, name string, currency string, isBalanceChe
 	})
 }
 
-// FIXME benchmark this function
+// CreateSnapshot persist account entity state to storage
 func CreateSnapshot(params RunParams, name string) *model.Snapshot {
 	return StoreSnapshot(params, name, &model.Snapshot{
 		Balance:       new(money.Dec),
@@ -110,6 +104,7 @@ func CreateSnapshot(params RunParams, name string) *model.Snapshot {
 	})
 }
 
+// UpdateSnapshot persist account entity state with incremented version
 func UpdateSnapshot(params RunParams, name string, entity *model.Snapshot) *model.Snapshot {
 	if entity.Version == math.MaxInt32 {
 		return entity
@@ -123,6 +118,7 @@ func UpdateSnapshot(params RunParams, name string, entity *model.Snapshot) *mode
 	})
 }
 
+// StoreSnapshot persist account entity state
 func StoreSnapshot(params RunParams, name string, entity *model.Snapshot) *model.Snapshot {
 	data := entity.SerializeForStorage()
 	path := SnapshotPath(params, name, entity.Version)
@@ -134,6 +130,7 @@ func StoreSnapshot(params RunParams, name string, entity *model.Snapshot) *model
 	return entity
 }
 
+// StoreMetadata persist account entity meta data
 func StoreMetadata(params RunParams, entity *model.Account) *model.Account {
 	data := entity.SerializeForStorage()
 	path := MetadataPath(params, entity.AccountName)
@@ -145,18 +142,21 @@ func StoreMetadata(params RunParams, entity *model.Account) *model.Account {
 	return entity
 }
 
+// PersistPromise persists promise event
 func PersistPromise(params RunParams, name string, version int, amount *money.Dec, transaction string) bool {
 	event := model.EventPromise + "_" + amount.String() + "_" + transaction
 	fullPath := EventPath(params, name, version) + "/" + event
 	return TouchFile(fullPath)
 }
 
+// PersistCommit persists commit event
 func PersistCommit(params RunParams, name string, version int, amount *money.Dec, transaction string) bool {
 	event := model.EventCommit + "_" + amount.String() + "_" + transaction
 	fullPath := EventPath(params, name, version) + "/" + event
 	return TouchFile(fullPath)
 }
 
+// PersistRollback persists rollback event
 func PersistRollback(params RunParams, name string, version int, amount *money.Dec, transaction string) bool {
 	event := model.EventRollback + "_" + amount.String() + "_" + transaction
 	fullPath := EventPath(params, name, version) + "/" + event

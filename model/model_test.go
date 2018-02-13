@@ -71,24 +71,14 @@ func TestStorageSerializeForStorage(t *testing.T) {
 	}
 }
 
-func TestAccountUnmarshalJSON(t *testing.T) {
-	data := []byte("{\"accountNumber\":\"accountNumber\",\"currency\":\"CUR\",\"isBalanceCheck\":false}")
-
-	hydrated := new(Account)
-	err := hydrated.UnmarshalJSON(data)
-	assert.Nil(t, err)
-
-	assert.Equal(t, "accountNumber", hydrated.AccountName)
-	assert.Equal(t, "CUR", hydrated.Currency)
-	assert.False(t, hydrated.IsBalanceCheck)
-}
-
 func BenchmarkAccountSerializeForStorage(b *testing.B) {
 	entity := new(Account)
 
 	entity.AccountName = "accountName"
 	entity.Currency = "CUR"
 	entity.IsBalanceCheck = false
+
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		entity.SerializeForStorage()
 	}
@@ -103,18 +93,10 @@ func BenchmarkAccountDeserializeFromStorage(b *testing.B) {
 
 	data := entity.SerializeForStorage()
 
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		hydrated := new(Account)
 		hydrated.DeserializeFromStorage(data)
-	}
-}
-
-func BenchmarkAccountUnmarshalJSON(b *testing.B) {
-	data := []byte("{\"accountNumber\":\"accountNumber\",\"currency\":\"CUR\",\"isBalanceCheck\":false}")
-
-	for n := 0; n < b.N; n++ {
-		hydrated := new(Account)
-		hydrated.UnmarshalJSON(data)
 	}
 }
 
@@ -127,6 +109,7 @@ func BenchmarkSnapshotSerializeForStorage(b *testing.B) {
 	entity.PromiseBuffer.AddAll([]string{"A", "B", "C", "D", "E", "F", "G", "H"})
 	entity.Version = 0
 
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		entity.SerializeForStorage()
 	}
@@ -143,6 +126,7 @@ func BenchmarkSnapshotDeserializeFromStorage(b *testing.B) {
 
 	data := entity.SerializeForStorage()
 
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		hydrated := new(Snapshot)
 		hydrated.DeserializeFromStorage(data)
