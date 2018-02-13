@@ -139,11 +139,10 @@ jobs:
 
             echo "pushed openbank/vault:${VERSION}"
 
-            version_commit=$(git log -1 --grep='[v?][0-9]\+\.[0-9]\+\.[0-9]\+' --pretty=%B 2>&1 | head -1)
+            if [ -n $(git log -1 --grep='[v?][0-9]\+\.[0-9]\+\.[0-9]\+' --pretty=%B) ] ; then
+              echo "release commit"
 
-            if [ -n ${version_commit} ] ; then
               git fetch --tags --force
-
               VERSION=$(git tag | grep "[v?][0-9]\+\.[0-9]\+\.[0-9]\+" | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1 | sed 's/\v//g')
 
               echo "releasing vault version ${VERSION} and updating latest"
