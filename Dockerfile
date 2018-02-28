@@ -29,6 +29,4 @@ RUN chmod +x /entrypoint
 
 STOPSIGNAL SIGTERM
 
-STOPSIGNAL SIGTERM
-
 ENTRYPOINT ["/entrypoint"]

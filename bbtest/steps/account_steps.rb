@@ -14,12 +14,12 @@ step ":account should have data integrity" do |account|
   req_id = (0...5).map { ('a'..'z').to_a[rand(26)] }.join
 
   if snapshot.nil?
-    expected_response = "error #{account} #{req_id}"
+    expected_response = "#{account} #{req_id} EE"
   else
-    expected_response = "account_balance #{account} #{req_id} #{meta[:currency]} #{snapshot[:balance]}"
+    expected_response = "#{account} #{req_id} BG #{meta[:currency]} #{snapshot[:balance]}"
   end
 
-  send_remote_message($tenant_id, "get_balance #{req_id} #{account}")
+  send_remote_message($tenant_id, "#{account} #{req_id} GB")
 
   eventually(timeout: 3) {
     expect(remote_mailbox()).to include(expected_response)
@@ -33,9 +33,9 @@ step ":activity :currency account :account is created" do |activity, currency, a
   expect(@accounts).not_to have_key(account)
 
   req_id = (0...5).map { ('a'..'z').to_a[rand(26)] }.join
-  expected_response = "account_created #{account} #{req_id}"
+  expected_response = "#{account} #{req_id} AN"
 
-  send_remote_message($tenant_id, "create_account #{req_id} #{account} #{currency} #{activity ? 't' : 'f'}")
+  send_remote_message($tenant_id, "#{account} #{req_id} NA #{currency} #{activity ? 't' : 'f'}")
 
   eventually(timeout: 3) {
     expect(remote_mailbox()).to include(expected_response)
@@ -55,9 +55,9 @@ step ":account should exist" do |account|
 
   req_id = (0...5).map { ('a'..'z').to_a[rand(26)] }.join
   acc_local_data = @accounts[account]
-  expected_response = "account_balance #{account} #{req_id} #{acc_local_data[:currency]} #{acc_local_data[:balance]}"
+  expected_response = "#{account} #{req_id} BG #{acc_local_data[:currency]} #{acc_local_data[:balance]}"
 
-  send_remote_message($tenant_id, "get_balance #{req_id} #{account}")
+  send_remote_message($tenant_id, "#{account} #{req_id} GB")
 
   eventually(timeout: 3) {
     expect(remote_mailbox()).to include(expected_response)
@@ -70,9 +70,9 @@ step ":account should not exist" do |account|
   expect(@accounts).not_to have_key(account)
 
   req_id = (0...5).map { ('a'..'z').to_a[rand(26)] }.join
-  expected_response = "error #{account} #{req_id}"
+  expected_response = "#{account} #{req_id} EE"
 
-  send_remote_message($tenant_id, "get_balance #{req_id} #{account}")
+  send_remote_message($tenant_id, "#{account} #{req_id} GB")
 
   eventually(timeout: 3) {
     expect(remote_mailbox()).to include(expected_response)

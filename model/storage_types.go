@@ -16,9 +16,9 @@ package model
 
 const (
 	// EventPromise represents promise prefix
-	EventPromise = "p"
+	EventPromise = "0"
 	// EventCommit represents commit prefix
-	EventCommit = "c"
+	EventCommit = "1"
 	// EventRollback represents rollback prefix
-	EventRollback = "r"
+	EventRollback = "2"
 )
