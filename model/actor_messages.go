@@ -15,52 +15,54 @@
 package model
 
 const (
-	ReqAccountBalance  string = "get_balance"
-	RespAccountBalance string = "account_balance"
+	ReqAccountBalance  string = "GB"
+	RespAccountBalance string = "BG"
 
-	ReqCreateAccount  string = "create_account"
-	RespCreateAccount string = "account_created"
+	ReqCreateAccount  string = "NA"
+	RespCreateAccount string = "AN"
 
-	PromiseOrder  string = EventPromise + "_order"
-	CommitOrder   string = EventCommit + "_order"
-	RollbackOrder string = EventRollback + "_order"
+	PromiseOrder  string = EventPromise + "X"
+	CommitOrder   string = EventCommit + "X"
+	RollbackOrder string = EventRollback + "X"
 
-	PromiseAccepted  string = EventPromise + "_accepted"
-	CommitAccepted   string = EventCommit + "_accepted"
-	RollbackAccepted string = EventRollback + "_accepted"
+	PromiseAccepted  string = "X" + EventPromise
+	CommitAccepted   string = "X" + EventCommit
+	RollbackAccepted string = "X" + EventRollback
 
-	UpdateSnapshot string = "update_snapshot"
+	FatalError string = "EE"
+
+	UpdateSnapshot string = "US"
 )
 
 // FatalErrorMessage is reply message carrying failure
 func FatalErrorMessage(self, sender string) string {
-	return "error " + self + " " + sender
+	return self + " " + sender + " " + FatalError
 }
 
 // AccountCreatedMessage is reply message informing that account was created
 func AccountCreatedMessage(self, sender string) string {
-	return RespCreateAccount + " " + self + " " + sender
+	return self + " " + sender + " " + RespCreateAccount
 }
 
 // AccountCreatedMessage is reply message informing that transaction promise was
 // accepted
 func PromiseAcceptedMessage(self, sender string) string {
-	return PromiseAccepted + " " + self + " " + sender
+	return self + " " + sender + " " + PromiseAccepted
 }
 
 // AccountCreatedMessage is reply message informing that transaction commit was
 // accepted
 func CommitAcceptedMessage(self, sender string) string {
-	return CommitAccepted + " " + self + " " + sender
+	return self + " " + sender + " " + CommitAccepted
 }
 
 // AccountCreatedMessage is reply message informing that transaction rollback
 // was accepted
 func RollbackAcceptedMessage(self, sender string) string {
-	return RollbackAccepted + " " + self + " " + sender
+	return self + " " + sender + " " + RollbackAccepted
 }
 
 // AccountCreatedMessage is reply message carrying account balance
 func AccountBalanceMessage(self, sender, currency, balance string) string {
-	return RespAccountBalance + " " + self + " " + sender + " " + currency + " " + balance
+	return self + " " + sender + " " + RespAccountBalance + " " + currency + " " + balance
 }

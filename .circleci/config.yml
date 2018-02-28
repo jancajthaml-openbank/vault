@@ -190,7 +190,13 @@ jobs:
             echo "pulling openbank/vault:${VERSION}"
             docker pull openbank/vault:${VERSION}
 
+            echo "[info] stopping older runs"
+            (docker rm -f $(docker-compose ps -q) 2> /dev/null || :) &> /dev/null
+            echo "[info] running bbtest"
             VERSION=${VERSION} docker-compose run --rm bbtest
+            echo "[info] stopping runs"
+            (docker rm -f $(docker-compose ps -q) 2> /dev/null || :) &> /dev/null
+            (docker rm -f $(docker ps -aqf "name=bbtest") || :) &> /dev/null
 
   report:
     docker:

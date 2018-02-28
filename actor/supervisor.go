@@ -15,8 +15,6 @@
 package actor
 
 import (
-	"fmt"
-
 	"github.com/jancajthaml-openbank/vault/cron"
 	"github.com/jancajthaml-openbank/vault/model"
 	"github.com/jancajthaml-openbank/vault/utils"
@@ -82,34 +80,36 @@ func (system *ActorSystem) processRemoteMessage(params utils.RunParams, metrics 
 		return
 	}
 
+	region, reciever, sender, message := parts[0], parts[1], parts[2], parts[3]
+
 	defer func() {
 		if r := recover(); r != nil {
 			log.Errorf("procesRemoteMessage recovered in %v", r)
-			system.SendRemote(parts[0], fmt.Sprintf("error %s %s", parts[3], parts[2]))
+			system.SendRemote(region, model.FatalErrorMessage(reciever, sender))
 		}
 	}()
 
-	ref, err := system.ActorOf(parts[3])
+	ref, err := system.ActorOf(reciever)
 	if err != nil {
-		ref, err = system.ActorOf(system.SpawnAccountActor(params, metrics, parts[3]))
+		ref, err = system.ActorOf(system.SpawnAccountActor(params, metrics, reciever))
 	}
 
 	if err != nil {
-		system.SendRemote(parts[1], fmt.Sprintf("error %s %s", parts[3], parts[2]))
+		system.SendRemote(region, model.FatalErrorMessage(reciever, sender))
 		return
 	}
 
-	switch parts[1] {
+	switch message {
 
 	case model.ReqAccountBalance:
-		ref.Tell(model.GetAccountBalance{}, parts[2])
+		ref.Tell(model.GetAccountBalance{}, sender)
 
 	case model.ReqCreateAccount:
 		ref.Tell(model.CreateAccount{
-			AccountName:    parts[3],
+			AccountName:    reciever,
 			Currency:       parts[4],
 			IsBalanceCheck: parts[5] != "f",
-		}, parts[2])
+		}, sender)
 
 	case model.PromiseOrder:
 		amount, _ := new(money.Dec).SetString(parts[5])
@@ -118,7 +118,7 @@ func (system *ActorSystem) processRemoteMessage(params utils.RunParams, metrics 
 			Transaction: parts[4],
 			Amount:      amount,
 			Currency:    parts[6],
-		}, parts[2])
+		}, sender)
 
 	case model.CommitOrder:
 		amount, _ := new(money.Dec).SetString(parts[5])
@@ -127,7 +127,7 @@ func (system *ActorSystem) processRemoteMessage(params utils.RunParams, metrics 
 			Transaction: parts[4],
 			Amount:      amount,
 			Currency:    parts[6],
-		}, parts[2])
+		}, sender)
 
 	case model.RollbackOrder:
 		amount, _ := new(money.Dec).SetString(parts[5])
@@ -136,11 +136,11 @@ func (system *ActorSystem) processRemoteMessage(params utils.RunParams, metrics 
 			Transaction: parts[4],
 			Amount:      amount,
 			Currency:    parts[6],
-		}, parts[2])
+		}, sender)
 
 	default:
 		log.Warnf("Deserialization of unsuported message : %v", parts)
-		system.SendRemote(parts[1], fmt.Sprintf("error %s %s", parts[3], parts[2]))
+		system.SendRemote(region, model.FatalErrorMessage(reciever, sender))
 	}
 
 	return

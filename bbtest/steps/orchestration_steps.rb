@@ -5,7 +5,7 @@ step "tenant is :tenant" do |tenant|
 end
 
 step "no vaults are running" do ||
-  containers = %x(docker ps -aqf "ancestor=openbank/vault" 2>/dev/null)
+  containers = %x(docker ps -a | awk '{ print $1,$2 }' | grep openbank/vault | awk '{print $1 }' 2>/dev/null)
   containers = ($? == 0 ? containers.split("\n") : []).map(&:strip).reject(&:empty?)
 
   containers.par_each { |id|
@@ -25,10 +25,10 @@ step "no vaults are running" do ||
 end
 
 step "vault is restarted" do ||
-  container_id = %x(docker ps -aqf "name=vault_#{$tenant_id}" 2>/dev/null)
+  containers = %x(docker ps -a | awk '{ print $1,$2 }' | grep vault_#{$tenant_id} | awk '{print $1 }' 2>/dev/null)
   expect($?).to be_success
 
-  container_id.split("\n").map(&:strip).reject(&:empty?).par_each { |id|
+  containers.split("\n").map(&:strip).reject(&:empty?).par_each { |id|
     eventually(timeout: 3) {
       %x(docker stop #{id} >/dev/null 2>&1)
       container_state = %x(docker inspect -f {{.State.Running}} #{id} 2>/dev/null)
@@ -46,6 +46,8 @@ step "vault is restarted" do ||
 end
 
 step "vault is started" do ||
+  send "no vaults are running"
+
   my_id = %x(cat /etc/hostname).strip
   id = %x(docker run \
     -d \
@@ -75,10 +77,10 @@ step "vault is started" do ||
 end
 
 step "vault is stopped" do ||
-  container_id = %x(docker ps -aqf "name=vault_#{$tenant_id}" 2>/dev/null)
+  containers = %x(docker ps -a | awk '{ print $1,$2 }' | grep vault_#{$tenant_id} | awk '{print $1 }' 2>/dev/null)
   expect($?).to be_success
 
-  container_id.split("\n").map(&:strip).reject(&:empty?).par_each { |id|
+  containers.split("\n").map(&:strip).reject(&:empty?).par_each { |id|
     eventually(timeout: 3) {
       %x(docker kill --signal="TERM" #{id} >/dev/null 2>&1)
       container_state = %x(docker inspect -f {{.State.Running}} #{id} 2>/dev/null)
