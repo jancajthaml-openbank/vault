@@ -4,8 +4,8 @@ require 'bigdecimal'
 step ":account should have data integrity" do |account|
   @accounts ||= {}
 
-  lazy_snapshot = ->(){ account_latest_snapshot($tenant_id, account) }
-  lazy_meta = ->(){ account_meta($tenant_id, account) }
+  lazy_snapshot = lambda { account_latest_snapshot($tenant_id, account) }
+  lazy_meta = lambda { account_meta($tenant_id, account) }
 
   snapshot, meta = [lazy_snapshot, lazy_meta].par_map { |f| f.call() }
 
