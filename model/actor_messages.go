@@ -15,23 +15,23 @@
 package model
 
 const (
-	ReqAccountBalance  string = "GB"
-	RespAccountBalance string = "BG"
+	ReqAccountState  = "GS"
+	RespAccountState = "SG"
 
-	ReqCreateAccount  string = "NA"
-	RespCreateAccount string = "AN"
+	ReqCreateAccount  = "NA"
+	RespCreateAccount = "AN"
 
-	PromiseOrder  string = EventPromise + "X"
-	CommitOrder   string = EventCommit + "X"
-	RollbackOrder string = EventRollback + "X"
+	PromiseOrder  = EventPromise + "X"
+	CommitOrder   = EventCommit + "X"
+	RollbackOrder = EventRollback + "X"
 
-	PromiseAccepted  string = "X" + EventPromise
-	CommitAccepted   string = "X" + EventCommit
-	RollbackAccepted string = "X" + EventRollback
+	PromiseAccepted  = "X" + EventPromise
+	CommitAccepted   = "X" + EventCommit
+	RollbackAccepted = "X" + EventRollback
 
-	FatalError string = "EE"
+	FatalError = "EE"
 
-	UpdateSnapshot string = "US"
+	UpdateSnapshot = "US"
 )
 
 // FatalErrorMessage is reply message carrying failure
@@ -44,25 +44,29 @@ func AccountCreatedMessage(self, sender string) string {
 	return self + " " + sender + " " + RespCreateAccount
 }
 
-// AccountCreatedMessage is reply message informing that transaction promise was
+// PromiseAcceptedMessage is reply message informing that transaction promise was
 // accepted
 func PromiseAcceptedMessage(self, sender string) string {
 	return self + " " + sender + " " + PromiseAccepted
 }
 
-// AccountCreatedMessage is reply message informing that transaction commit was
+// CommitAcceptedMessage is reply message informing that transaction commit was
 // accepted
 func CommitAcceptedMessage(self, sender string) string {
 	return self + " " + sender + " " + CommitAccepted
 }
 
-// AccountCreatedMessage is reply message informing that transaction rollback
+// RollbackAcceptedMessage is reply message informing that transaction rollback
 // was accepted
 func RollbackAcceptedMessage(self, sender string) string {
 	return self + " " + sender + " " + RollbackAccepted
 }
 
-// AccountCreatedMessage is reply message carrying account balance
-func AccountBalanceMessage(self, sender, currency, balance string) string {
-	return self + " " + sender + " " + RespAccountBalance + " " + currency + " " + balance
+// AccountStateMessage is reply message carrying account state
+func AccountStateMessage(self, sender, currency, balance, promised string, isBalanceCheck bool) string {
+	if isBalanceCheck {
+		return self + " " + sender + " " + RespAccountState + " " + currency + " t " + balance + " " + promised
+	}
+
+	return self + " " + sender + " " + RespAccountState + " " + currency + " f " + balance + " " + promised
 }

@@ -21,7 +21,7 @@ import (
 type Context struct {
 	Data     interface{}
 	Sender   string
-	Reciever *actor
+	Receiver *actor
 }
 
 func dispatch(channel chan Context, data interface{}, receiver *actor, sender string) {
@@ -45,7 +45,7 @@ func receive(ref *actor) {
 	for {
 		select {
 		case p := <-ref.dataChan:
-			ref.Recieve(p)
+			ref.Receive(p)
 		}
 	}
 }

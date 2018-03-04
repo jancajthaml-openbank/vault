@@ -24,7 +24,7 @@ import (
 
 type actor struct {
 	Name     string
-	recieve  func(model.Snapshot, model.Account, Context)
+	receive  func(model.Snapshot, model.Account, Context)
 	dataChan chan Context
 	Meta     model.Account
 	State    model.Snapshot
@@ -65,14 +65,14 @@ func (ref *actor) String() string {
 }
 
 func (ref *actor) react(f func(model.Snapshot, model.Account, Context)) *actor {
-	ref.recieve = f
+	ref.receive = f
 	return ref
 }
 
-func (ref *actor) Recieve(message Context) {
-	if ref.recieve == nil {
+func (ref *actor) Receive(message Context) {
+	if ref.receive == nil {
 		return
 	}
 
-	ref.recieve(ref.State, ref.Meta, message)
+	ref.receive(ref.State, ref.Meta, message)
 }

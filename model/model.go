@@ -44,8 +44,8 @@ type CreateAccount struct {
 	IsBalanceCheck bool
 }
 
-// GetAccountBalance is inbound request for balance of account
-type GetAccountBalance struct {
+// GetAccountState is inbound request for balance of account
+type GetAccountState struct {
 }
 
 // Update is inbound request to update snapshot
@@ -60,7 +60,8 @@ type Promise struct {
 	Currency    string
 }
 
-// FIXME commit and rollback online TransactionId save amount in PromiseSet
+// FIXME commit and rollback online TransactionID save amount in PromiseSet
+
 // Commit is inbound request for transaction commit
 type Commit struct {
 	Transaction string
@@ -68,7 +69,8 @@ type Commit struct {
 	Currency    string
 }
 
-// FIXME commit and rollback online TransactionId save amount in PromiseSet
+// FIXME commit and rollback online TransactionID save amount in PromiseSet
+
 // Rollback is inbound request for transaction rollback
 type Rollback struct {
 	Transaction string
@@ -76,7 +78,7 @@ type Rollback struct {
 	Currency    string
 }
 
-// Committed is reply message that transaction is commited
+// Committed is reply message that transaction is committed
 type Committed struct {
 	IDTransaction string
 }

@@ -55,14 +55,14 @@ func (system *ActorSystem) sourceRemoteMessages(params utils.RunParams, metrics 
 	}
 }
 
-func (system *ActorSystem) ProcessLocalMessage(params utils.RunParams, metrics *cron.Metrics, msg interface{}, reciever string, sender string) {
+func (system *ActorSystem) ProcessLocalMessage(params utils.RunParams, metrics *cron.Metrics, msg interface{}, receiver, sender string) {
 	if system == nil {
 		return
 	}
 
-	ref, err := system.ActorOf(reciever)
+	ref, err := system.ActorOf(receiver)
 	if err != nil {
-		ref, err = system.ActorOf(system.SpawnAccountActor(params, metrics, reciever))
+		ref, err = system.ActorOf(system.SpawnAccountActor(params, metrics, receiver))
 	}
 
 	ref.Tell(msg, sender)
@@ -76,37 +76,37 @@ func (system *ActorSystem) processRemoteMessage(params utils.RunParams, metrics 
 	parts := system.Client.Receive()
 
 	if len(parts) < 4 {
-		log.Warn("invalid message recieved")
+		log.Warn("invalid message received")
 		return
 	}
 
-	region, reciever, sender, message := parts[0], parts[1], parts[2], parts[3]
+	region, receiver, sender, message := parts[0], parts[1], parts[2], parts[3]
 
 	defer func() {
 		if r := recover(); r != nil {
 			log.Errorf("procesRemoteMessage recovered in %v", r)
-			system.SendRemote(region, model.FatalErrorMessage(reciever, sender))
+			system.SendRemote(region, model.FatalErrorMessage(receiver, sender))
 		}
 	}()
 
-	ref, err := system.ActorOf(reciever)
+	ref, err := system.ActorOf(receiver)
 	if err != nil {
-		ref, err = system.ActorOf(system.SpawnAccountActor(params, metrics, reciever))
+		ref, err = system.ActorOf(system.SpawnAccountActor(params, metrics, receiver))
 	}
 
 	if err != nil {
-		system.SendRemote(region, model.FatalErrorMessage(reciever, sender))
+		system.SendRemote(region, model.FatalErrorMessage(receiver, sender))
 		return
 	}
 
 	switch message {
 
-	case model.ReqAccountBalance:
-		ref.Tell(model.GetAccountBalance{}, sender)
+	case model.ReqAccountState:
+		ref.Tell(model.GetAccountState{}, sender)
 
 	case model.ReqCreateAccount:
 		ref.Tell(model.CreateAccount{
-			AccountName:    reciever,
+			AccountName:    receiver,
 			Currency:       parts[4],
 			IsBalanceCheck: parts[5] != "f",
 		}, sender)
@@ -140,7 +140,7 @@ func (system *ActorSystem) processRemoteMessage(params utils.RunParams, metrics 
 
 	default:
 		log.Warnf("Deserialization of unsuported message : %v", parts)
-		system.SendRemote(region, model.FatalErrorMessage(reciever, sender))
+		system.SendRemote(region, model.FatalErrorMessage(receiver, sender))
 	}
 
 	return

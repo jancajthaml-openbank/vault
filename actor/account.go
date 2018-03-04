@@ -28,12 +28,12 @@ func nilAccount(params utils.RunParams, metrics *cron.Metrics, system *ActorSyst
 		metaHydration := utils.LoadMetadata(params, meta.AccountName)
 
 		if snapshotHydration == nil || metaHydration == nil {
-			context.Reciever.Become(state, meta, nonExistAccount(params, metrics, system))
+			context.Receiver.Become(state, meta, nonExistAccount(params, metrics, system))
 		} else {
-			context.Reciever.Become(*snapshotHydration, *metaHydration, existAccount(params, metrics, system))
+			context.Receiver.Become(*snapshotHydration, *metaHydration, existAccount(params, metrics, system))
 		}
 
-		context.Reciever.Tell(context.Data, context.Sender)
+		context.Receiver.Tell(context.Data, context.Sender)
 	}
 }
 
@@ -49,19 +49,19 @@ func nonExistAccount(params utils.RunParams, metrics *cron.Metrics, system *Acto
 			metaResult := utils.CreateMetadata(params, meta.AccountName, currency, isBalanceCheck)
 
 			if snaphostResult == nil || metaResult == nil {
-				system.SendRemote("Server", model.FatalErrorMessage(context.Reciever.Name, context.Sender))
+				system.SendRemote("Server", model.FatalErrorMessage(context.Receiver.Name, context.Sender))
 				return
 			}
 
-			context.Reciever.Become(*snaphostResult, *metaResult, existAccount(params, metrics, system))
-			system.SendRemote("Server", model.AccountCreatedMessage(context.Reciever.Name, context.Sender))
+			context.Receiver.Become(*snaphostResult, *metaResult, existAccount(params, metrics, system))
+			system.SendRemote("Server", model.AccountCreatedMessage(context.Receiver.Name, context.Sender))
 			metrics.AccountCreated()
 
 		case model.Rollback:
-			system.SendRemote("Server", model.RollbackAcceptedMessage(context.Reciever.Name, context.Sender))
+			system.SendRemote("Server", model.RollbackAcceptedMessage(context.Receiver.Name, context.Sender))
 
 		default:
-			system.SendRemote("Server", model.FatalErrorMessage(context.Reciever.Name, context.Sender))
+			system.SendRemote("Server", model.FatalErrorMessage(context.Receiver.Name, context.Sender))
 
 		}
 
@@ -73,20 +73,20 @@ func existAccount(params utils.RunParams, metrics *cron.Metrics, system *ActorSy
 	return func(state model.Snapshot, meta model.Account, context Context) {
 		switch msg := context.Data.(type) {
 
-		case model.GetAccountBalance:
-			system.SendRemote("Server", model.AccountBalanceMessage(context.Reciever.Name, context.Sender, meta.Currency, state.Balance.String()))
+		case model.GetAccountState:
+			system.SendRemote("Server", model.AccountStateMessage(context.Receiver.Name, context.Sender, meta.Currency, state.Balance.String(), state.Promised.String(), meta.IsBalanceCheck))
 
 		case model.CreateAccount:
-			system.SendRemote("Server", model.FatalErrorMessage(context.Reciever.Name, context.Sender))
+			system.SendRemote("Server", model.FatalErrorMessage(context.Receiver.Name, context.Sender))
 
 		case model.Promise:
 			if state.PromiseBuffer.Contains(msg.Transaction) {
-				system.SendRemote("Server", model.PromiseAcceptedMessage(context.Reciever.Name, context.Sender))
+				system.SendRemote("Server", model.PromiseAcceptedMessage(context.Receiver.Name, context.Sender))
 				return
 			}
 
 			if meta.Currency != msg.Currency {
-				system.SendRemote("Server", model.FatalErrorMessage(context.Reciever.Name, context.Sender))
+				system.SendRemote("Server", model.FatalErrorMessage(context.Receiver.Name, context.Sender))
 				return
 			}
 
@@ -94,7 +94,7 @@ func existAccount(params utils.RunParams, metrics *cron.Metrics, system *ActorSy
 
 			if !meta.IsBalanceCheck || new(money.Dec).Add(state.Balance, nextPromised).Sign() >= 0 {
 				if !utils.PersistPromise(params, meta.AccountName, state.Version, msg.Amount, msg.Transaction) {
-					system.SendRemote("Server", model.FatalErrorMessage(context.Reciever.Name, context.Sender))
+					system.SendRemote("Server", model.FatalErrorMessage(context.Receiver.Name, context.Sender))
 					return
 				}
 
@@ -102,29 +102,29 @@ func existAccount(params utils.RunParams, metrics *cron.Metrics, system *ActorSy
 				next.Promised = nextPromised
 				next.PromiseBuffer.Add(msg.Transaction)
 
-				context.Reciever.Become(*next, meta, existAccount(params, metrics, system))
+				context.Receiver.Become(*next, meta, existAccount(params, metrics, system))
 
-				system.SendRemote("Server", model.PromiseAcceptedMessage(context.Reciever.Name, context.Sender))
+				system.SendRemote("Server", model.PromiseAcceptedMessage(context.Receiver.Name, context.Sender))
 				metrics.PromiseAccepted()
 				return
 			}
 
 			if new(money.Dec).Sub(state.Balance, msg.Amount).Sign() < 0 {
-				system.SendRemote("Server", model.FatalErrorMessage(context.Reciever.Name, context.Sender))
+				system.SendRemote("Server", model.FatalErrorMessage(context.Receiver.Name, context.Sender))
 				return
 			}
 
 			// FIXME boucing not handled
-			system.SendRemote("Server", model.FatalErrorMessage(context.Reciever.Name, context.Sender))
+			system.SendRemote("Server", model.FatalErrorMessage(context.Receiver.Name, context.Sender))
 
 		case model.Commit:
 			if !state.PromiseBuffer.Contains(msg.Transaction) {
-				system.SendRemote("Server", model.CommitAcceptedMessage(context.Reciever.Name, context.Sender))
+				system.SendRemote("Server", model.CommitAcceptedMessage(context.Receiver.Name, context.Sender))
 				return
 			}
 
 			if !utils.PersistCommit(params, meta.AccountName, state.Version, msg.Amount, msg.Transaction) {
-				system.SendRemote("Server", model.FatalErrorMessage(context.Reciever.Name, context.Sender))
+				system.SendRemote("Server", model.FatalErrorMessage(context.Receiver.Name, context.Sender))
 				return
 			}
 
@@ -133,19 +133,19 @@ func existAccount(params utils.RunParams, metrics *cron.Metrics, system *ActorSy
 			next.Promised = new(money.Dec).Sub(state.Promised, msg.Amount)
 			next.PromiseBuffer.Remove(msg.Transaction)
 
-			context.Reciever.Become(*next, meta, existAccount(params, metrics, system))
+			context.Receiver.Become(*next, meta, existAccount(params, metrics, system))
 
-			system.SendRemote("Server", model.CommitAcceptedMessage(context.Reciever.Name, context.Sender))
+			system.SendRemote("Server", model.CommitAcceptedMessage(context.Receiver.Name, context.Sender))
 			metrics.CommitAccepted()
 
 		case model.Rollback:
 			if !state.PromiseBuffer.Contains(msg.Transaction) {
-				system.SendRemote("Server", model.RollbackAcceptedMessage(context.Reciever.Name, context.Sender))
+				system.SendRemote("Server", model.RollbackAcceptedMessage(context.Receiver.Name, context.Sender))
 				return
 			}
 
 			if !utils.PersistRollback(params, meta.AccountName, state.Version, msg.Amount, msg.Transaction) {
-				system.SendRemote("Server", model.FatalErrorMessage(context.Reciever.Name, context.Sender))
+				system.SendRemote("Server", model.FatalErrorMessage(context.Receiver.Name, context.Sender))
 				return
 			}
 
@@ -153,9 +153,9 @@ func existAccount(params utils.RunParams, metrics *cron.Metrics, system *ActorSy
 			next.Promised = new(money.Dec).Sub(state.Promised, msg.Amount)
 			next.PromiseBuffer.Remove(msg.Transaction)
 
-			context.Reciever.Become(*next, meta, existAccount(params, metrics, system))
+			context.Receiver.Become(*next, meta, existAccount(params, metrics, system))
 
-			system.SendRemote("Server", model.RollbackAcceptedMessage(context.Reciever.Name, context.Sender))
+			system.SendRemote("Server", model.RollbackAcceptedMessage(context.Receiver.Name, context.Sender))
 			metrics.RollbackAccepted()
 
 		case model.Update:
@@ -173,10 +173,10 @@ func existAccount(params utils.RunParams, metrics *cron.Metrics, system *ActorSy
 				return
 			}
 
-			context.Reciever.Become(*next, meta, existAccount(params, metrics, system))
+			context.Receiver.Become(*next, meta, existAccount(params, metrics, system))
 
 		default:
-			system.SendRemote("Server", model.FatalErrorMessage(context.Reciever.Name, context.Sender))
+			system.SendRemote("Server", model.FatalErrorMessage(context.Receiver.Name, context.Sender))
 
 		}
 
