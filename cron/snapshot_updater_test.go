@@ -92,7 +92,7 @@ func TestUpdateSaturated(t *testing.T) {
 				assert.Equal(t, 1, m.Version)
 
 			default:
-				t.Error("invalid message recieved in callback")
+				t.Error("invalid message received in callback")
 
 			}
 

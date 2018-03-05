@@ -1,5 +1,5 @@
 
-step "vault recieves :data" do |data|
+step "vault receives :data" do |data|
   send_remote_message($tenant_id, data)
 end
 
@@ -10,6 +10,6 @@ step "vault responds with :data" do |data|
   ack_remote_message(data)
 end
 
-step "no other messages were recieved" do ||
+step "no other messages were received" do ||
   expect(remote_mailbox()).to be_empty
 end

@@ -13,7 +13,7 @@ import (
 
 type saturationCallback = func(utils.RunParams, *Metrics, interface{}, string, string)
 
-// FIXME unit test coveradge
+// FIXME unit test coverage
 // FIXME maximum events to params
 func updateSaturated(params utils.RunParams, metrics *Metrics, callback saturationCallback) {
 	log.Debugf("Scanning for saturated snapshots")

@@ -4,8 +4,8 @@ require 'bigdecimal'
 step ":account should have data integrity" do |account|
   @accounts ||= {}
 
-  lazy_snapshot = ->(){ account_latest_snapshot($tenant_id, account) }
-  lazy_meta = ->(){ account_meta($tenant_id, account) }
+  lazy_snapshot = lambda { account_latest_snapshot($tenant_id, account) }
+  lazy_meta = lambda { account_meta($tenant_id, account) }
 
   snapshot, meta = [lazy_snapshot, lazy_meta].par_map { |f| f.call() }
 
@@ -16,10 +16,10 @@ step ":account should have data integrity" do |account|
   if snapshot.nil?
     expected_response = "#{account} #{req_id} EE"
   else
-    expected_response = "#{account} #{req_id} BG #{meta[:currency]} #{snapshot[:balance]}"
+    expected_response = "#{account} #{req_id} SG #{meta[:currency]} #{snapshot[:activity] ? 't' : 'f'} #{snapshot[:balance]} #{snapshot[:balance]}"
   end
 
-  send_remote_message($tenant_id, "#{account} #{req_id} GB")
+  send_remote_message($tenant_id, "#{account} #{req_id} GS")
 
   eventually(timeout: 3) {
     expect(remote_mailbox()).to include(expected_response)
@@ -45,7 +45,8 @@ step ":activity :currency account :account is created" do |activity, currency, a
   @accounts[account] = {
     :currency => currency,
     :activity => activity,
-    :balance => '%g' % BigDecimal.new(0).to_s('F')
+    :balance => '%g' % BigDecimal.new(0).to_s('F'),
+    :promised => '%g' % BigDecimal.new(0).to_s('F'),
   }
 end
 
@@ -55,9 +56,9 @@ step ":account should exist" do |account|
 
   req_id = (0...5).map { ('a'..'z').to_a[rand(26)] }.join
   acc_local_data = @accounts[account]
-  expected_response = "#{account} #{req_id} BG #{acc_local_data[:currency]} #{acc_local_data[:balance]}"
+  expected_response = "#{account} #{req_id} SG #{acc_local_data[:currency]} #{acc_local_data[:activity] ? 't' : 'f'} #{acc_local_data[:balance]} #{acc_local_data[:promised]}"
 
-  send_remote_message($tenant_id, "#{account} #{req_id} GB")
+  send_remote_message($tenant_id, "#{account} #{req_id} GS")
 
   eventually(timeout: 3) {
     expect(remote_mailbox()).to include(expected_response)
@@ -72,7 +73,7 @@ step ":account should not exist" do |account|
   req_id = (0...5).map { ('a'..'z').to_a[rand(26)] }.join
   expected_response = "#{account} #{req_id} EE"
 
-  send_remote_message($tenant_id, "#{account} #{req_id} GB")
+  send_remote_message($tenant_id, "#{account} #{req_id} GS")
 
   eventually(timeout: 3) {
     expect(remote_mailbox()).to include(expected_response)

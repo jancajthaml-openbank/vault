@@ -33,4 +33,8 @@ scan() {
 
 scan commands &
 scan utils &
+scan model &
+scan metrics &
+scan cron &
+scan actor &
 wait
