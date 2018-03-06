@@ -20,18 +20,18 @@ import (
 
 type Context struct {
 	Data     interface{}
-	Sender   string
 	Receiver *actor
+	Sender   Coordinates
 }
 
-func dispatch(channel chan Context, data interface{}, receiver *actor, sender string) {
+func dispatch(channel chan Context, data interface{}, receiver *actor, sender Coordinates) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Errorf("Dispatch recovered in %v", r)
 		}
 	}()
 
-	channel <- Context{data, sender, receiver}
+	channel <- Context{data, receiver, sender}
 }
 
 func receive(ref *actor) {

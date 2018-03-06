@@ -1,4 +1,4 @@
-package cron
+package metrics
 
 import (
 	"io/ioutil"
@@ -45,6 +45,6 @@ func TestMetricsPersist(t *testing.T) {
 		m.TimeUpdateSaturatedSnapshots(func() {
 			time.Sleep(100 * time.Millisecond)
 		})
-		assert.True(t, m.snapshotCronLatency.Percentile(0.95) >= 100) // FIXME wrong too low value in ns
+		assert.True(t, m.snapshotCronLatency.Percentile(0.95) >= 100000) // FIXME wrong too low value in ns
 	}
 }

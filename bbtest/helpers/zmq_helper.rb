@@ -24,7 +24,7 @@ module ZMQHelper
       loop do
         data = ""
         self.pull_channel.recv_string(data, ZMQ::DONTWAIT)
-        next if data.empty? || !data.start_with?("Server")
+        next if data.empty? || !data.start_with?("BBTEST")
         self.mutex.synchronize {
           self.recv_backlog << data.split(" ").drop(2).join(" ")
         }

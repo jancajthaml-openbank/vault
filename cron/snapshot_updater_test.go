@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/jancajthaml-openbank/vault/actor"
+	"github.com/jancajthaml-openbank/vault/metrics"
 	"github.com/jancajthaml-openbank/vault/model"
 	"github.com/jancajthaml-openbank/vault/utils"
 
@@ -20,7 +22,7 @@ var testParams = utils.RunParams{
 	JournalSaturation: 1,
 }
 
-var testMetrics = NewMetrics()
+var testMetrics = metrics.NewMetrics()
 
 func init() {
 	removeContents := func(dir string) {
@@ -83,7 +85,7 @@ func TestUpdateSaturated(t *testing.T) {
 	{
 		var callbackCalled = 0
 
-		updateSaturated(testParams, testMetrics, func(p utils.RunParams, m *Metrics, msg interface{}, account string, sender string) {
+		updateSaturated(testParams, testMetrics, func(p utils.RunParams, m *metrics.Metrics, msg interface{}, account string, sender actor.Coordinates) {
 			callbackCalled++
 			assert.Equal(t, "account_1", account)
 			switch m := msg.(type) {

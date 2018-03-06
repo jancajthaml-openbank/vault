@@ -28,6 +28,9 @@ services:
     environment:
       - VAULT_TENANT=test
       - VAULT_LAKE_HOSTNAME=bbtest
+      - VAULT_LOG_LEVEL=debug
+      - VAULT_METRICS_REFRESHRATE=30s
+      - VAULT_METRICS_OUTPUT=/metrics/vault_test.json
 
   sync:
     extends: go

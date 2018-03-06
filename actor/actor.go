@@ -30,6 +30,11 @@ type actor struct {
 	State    model.Snapshot
 }
 
+type Coordinates struct {
+	Name   string
+	Region string
+}
+
 func NewAccountEnvelope(name string) *actor {
 	ref := new(actor)
 	ref.Name = name
@@ -39,7 +44,7 @@ func NewAccountEnvelope(name string) *actor {
 	return ref
 }
 
-func (ref *actor) Tell(data interface{}, sender string) error {
+func (ref *actor) Tell(data interface{}, sender Coordinates) error {
 	if ref == nil {
 		log.Warnf("actor reference %v not found", ref)
 		return fmt.Errorf("actor reference %v not found", ref)
