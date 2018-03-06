@@ -66,6 +66,11 @@ func (system *ActorSystem) SendRemote(destinationSystem, data string) {
 		return
 	}
 
+	if len(destinationSystem) == 0 {
+		log.Warn("No target region specified")
+		return
+	}
+
 	system.Client.Publish(destinationSystem, data)
 }
 
