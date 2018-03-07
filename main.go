@@ -29,6 +29,7 @@ import (
 
 	"github.com/jancajthaml-openbank/vault/actor"
 	"github.com/jancajthaml-openbank/vault/cron"
+	"github.com/jancajthaml-openbank/vault/metrics"
 	"github.com/jancajthaml-openbank/vault/utils"
 )
 
@@ -118,17 +119,17 @@ func main() {
 	log.Infof(">>> Starting <<<")
 
 	// FIXME separate into its own go routine to be stopable
-	metrics := cron.NewMetrics()
+	m := metrics.NewMetrics()
 	system := new(actor.ActorSystem)
-	system.Start(params, metrics) // FIXME if there is no lake, application is stuck here
+	system.Start(params, m) // FIXME if there is no lake, application is stuck here
 	// FIXME check if nil if so then return
 
 	var wg sync.WaitGroup
 	terminationChan := make(chan struct{})
 	wg.Add(2)
 
-	go cron.SnapshotSaturationScan(&wg, terminationChan, params, metrics, system.ProcessLocalMessage)
-	go cron.PersistMetrics(&wg, terminationChan, params, metrics)
+	go cron.SnapshotSaturationScan(&wg, terminationChan, params, m, system.ProcessLocalMessage)
+	go metrics.PersistMetrics(&wg, terminationChan, params, m)
 
 	log.Infof(">>> Started <<<")
 

@@ -15,7 +15,7 @@
 package actor
 
 import (
-	"github.com/jancajthaml-openbank/vault/cron"
+	"github.com/jancajthaml-openbank/vault/metrics"
 	"github.com/jancajthaml-openbank/vault/model"
 	"github.com/jancajthaml-openbank/vault/utils"
 
@@ -26,7 +26,7 @@ import (
 )
 
 // Start starts `Vault/:tenant_id` actor system
-func (system *ActorSystem) Start(params utils.RunParams, metrics *cron.Metrics) {
+func (system *ActorSystem) Start(params utils.RunParams, m *metrics.Metrics) {
 	if len(system.Name) != 0 {
 		log.Warn("ActorSystem Already started")
 		return
@@ -39,36 +39,41 @@ func (system *ActorSystem) Start(params utils.RunParams, metrics *cron.Metrics) 
 	system.Name = name
 	system.Client = queue.NewZMQClient(name, params.LakeHostname)
 
-	go system.sourceRemoteMessages(params, metrics)
+	go system.sourceRemoteMessages(params, m)
 
 	log.Infof("ActorSystem Started - %v", name)
 
 	return
 }
 
-func (system *ActorSystem) sourceRemoteMessages(params utils.RunParams, metrics *cron.Metrics) {
+func (system *ActorSystem) sourceRemoteMessages(params utils.RunParams, m *metrics.Metrics) {
 	for {
 		if system == nil {
 			return
 		}
-		system.processRemoteMessage(params, metrics)
+		system.processRemoteMessage(params, m)
 	}
 }
 
-func (system *ActorSystem) ProcessLocalMessage(params utils.RunParams, metrics *cron.Metrics, msg interface{}, receiver, sender string) {
+func (system *ActorSystem) ProcessLocalMessage(params utils.RunParams, m *metrics.Metrics, msg interface{}, receiver string, sender Coordinates) {
 	if system == nil {
 		return
 	}
 
 	ref, err := system.ActorOf(receiver)
 	if err != nil {
-		ref, err = system.ActorOf(system.SpawnAccountActor(params, metrics, receiver))
+		ref, err = system.ActorOf(system.SpawnAccountActor(params, m, receiver))
+	}
+
+	if err != nil {
+		log.Warnf("Actor not found [%s local]", receiver)
+		return
 	}
 
 	ref.Tell(msg, sender)
 }
 
-func (system *ActorSystem) processRemoteMessage(params utils.RunParams, metrics *cron.Metrics) {
+func (system *ActorSystem) processRemoteMessage(params utils.RunParams, m *metrics.Metrics) {
 	if system == nil {
 		return
 	}
@@ -80,68 +85,75 @@ func (system *ActorSystem) processRemoteMessage(params utils.RunParams, metrics 
 		return
 	}
 
-	region, receiver, sender, message := parts[0], parts[1], parts[2], parts[3]
+	region, receiver, sender, payload := parts[0], parts[1], parts[2], parts[3]
 
 	defer func() {
 		if r := recover(); r != nil {
-			log.Errorf("procesRemoteMessage recovered in %v", r)
+			log.Errorf("procesRemoteMessage recovered in [%s %s/%s] : %v", r, receiver, region, sender)
 			system.SendRemote(region, model.FatalErrorMessage(receiver, sender))
 		}
 	}()
 
 	ref, err := system.ActorOf(receiver)
 	if err != nil {
-		ref, err = system.ActorOf(system.SpawnAccountActor(params, metrics, receiver))
+		ref, err = system.ActorOf(system.SpawnAccountActor(params, m, receiver))
 	}
 
 	if err != nil {
+		log.Warnf("Actor not found [%s %s/%s]", receiver, region, sender)
 		system.SendRemote(region, model.FatalErrorMessage(receiver, sender))
 		return
 	}
 
-	switch message {
+	var message interface{} = nil
+
+	switch payload {
 
 	case model.ReqAccountState:
-		ref.Tell(model.GetAccountState{}, sender)
+		message = model.GetAccountState{}
 
 	case model.ReqCreateAccount:
-		ref.Tell(model.CreateAccount{
+		message = model.CreateAccount{
 			AccountName:    receiver,
 			Currency:       parts[4],
 			IsBalanceCheck: parts[5] != "f",
-		}, sender)
+		}
 
 	case model.PromiseOrder:
-		amount, _ := new(money.Dec).SetString(parts[5])
-
-		ref.Tell(model.Promise{
-			Transaction: parts[4],
-			Amount:      amount,
-			Currency:    parts[6],
-		}, sender)
+		if amount, ok := new(money.Dec).SetString(parts[5]); ok {
+			message = model.Promise{
+				Transaction: parts[4],
+				Amount:      amount,
+				Currency:    parts[6],
+			}
+		}
 
 	case model.CommitOrder:
-		amount, _ := new(money.Dec).SetString(parts[5])
-
-		ref.Tell(model.Commit{
-			Transaction: parts[4],
-			Amount:      amount,
-			Currency:    parts[6],
-		}, sender)
+		if amount, ok := new(money.Dec).SetString(parts[5]); ok {
+			message = model.Commit{
+				Transaction: parts[4],
+				Amount:      amount,
+				Currency:    parts[6],
+			}
+		}
 
 	case model.RollbackOrder:
-		amount, _ := new(money.Dec).SetString(parts[5])
+		if amount, ok := new(money.Dec).SetString(parts[5]); ok {
+			message = model.Rollback{
+				Transaction: parts[4],
+				Amount:      amount,
+				Currency:    parts[6],
+			}
+		}
 
-		ref.Tell(model.Rollback{
-			Transaction: parts[4],
-			Amount:      amount,
-			Currency:    parts[6],
-		}, sender)
+	}
 
-	default:
-		log.Warnf("Deserialization of unsuported message : %v", parts)
+	if message == nil {
+		log.Warnf("Deserialization of unsuported message [%s %s/%s] : %v", ref.Name, region, sender, parts)
 		system.SendRemote(region, model.FatalErrorMessage(receiver, sender))
 	}
+
+	ref.Tell(message, Coordinates{sender, region})
 
 	return
 }

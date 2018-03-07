@@ -5,19 +5,19 @@ import (
 	"sync"
 	"time"
 
+	"github.com/jancajthaml-openbank/vault/actor"
+	"github.com/jancajthaml-openbank/vault/metrics"
 	"github.com/jancajthaml-openbank/vault/model"
 	"github.com/jancajthaml-openbank/vault/utils"
 
 	log "github.com/sirupsen/logrus"
 )
 
-type saturationCallback = func(utils.RunParams, *Metrics, interface{}, string, string)
+type saturationCallback = func(utils.RunParams, *metrics.Metrics, interface{}, string, actor.Coordinates)
 
 // FIXME unit test coverage
 // FIXME maximum events to params
-func updateSaturated(params utils.RunParams, metrics *Metrics, callback saturationCallback) {
-	log.Debugf("Scanning for saturated snapshots")
-
+func updateSaturated(params utils.RunParams, m *metrics.Metrics, callback saturationCallback) {
 	accounts := getAccounts(params)
 	var numberOfSnapshotsUpdated int64
 
@@ -27,16 +27,16 @@ func updateSaturated(params utils.RunParams, metrics *Metrics, callback saturati
 			continue
 		}
 		if getEvents(params, name, version) >= params.JournalSaturation {
-			updateAccount(params, metrics, name, version, version+1, callback)
+			updateAccount(params, m, name, version, version+1, callback)
 			numberOfSnapshotsUpdated++
 		}
 	}
-	metrics.SnapshotsUpdated(numberOfSnapshotsUpdated)
+	m.SnapshotsUpdated(numberOfSnapshotsUpdated)
 }
 
-func updateAccount(params utils.RunParams, metrics *Metrics, name string, fromVersion, toVersion int, callback saturationCallback) {
+func updateAccount(params utils.RunParams, m *metrics.Metrics, name string, fromVersion, toVersion int, callback saturationCallback) {
 	log.Debugf("Request %v to update snapshot version from %d to %d", name, fromVersion, toVersion)
-	callback(params, metrics, model.Update{Version: fromVersion}, name, "snapshot_saturation_cron")
+	callback(params, m, model.Update{Version: fromVersion}, name, actor.Coordinates{"snapshot_saturation_cron", ""})
 }
 
 func getAccounts(params utils.RunParams) []string {
@@ -64,7 +64,7 @@ func getEvents(params utils.RunParams, name string, version int) int {
 // SnapshotSaturationScan runs scan of accounts snapshots and events and orders
 // accounts to update their snapshot if number of events in given version is
 // larger than desiredd
-func SnapshotSaturationScan(wg *sync.WaitGroup, terminationChan chan struct{}, params utils.RunParams, metrics *Metrics, callback saturationCallback) {
+func SnapshotSaturationScan(wg *sync.WaitGroup, terminationChan chan struct{}, params utils.RunParams, m *metrics.Metrics, callback saturationCallback) {
 	defer wg.Done()
 
 	ticker := time.NewTicker(params.SnapshotScanInterval)
@@ -73,8 +73,8 @@ func SnapshotSaturationScan(wg *sync.WaitGroup, terminationChan chan struct{}, p
 	for {
 		select {
 		case <-ticker.C:
-			metrics.TimeUpdateSaturatedSnapshots(func() {
-				updateSaturated(params, metrics, callback)
+			m.TimeUpdateSaturatedSnapshots(func() {
+				updateSaturated(params, m, callback)
 			})
 		case <-terminationChan:
 			return

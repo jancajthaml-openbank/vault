@@ -15,23 +15,18 @@
 package model
 
 const (
-	ReqAccountState  = "GS"
-	RespAccountState = "SG"
-
+	ReqAccountState   = "GS"
+	RespAccountState  = "SG"
 	ReqCreateAccount  = "NA"
 	RespCreateAccount = "AN"
-
-	PromiseOrder  = EventPromise + "X"
-	CommitOrder   = EventCommit + "X"
-	RollbackOrder = EventRollback + "X"
-
-	PromiseAccepted  = "X" + EventPromise
-	CommitAccepted   = "X" + EventCommit
-	RollbackAccepted = "X" + EventRollback
-
-	FatalError = "EE"
-
-	UpdateSnapshot = "US"
+	PromiseOrder      = (EventPromise + "X")
+	CommitOrder       = (EventCommit + "X")
+	RollbackOrder     = (EventRollback + "X")
+	PromiseAccepted   = ("X" + EventPromise)
+	CommitAccepted    = ("X" + EventCommit)
+	RollbackAccepted  = ("X" + EventRollback)
+	FatalError        = "EE"
+	UpdateSnapshot    = "US"
 )
 
 // FatalErrorMessage is reply message carrying failure
