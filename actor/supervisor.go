@@ -151,9 +151,9 @@ func (system *ActorSystem) processRemoteMessage(params utils.RunParams, m *metri
 	if message == nil {
 		log.Warnf("Deserialization of unsuported message [%s %s/%s] : %v", ref.Name, region, sender, parts)
 		system.SendRemote(region, model.FatalErrorMessage(receiver, sender))
+		return
 	}
 
 	ref.Tell(message, Coordinates{sender, region})
-
 	return
 }
