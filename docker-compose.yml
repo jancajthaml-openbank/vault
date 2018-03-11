@@ -29,8 +29,8 @@ services:
       - VAULT_TENANT=test
       - VAULT_LAKE_HOSTNAME=bbtest
       - VAULT_LOG_LEVEL=debug
-      - VAULT_METRICS_REFRESHRATE=30s
-      - VAULT_METRICS_OUTPUT=/metrics/vault_test.json
+      - VAULT_METRICS_REFRESHRATE=1s
+      - VAULT_METRICS_OUTPUT=/reports/vault_test.json
 
   sync:
     extends: go
@@ -85,14 +85,11 @@ services:
       - VERSION
     volumes:
       - journal:/data
-      - metrics:/metrics
-      - ./logs:/logs
+      - ./reports:/reports
       - ./bbtest:/opt/bbtest
       - /var/run/docker.sock:/var/run/docker.sock
       - /var/lib/docker/containers:/var/lib/docker/containers
 
 volumes:
   journal:
-    driver: local
-  metrics:
     driver: local

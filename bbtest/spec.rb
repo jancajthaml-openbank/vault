@@ -1,7 +1,6 @@
 require 'turnip/rspec'
 require 'json'
 require 'thread'
-require_relative 'pimp'
 
 Thread.abort_on_exception = true
 
@@ -18,11 +17,12 @@ RSpec.configure do |config|
   config.before(:suite) do |_|
     print "[ suite starting ]\n"
 
+    $vault_instance_counter = 0
     $tenant_id = nil
 
     ZMQHelper.start()
 
-    ["/data", "/logs"].par_each { |folder|
+    ["/data", "/reports"].each { |folder|
       FileUtils.mkdir_p folder
       FileUtils.rm_rf Dir.glob("#{folder}/*")
     }
@@ -36,7 +36,7 @@ RSpec.configure do |config|
     ZMQHelper.stop()
 
     get_containers = lambda do |image|
-      containers = %x(docker ps -aqf "ancestor=#{image}" 2>/dev/null)
+      containers = %x(docker ps -a | awk '{ print $1,$2 }' | grep #{image} | awk '{print $1 }' 2>/dev/null)
       return ($? == 0 ? containers.split("\n") : [])
     end
 
@@ -45,11 +45,11 @@ RSpec.configure do |config|
       label = ($? == 0 ? label.strip : container)
 
       %x(docker kill --signal="TERM" #{container} >/dev/null 2>&1 || :)
-      %x(docker logs #{container} >/logs/#{label}.log 2>&1)
+      %x(docker logs #{container} >/reports/#{label}.log 2>&1)
       %x(docker rm -f #{container} &>/dev/null || :)
     end
 
-    get_containers.call("openbank/vault").par_each { |container| teardown_container.call(container) }
+    get_containers.call("openbank/vault").each { |container| teardown_container.call(container) }
 
     FileUtils.rm_rf Dir.glob("/data/*")
 

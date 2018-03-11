@@ -7,7 +7,7 @@ step ":account should have data integrity" do |account|
   lazy_snapshot = lambda { account_latest_snapshot($tenant_id, account) }
   lazy_meta = lambda { account_meta($tenant_id, account) }
 
-  snapshot, meta = [lazy_snapshot, lazy_meta].par_map { |f| f.call() }
+  snapshot, meta = [lazy_snapshot, lazy_meta].map { |f| f.call() }
 
   raise "persistence inconsistency snapshot: #{snapshot}, meta: #{meta}" if snapshot.nil? ^ meta.nil? ^ !@accounts.key?(account)
 
