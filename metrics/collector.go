@@ -86,6 +86,7 @@ func (gom *Metrics) persist(filename string) {
 		return
 	}
 
+	log.Debugf("metrics updated at %s", filename)
 	return
 }
 
@@ -100,11 +101,14 @@ func PersistMetrics(wg *sync.WaitGroup, terminationChan chan struct{}, params ut
 	ticker := time.NewTicker(params.MetricsRefreshRate)
 	defer ticker.Stop()
 
+	log.Debugf("Updating metrics each %v into %v", params.MetricsRefreshRate, params.MetricsOutput)
+
 	for {
 		select {
 		case <-ticker.C:
 			data.persist(params.MetricsOutput)
 		case <-terminationChan:
+			data.persist(params.MetricsOutput)
 			return
 		}
 	}

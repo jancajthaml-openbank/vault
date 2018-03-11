@@ -30,10 +30,10 @@ func nilAccount(params utils.RunParams, m *metrics.Metrics, system *ActorSystem)
 
 		if snapshotHydration == nil || metaHydration == nil {
 			context.Receiver.Become(state, meta, nonExistAccount(params, m, system))
-			log.Debugf("[%s] Nil -> NonExist", meta.AccountName)
+			log.Debugf("%s ~ Nil -> NonExist", meta.AccountName)
 		} else {
 			context.Receiver.Become(*snapshotHydration, *metaHydration, existAccount(params, m, system))
-			log.Debugf("[%s] Nil -> Exist", meta.AccountName)
+			log.Debugf("%s ~ Nil -> Exist", meta.AccountName)
 		}
 
 		context.Receiver.Tell(context.Data, context.Sender)
@@ -55,22 +55,22 @@ func nonExistAccount(params utils.RunParams, m *metrics.Metrics, system *ActorSy
 
 			if snaphostResult == nil || metaResult == nil {
 				system.SendRemote(context.Sender.Region, model.FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
-				log.Debugf("[%s] (NonExist CreateAccount) Error", meta.AccountName)
+				log.Debugf("%s ~ (NonExist CreateAccount) Error", meta.AccountName)
 				return
 			}
 
 			context.Receiver.Become(*snaphostResult, *metaResult, existAccount(params, m, system))
 			system.SendRemote(context.Sender.Region, model.AccountCreatedMessage(context.Receiver.Name, context.Sender.Name))
-			log.Debugf("[%s] (NonExist CreateAccount) OK", meta.AccountName)
+			log.Debugf("%s ~ (NonExist CreateAccount) OK", meta.AccountName)
 			m.AccountCreated()
 
 		case model.Rollback:
 			system.SendRemote(context.Sender.Region, model.RollbackAcceptedMessage(context.Receiver.Name, context.Sender.Name))
-			log.Debugf("[%s] (NonExist Rollback) OK", meta.AccountName)
+			log.Debugf("%s ~ (NonExist Rollback) OK", meta.AccountName)
 
 		default:
 			system.SendRemote(context.Sender.Region, model.FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
-			log.Debugf("[%s] (NonExist Unknown Message) Error", meta.AccountName)
+			log.Debugf("%s ~ (NonExist Unknown Message) Error", meta.AccountName)
 
 		}
 
@@ -84,22 +84,22 @@ func existAccount(params utils.RunParams, m *metrics.Metrics, system *ActorSyste
 
 		case model.GetAccountState:
 			system.SendRemote(context.Sender.Region, model.AccountStateMessage(context.Receiver.Name, context.Sender.Name, meta.Currency, state.Balance.String(), state.Promised.String(), meta.IsBalanceCheck))
-			log.Debugf("[%s] (Exist GetAccountState) OK", meta.AccountName)
+			log.Debugf("%s ~ (Exist GetAccountState) OK", meta.AccountName)
 
 		case model.CreateAccount:
 			system.SendRemote(context.Sender.Region, model.FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
-			log.Debugf("[%s] (Exist CreateAccount) Error", meta.AccountName)
+			log.Debugf("%s ~ (Exist CreateAccount) Error", meta.AccountName)
 
 		case model.Promise:
 			if state.PromiseBuffer.Contains(msg.Transaction) {
 				system.SendRemote(context.Sender.Region, model.PromiseAcceptedMessage(context.Receiver.Name, context.Sender.Name))
-				log.Debugf("[%s] (Exist Promise) OK Already Accepted", meta.AccountName)
+				log.Debugf("%s ~ (Exist Promise) OK Already Accepted", meta.AccountName)
 				return
 			}
 
 			if meta.Currency != msg.Currency {
 				system.SendRemote(context.Sender.Region, model.FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
-				log.Warnf("[%s] (Exist Promise) Error Currency Mismatch", meta.AccountName)
+				log.Warnf("%s ~ (Exist Promise) Error Currency Mismatch", meta.AccountName)
 				return
 			}
 
@@ -108,7 +108,7 @@ func existAccount(params utils.RunParams, m *metrics.Metrics, system *ActorSyste
 			if !meta.IsBalanceCheck || new(money.Dec).Add(state.Balance, nextPromised).Sign() >= 0 {
 				if !utils.PersistPromise(params, meta.AccountName, state.Version, msg.Amount, msg.Transaction) {
 					system.SendRemote(context.Sender.Region, model.FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
-					log.Warnf("[%s] (Exist Promise) Error Could not Persist", meta.AccountName)
+					log.Warnf("%s ~ (Exist Promise) Error Could not Persist", meta.AccountName)
 					return
 				}
 
@@ -119,31 +119,31 @@ func existAccount(params utils.RunParams, m *metrics.Metrics, system *ActorSyste
 				context.Receiver.Become(*next, meta, existAccount(params, m, system))
 
 				system.SendRemote(context.Sender.Region, model.PromiseAcceptedMessage(context.Receiver.Name, context.Sender.Name))
-				log.Debugf("[%s] (Exist Promise) OK", meta.AccountName)
+				log.Debugf("%s ~ (Exist Promise) OK", meta.AccountName)
 				m.PromiseAccepted()
 				return
 			}
 
 			if new(money.Dec).Sub(state.Balance, msg.Amount).Sign() < 0 {
 				system.SendRemote(context.Sender.Region, model.FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
-				log.Debugf("[%s] (Exist Promise) Error Insufficient Funds", meta.AccountName)
+				log.Debugf("%s ~ (Exist Promise) Error Insufficient Funds", meta.AccountName)
 				return
 			}
 
 			// FIXME boucing not handled
 			system.SendRemote(context.Sender.Region, model.FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
-			log.Warnf("[%s] (Exist Promise) Error ... (Bounce?)", meta.AccountName)
+			log.Warnf("%s ~ (Exist Promise) Error ... (Bounce?)", meta.AccountName)
 
 		case model.Commit:
 			if !state.PromiseBuffer.Contains(msg.Transaction) {
 				system.SendRemote(context.Sender.Region, model.CommitAcceptedMessage(context.Receiver.Name, context.Sender.Name))
-				log.Debugf("[%s] (Exist Commit) OK Already Accepted", meta.AccountName)
+				log.Debugf("%s ~ (Exist Commit) OK Already Accepted", meta.AccountName)
 				return
 			}
 
 			if !utils.PersistCommit(params, meta.AccountName, state.Version, msg.Amount, msg.Transaction) {
 				system.SendRemote(context.Sender.Region, model.FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
-				log.Warnf("[%s] (Exist Commit) Error Could not Persist", meta.AccountName)
+				log.Warnf("%s ~ (Exist Commit) Error Could not Persist", meta.AccountName)
 				return
 			}
 
@@ -155,19 +155,19 @@ func existAccount(params utils.RunParams, m *metrics.Metrics, system *ActorSyste
 			context.Receiver.Become(*next, meta, existAccount(params, m, system))
 
 			system.SendRemote(context.Sender.Region, model.CommitAcceptedMessage(context.Receiver.Name, context.Sender.Name))
-			log.Debugf("[%s] (Exist Commit) OK", meta.AccountName)
+			log.Debugf("%s ~ (Exist Commit) OK", meta.AccountName)
 			m.CommitAccepted()
 
 		case model.Rollback:
 			if !state.PromiseBuffer.Contains(msg.Transaction) {
 				system.SendRemote(context.Sender.Region, model.RollbackAcceptedMessage(context.Receiver.Name, context.Sender.Name))
-				log.Debugf("[%s] (Exist Rollback) OK Already Accepted", meta.AccountName)
+				log.Debugf("%s ~ (Exist Rollback) OK Already Accepted", meta.AccountName)
 				return
 			}
 
 			if !utils.PersistRollback(params, meta.AccountName, state.Version, msg.Amount, msg.Transaction) {
 				system.SendRemote(context.Sender.Region, model.FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
-				log.Warnf("[%s] (Exist Rollback) Error Could not Persist", meta.AccountName)
+				log.Warnf("%s ~ (Exist Rollback) Error Could not Persist", meta.AccountName)
 				return
 			}
 
@@ -178,33 +178,33 @@ func existAccount(params utils.RunParams, m *metrics.Metrics, system *ActorSyste
 			context.Receiver.Become(*next, meta, existAccount(params, m, system))
 
 			system.SendRemote(context.Sender.Region, model.RollbackAcceptedMessage(context.Receiver.Name, context.Sender.Name))
-			log.Debugf("[%s] (Exist Rollback) OK", meta.AccountName)
+			log.Debugf("%s ~ (Exist Rollback) OK", meta.AccountName)
 			m.RollbackAccepted()
 
 		case model.Update:
 			if msg.Version != state.Version {
-				log.Debugf("[%s] (Exist Update) Error Already Updated", meta.AccountName)
+				log.Debugf("%s ~ (Exist Update) Error Already Updated", meta.AccountName)
 				return
 			}
 
 			result := utils.LoadSnapshot(params, meta.AccountName)
 			if result == nil {
-				log.Warnf("[%s] (Exist Update) Error no existing snapshot", meta.AccountName)
+				log.Warnf("%s ~ (Exist Update) Error no existing snapshot", meta.AccountName)
 				return
 			}
 
 			next := utils.UpdateSnapshot(params, meta.AccountName, result)
 			if next == nil {
-				log.Warnf("[%s] (Exist Update) Error unable to update", meta.AccountName)
+				log.Warnf("%s ~ (Exist Update) Error unable to update", meta.AccountName)
 				return
 			}
 
 			context.Receiver.Become(*next, meta, existAccount(params, m, system))
-			log.Debugf("[%s] (Exist Update) OK", meta.AccountName)
+			log.Debugf("%s ~ (Exist Update) OK", meta.AccountName)
 
 		default:
 			system.SendRemote(context.Sender.Region, model.FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
-			log.Warnf("[%s] (Exist Unknown Message) Error", meta.AccountName)
+			log.Warnf("%s ~ (Exist Unknown Message) Error", meta.AccountName)
 
 		}
 
@@ -217,17 +217,17 @@ func existAccount(params utils.RunParams, m *metrics.Metrics, system *ActorSyste
 // system
 func (system *ActorSystem) SpawnAccountActor(params utils.RunParams, m *metrics.Metrics, path string) string {
 	if system == nil {
-		log.Debugf("Spawning [%s] Error no Actor System", path)
+		log.Warnf("%s ~ Spawning Actor Error no Actor System", path)
 		return ""
 	}
 
 	envelope := NewAccountEnvelope(path)
 	err := system.RegisterActor(envelope, nilAccount(params, m, system))
 	if err != nil {
-		log.Debugf("Spawning [%s] Error unable to register", path)
+		log.Warnf("%s ~ Spawning Actor Error unable to register", path)
 		return ""
 	}
 
-	log.Debugf("Spawning [%s] OK", path)
+	log.Debugf("%s ~ Actor Spawned", path)
 	return envelope.Name
 }
