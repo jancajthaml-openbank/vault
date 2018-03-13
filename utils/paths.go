@@ -14,9 +14,7 @@
 
 package utils
 
-import (
-	"strconv"
-)
+import "strconv"
 
 // AccountsPath returns filepath for accounts
 func AccountsPath(params RunParams) string {

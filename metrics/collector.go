@@ -60,26 +60,32 @@ func NewMetricsSnapshot(entity *Metrics) MetricsSnapshot {
 	}
 }
 
+// TimeUpdateSaturatedSnapshots measures time of SaturatedSnapshots function run
 func (entity *Metrics) TimeUpdateSaturatedSnapshots(f func()) {
 	entity.snapshotCronLatency.Time(f)
 }
 
-func (entity *Metrics) SnapshotsUpdated(num int64) {
-	entity.updatedSnapshots.Mark(num)
+// SnapshotsUpdated increments updated snapshots by given count
+func (entity *Metrics) SnapshotsUpdated(count int64) {
+	entity.updatedSnapshots.Mark(count)
 }
 
+// AccountCreated increments account created by one
 func (entity *Metrics) AccountCreated() {
 	entity.createdAccounts.Inc(1)
 }
 
+// PromiseAccepted increments accepted promises by one
 func (entity *Metrics) PromiseAccepted() {
 	entity.promisesAccepted.Inc(1)
 }
 
+// CommitAccepted increments accepted commits by one
 func (entity *Metrics) CommitAccepted() {
 	entity.commitsAccepted.Inc(1)
 }
 
+// CommitAccepted increments accepted rollbacks by one
 func (entity *Metrics) RollbackAccepted() {
 	entity.rollbacksAccepted.Inc(1)
 }

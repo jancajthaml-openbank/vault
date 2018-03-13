@@ -18,13 +18,25 @@ import "time"
 
 // RunParams is a structure of application parameters
 type RunParams struct {
-	Tenant               string
-	LakeHostname         string
-	RootStorage          string
-	Log                  string
-	LogLevel             string
-	JournalSaturation    int
+	// Tenant represent tenant of given vault
+	Tenant string
+	// LakeHostname represent hostname of openbank lake service
+	LakeHostname string
+	// RootStorage gives where to store journals
+	RootStorage string
+	// Log represents log output
+	Log string
+	// LogLevel ignorecase log level
+	LogLevel string
+	// JournalSaturation represents number of events needed in account to consider
+	// account snapshot in given version to be saturated
+	JournalSaturation int
+	// SnapshotScanInterval represents backoff between scan for saturated
+	// snapshots
 	SnapshotScanInterval time.Duration
-	MetricsRefreshRate   time.Duration
-	MetricsOutput        string
+	// MetricsRefreshRate represents interval in which in memory metrics should
+	// be persisted to disk
+	MetricsRefreshRate time.Duration
+	// MetricsOutput represents output file for metrics persistence
+	MetricsOutput string
 }

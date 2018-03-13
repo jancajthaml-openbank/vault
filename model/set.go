@@ -69,5 +69,3 @@ func (set *TransactionSet) WriteTo(buffer *bytes.Buffer) {
 
 	return
 }
-
-// FIXME implement readFrom
