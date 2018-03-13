@@ -221,7 +221,7 @@ func (system *ActorSystem) SpawnAccountActor(params utils.RunParams, m *metrics.
 		return ""
 	}
 
-	envelope := NewAccountEnvelope(path)
+	envelope := NewActor(path)
 	err := system.RegisterActor(envelope, nilAccount(params, m, system))
 	if err != nil {
 		log.Warnf("%s ~ Spawning Actor Error unable to register", path)

@@ -30,12 +30,14 @@ type actor struct {
 	State    model.Snapshot
 }
 
+// Coordinates represents actor namespace
 type Coordinates struct {
 	Name   string
 	Region string
 }
 
-func NewAccountEnvelope(name string) *actor {
+// NewActor returns new actor instance
+func NewActor(name string) *actor {
 	ref := new(actor)
 	ref.Name = name
 	ref.dataChan = make(chan Context, 64) // FIXME make buffer from params
@@ -44,6 +46,7 @@ func NewAccountEnvelope(name string) *actor {
 	return ref
 }
 
+// Tell queues message to actor
 func (ref *actor) Tell(data interface{}, sender Coordinates) error {
 	if ref == nil {
 		log.Warnf("actor reference %v not found", ref)
@@ -54,6 +57,7 @@ func (ref *actor) Tell(data interface{}, sender Coordinates) error {
 	return nil
 }
 
+// Become transforms actor behaviour for next message
 func (ref *actor) Become(state model.Snapshot, meta model.Account, f func(model.Snapshot, model.Account, Context)) error {
 	if ref == nil {
 		log.Warnf("actor reference %v not found", ref)
@@ -74,6 +78,7 @@ func (ref *actor) react(f func(model.Snapshot, model.Account, Context)) *actor {
 	return ref
 }
 
+// Receive dequeues message to actor
 func (ref *actor) Receive(message Context) {
 	if ref.receive == nil {
 		return
