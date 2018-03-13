@@ -1,8 +1,8 @@
 package metrics
 
 import (
+	"encoding/json"
 	"os"
-	"strconv"
 	"sync"
 	"time"
 
@@ -12,6 +12,17 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Metrics holds metrics snapshot status
+type MetricsSnapshot struct {
+	SnapshotCronLatency float64 `json:"snapshotCronLatency"`
+	UpdatedSnapshots    int64   `json:"updatedSnapshots"`
+	CreatedAccounts     int64   `json:"createdAccounts"`
+	PromisesAccepted    int64   `json:"promisesAccepted"`
+	CommitsAccepted     int64   `json:"commitsAccepted"`
+	RollbacksAccepted   int64   `json:"rollbacksAccepted"`
+}
+
+// Metrics holds metrics counters
 type Metrics struct {
 	promisesAccepted    gom.Counter
 	commitsAccepted     gom.Counter
@@ -21,6 +32,7 @@ type Metrics struct {
 	snapshotCronLatency gom.Timer
 }
 
+// NewMetrics returns blank metrics holder
 func NewMetrics() *Metrics {
 	return &Metrics{
 		promisesAccepted:    gom.NewCounter(),
@@ -32,43 +44,54 @@ func NewMetrics() *Metrics {
 	}
 }
 
-func (gom *Metrics) TimeUpdateSaturatedSnapshots(f func()) {
-	gom.snapshotCronLatency.Time(f)
+// MetricsSnapshot returns metrics snapshot
+func NewMetricsSnapshot(entity *Metrics) MetricsSnapshot {
+	if entity == nil {
+		return MetricsSnapshot{}
+	}
+
+	return MetricsSnapshot{
+		SnapshotCronLatency: entity.snapshotCronLatency.Percentile(0.95),
+		UpdatedSnapshots:    entity.updatedSnapshots.Count(),
+		CreatedAccounts:     entity.createdAccounts.Count(),
+		PromisesAccepted:    entity.promisesAccepted.Count(),
+		CommitsAccepted:     entity.commitsAccepted.Count(),
+		RollbacksAccepted:   entity.rollbacksAccepted.Count(),
+	}
 }
 
-func (gom *Metrics) SnapshotsUpdated(num int64) {
-	gom.updatedSnapshots.Mark(num)
+func (entity *Metrics) TimeUpdateSaturatedSnapshots(f func()) {
+	entity.snapshotCronLatency.Time(f)
 }
 
-func (gom *Metrics) AccountCreated() {
-	gom.createdAccounts.Inc(1)
+func (entity *Metrics) SnapshotsUpdated(num int64) {
+	entity.updatedSnapshots.Mark(num)
 }
 
-func (gom *Metrics) PromiseAccepted() {
-	gom.promisesAccepted.Inc(1)
+func (entity *Metrics) AccountCreated() {
+	entity.createdAccounts.Inc(1)
 }
 
-func (gom *Metrics) CommitAccepted() {
-	gom.commitsAccepted.Inc(1)
+func (entity *Metrics) PromiseAccepted() {
+	entity.promisesAccepted.Inc(1)
 }
 
-func (gom *Metrics) RollbackAccepted() {
-	gom.rollbacksAccepted.Inc(1)
+func (entity *Metrics) CommitAccepted() {
+	entity.commitsAccepted.Inc(1)
 }
 
-func (gom *Metrics) serialize() string {
-	return "{\"CRON-SNAPSHOT-LATENCY-PCT-95\":" + strconv.FormatFloat(gom.snapshotCronLatency.Percentile(0.95), 'f', -1, 64) +
-		",\"CRON-SNAPSHOTS-UPDATED\":" + strconv.FormatInt(gom.updatedSnapshots.Count(), 10) +
-		",\"ACCOUNTS-CREATED\":" + strconv.FormatInt(gom.createdAccounts.Count(), 10) +
-		",\"PROMISES-ACCEPTED\":" + strconv.FormatInt(gom.promisesAccepted.Count(), 10) +
-		",\"COMMITS-ACCEPTED\":" + strconv.FormatInt(gom.commitsAccepted.Count(), 10) +
-		",\"ROLLBACKS-ACCEPTED\":" + strconv.FormatInt(gom.rollbacksAccepted.Count(), 10) +
-		"}"
+func (entity *Metrics) RollbackAccepted() {
+	entity.rollbacksAccepted.Inc(1)
 }
 
-func (gom *Metrics) persist(filename string) {
+func (entity *Metrics) persist(filename string) {
 	tempFile := filename + "_temp"
-	data := []byte(gom.serialize())
+
+	data, err := json.Marshal(NewMetricsSnapshot(entity))
+	if err != nil {
+		log.Warnf("unable to create serialize metrics with error: %v", err)
+		return
+	}
 	f, err := os.OpenFile(tempFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.ModePerm)
 	if err != nil {
 		log.Warnf("unable to create file with error: %v", err)
@@ -90,6 +113,7 @@ func (gom *Metrics) persist(filename string) {
 	return
 }
 
+// PersistMetrics stores metrics holded in memory periodically to disk
 func PersistMetrics(wg *sync.WaitGroup, terminationChan chan struct{}, params utils.RunParams, data *Metrics) {
 	defer wg.Done()
 

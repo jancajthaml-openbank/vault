@@ -1,4 +1,7 @@
-required = ["github.com/pebbe/zmq4", "github.com/sirupsen/logrus"]
+required = [
+  "github.com/pebbe/zmq4",
+  "github.com/sirupsen/logrus"
+]
 
 [[constraint]]
   branch = "master"
