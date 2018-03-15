@@ -1,6 +1,38 @@
 version: 2
 
+################################################################################
+
+workflows:
+
+  version: 2
+
+  commit:
+    jobs:
+      - test
+      - build
+      - package:
+          requires:
+            - build
+      - bbtest:
+          requires:
+            - package
+
+  rolling:
+    triggers:
+      - schedule:
+          cron: "0,5,10,15,20,25,30,35,40,45,50,55 * * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - bbtest
+
+################################################################################
+
 jobs:
+
+  ##############################################################################
 
   test:
     docker:
@@ -18,6 +50,7 @@ jobs:
           - DIST: /go/src/github.com/jancajthaml-openbank/vault/bin
 
     working_directory: /go/src/github.com/jancajthaml-openbank/vault
+
     steps:
       - checkout
 
@@ -57,6 +90,8 @@ jobs:
           name: Unit test
           command: |
             ${LD_LIBRARY_PATH}/go/bin/go test -v ./... -benchmem -bench=. -timeout=20s
+
+  ##############################################################################
 
   build:
     docker:
@@ -147,6 +182,8 @@ jobs:
           paths:
             - vault
 
+  ##############################################################################
+
   package:
     docker:
       - image: docker:17.09.0-ce-git
@@ -203,6 +240,8 @@ jobs:
               echo "pushed openbank/vault:${VERSION}"
             fi
 
+  ##############################################################################
+
   bbtest:
     machine: true
     environment:
@@ -214,6 +253,25 @@ jobs:
       - checkout
 
       - run:
+          name: Prepare blackbox tests
+          command: |
+
+            if git log -1 --pretty=%B | grep "[v?][0-9]\+\.[0-9]\+\.[0-9]\+" ; then
+              VERSION=$(git tag | grep "[v?][0-9]\+\.[0-9]\+\.[0-9]\+" | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1 | sed 's/\v//g')
+            else
+              VERSION=$(git rev-parse --abbrev-ref HEAD 2> /dev/null | sed 's:.*/::')
+            fi
+
+            pull() {
+              echo "pulling openbank/${1}:${VERSION}"
+              docker pull openbank/${1}:${VERSION}
+            }
+
+            pull vault
+
+            (docker rm -f $(docker-compose ps -q) 2> /dev/null || :) &> /dev/null
+
+      - run:
           name: Run blackbox tests
           command: |
             if git log -1 --pretty=%B | grep "[v?][0-9]\+\.[0-9]\+\.[0-9]\+" ; then
@@ -222,31 +280,14 @@ jobs:
               VERSION=$(git rev-parse --abbrev-ref HEAD 2> /dev/null | sed 's:.*/::')
             fi
 
-            echo "pulling openbank/vault:${VERSION}"
-            docker pull openbank/vault:${VERSION}
-
-            echo "[info] stopping older runs"
-            (docker rm -f $(docker-compose ps -q) 2> /dev/null || :) &> /dev/null
-            echo "[info] running bbtest"
             VERSION=${VERSION} docker-compose run --rm bbtest
-            echo "[info] stopping runs"
-            (docker rm -f $(docker-compose ps -q) 2> /dev/null || :) &> /dev/null
-            (docker rm -f $(docker ps -aqf "name=bbtest") || :) &> /dev/null
 
       - store_artifacts:
           path: /home/circleci/project/reports
           destination: reports
 
-workflows:
-  version: 2
-  test_contract:
-    jobs:
-      - test
-      - build
-      - package:
-          requires:
-            - build
-      - bbtest:
-          requires:
-            - package
-
+      - run:
+          name: Teardown blackbox tests
+          command: |
+            (docker rm -f $(docker-compose ps -q) 2> /dev/null || :) &> /dev/null
+            (docker rm -f $(docker ps -aqf "name=bbtest") || :) &> /dev/null
