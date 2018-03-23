@@ -14,11 +14,10 @@
 
 FROM library/ruby:2
 
-MAINTAINER Jan Cajthaml <jan.cajthaml@gmail.com>
-
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         netcat-openbsd \
+        ca-certificates \
         bsdmainutils \
         libzmq3-dev && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
