@@ -1,12 +1,16 @@
 version: '2'
 
+# ---------------------------------------------------------------------------- #
+
 services:
+
+  # -------------------------------------------------------------------------- #
 
   go:
     build:
       dockerfile: dev/Dockerfile
       context: .
-    image: dev_vault
+    image: openbankdev/vault_base
     volumes:
       - ./dev/lifecycle:/opt/lifecycle
       - .:/go/src/github.com/jancajthaml-openbank/vault
@@ -18,6 +22,8 @@ services:
       - COMPOSE_PROJECT_NAME
     entrypoint: ["go"]
     privileged: true
+
+  # -------------------------------------------------------------------------- #
 
   service:
     build:
@@ -32,37 +38,53 @@ services:
       - VAULT_METRICS_REFRESHRATE=1s
       - VAULT_METRICS_OUTPUT=/reports/vault_test.json
 
+  # -------------------------------------------------------------------------- #
+
   sync:
     extends: go
     entrypoint: ["dep"]
     command: ["ensure"]
+
+  # -------------------------------------------------------------------------- #
 
   init:
     extends: go
     entrypoint: ["dep"]
     command: ["init"]
 
+  # -------------------------------------------------------------------------- #
+
   update:
     extends: go
     entrypoint: ["dep"]
     command: ["ensure", "-update"]
+
+  # -------------------------------------------------------------------------- #
 
   fetch:
     extends: go
     entrypoint: ["dep"]
     command: ["ensure", "-add", "github.com/stretchr/testify"]
 
+  # -------------------------------------------------------------------------- #
+
   lint:
     extends: go
     entrypoint: ["/opt/lifecycle/lint"]
+
+  # -------------------------------------------------------------------------- #
 
   package:
     extends: go
     entrypoint: ["/opt/lifecycle/package"]
 
+  # -------------------------------------------------------------------------- #
+
   test:
     extends: go
     command: ["test", "-v", "./...", "-timeout=20s"]
+
+  # -------------------------------------------------------------------------- #
 
   bench:
     extends: go
@@ -70,11 +92,13 @@ services:
       - GOMAXPROCS=1
     command: ["test", "-v", "./...", "-benchmem", "-bench=.", "-timeout=20s"]
 
+  # -------------------------------------------------------------------------- #
+
   bbtest:
     build:
       context: .
       dockerfile: bbtest/Dockerfile
-    image: vault_bbtest
+    image: openbankdev/vault_bbtest
     ports:
       - "5562"
       - "5561"
@@ -90,6 +114,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - /var/lib/docker/containers:/var/lib/docker/containers
 
+# ---------------------------------------------------------------------------- #
+
 volumes:
   journal:
     driver: local
+
+# ---------------------------------------------------------------------------- #
