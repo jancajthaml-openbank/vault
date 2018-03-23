@@ -226,7 +226,7 @@ jobs:
 
             pull() {
               echo "pulling ${1}:${2}"
-              docker pull ${1}:${2
+              docker pull ${1}:${2}
             }
 
             pull openbank/vault ${VERSION} & \
