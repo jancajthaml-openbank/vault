@@ -10,15 +10,15 @@ step "tenant is :tenant" do |tenant|
 end
 
 step "no vaults are running" do ||
+  raise "openbank/vault:#{ENV.fetch("VERSION", "latest")} image not found" if %x(docker images -q openbank/vault:#{ENV.fetch("VERSION", "latest")} 2> /dev/null).strip.empty?
+
   containers = %x(docker ps -a | awk '{ print $1,$2 }' | grep openbank/vault | awk '{print $1 }' 2>/dev/null)
   containers = ($? == 0 ? containers.split("\n") : []).map(&:strip).reject(&:empty?)
 
   containers.each { |id|
     eventually(timeout: 3) {
       %x(docker kill --signal="TERM" #{id} >/dev/null 2>&1)
-      container_state = %x(docker inspect -f {{.State.Running}} #{id} 2>/dev/null)
-      expect($?).to be_success
-      expect(container_state.strip).to eq("false")
+      send ":container running state is :state", id, false
 
       label = %x(docker inspect --format='{{.Name}}' #{id})
       label = ($? == 0 ? label.strip : id)
@@ -35,16 +35,10 @@ step "vault is restarted" do ||
 
   containers.split("\n").map(&:strip).reject(&:empty?).each { |id|
     eventually(timeout: 3) {
-      %x(docker stop #{id} >/dev/null 2>&1)
-      container_state = %x(docker inspect -f {{.State.Running}} #{id} 2>/dev/null)
-      expect($?).to be_success
-      expect(container_state.strip).to eq("false")
+      send ":container running state is :state", id, false
     }
     eventually(timeout: 3) {
-      %x(docker start #{id} >/dev/null 2>&1)
-      container_state = %x(docker inspect -f {{.State.Running}} #{id} 2>/dev/null)
-      expect($?).to be_success
-      expect(container_state.strip).to eq("true")
+      send ":container running state is :state", id, true
     }
   }
   remote_handshake($tenant_id)
@@ -59,6 +53,7 @@ step "vault is started" do ||
     -h vault \
     -e VAULT_STORAGE=/data \
     -e VAULT_LOG_LEVEL=DEBUG \
+    -e VAULT_HTTP_PORT=8080 \
     -e VAULT_TENANT=#{$tenant_id} \
     -e VAULT_JOURNAL_SATURATION=1 \
     -e VAULT_SNAPSHOT_SCANINTERVAL=1s \
@@ -66,6 +61,7 @@ step "vault is started" do ||
     -e VAULT_METRICS_REFRESHRATE=1s \
     -e VAULT_METRICS_OUTPUT=/reports/metrics_#{$tenant_id}.json \
     -v #{ENV["COMPOSE_PROJECT_NAME"]}_journal:/data \
+    --net-alias=vault \
     --net=vault_default \
     --volumes-from=#{my_id} \
     --name=vault_#{$tenant_id} \
@@ -73,10 +69,22 @@ step "vault is started" do ||
   expect($?).to be_success, id
 
   eventually(timeout: 3) {
-    container_state = %x(docker inspect -f {{.State.Running}} #{id} 2>/dev/null)
-    expect($?).to be_success
-    expect(container_state.strip).to eq("true")
+    send ":container running state is :state", id, true
   }
 
   remote_handshake($tenant_id)
+
+  eventually(timeout: 4) {
+    resp = $http_client.vault.health_check()
+    expect(resp.status).to eq(200)
+  }
+end
+
+step ":container running state is :state" do |container, state|
+  eventually(timeout: 3) {
+    %x(docker #{state ? "start" : "stop"} #{container} >/dev/null 2>&1)
+    container_state = %x(docker inspect -f {{.State.Running}} #{container} 2>/dev/null)
+    expect($?).to be_success
+    expect(container_state.strip).to eq(state ? "true" : "false")
+  }
 end

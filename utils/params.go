@@ -28,6 +28,8 @@ type RunParams struct {
 	Log string
 	// LogLevel ignorecase log level
 	LogLevel string
+	// HTTPPort represents where http api is exposed
+	HTTPPort int
 	// JournalSaturation represents number of events needed in account to consider
 	// account snapshot in given version to be saturated
 	JournalSaturation int
