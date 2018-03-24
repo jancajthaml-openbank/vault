@@ -16,12 +16,16 @@ package main
 
 import (
 	"bufio"
+	"context"
+	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"strings"
 	"sync"
 	"syscall"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -31,6 +35,8 @@ import (
 	"github.com/jancajthaml-openbank/vault/cron"
 	"github.com/jancajthaml-openbank/vault/metrics"
 	"github.com/jancajthaml-openbank/vault/utils"
+
+	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -69,6 +75,7 @@ func init() {
 	viper.AutomaticEnv()
 
 	viper.SetDefault("log.level", "DEBUG")
+	viper.SetDefault("http.port", 8080)
 	viper.SetDefault("storage", "/data")
 	viper.SetDefault("journal.saturation", 100)
 	viper.SetDefault("snasphot.scaninteval", "1m")
@@ -104,6 +111,7 @@ func main() {
 		JournalSaturation:    viper.GetInt("journal.saturation"),
 		Log:                  viper.GetString("log"),
 		LogLevel:             viper.GetString("log.level"),
+		HTTPPort:             viper.GetInt("http.port"),
 		SnapshotScanInterval: viper.GetDuration("snasphot.scaninteval"),
 		MetricsRefreshRate:   viper.GetDuration("metrics.refreshrate"),
 		MetricsOutput:        viper.GetString("metrics.output"),
@@ -120,9 +128,32 @@ func main() {
 
 	// FIXME separate into its own go routine to be stopable
 	m := metrics.NewMetrics()
+
+	gin.SetMode(gin.ReleaseMode)
+
 	system := new(actor.ActorSystem)
 	system.Start(params, m) // FIXME if there is no lake, application is stuck here
+
 	// FIXME check if nil if so then return
+	router := gin.New()
+
+	router.GET("/health", func(c *gin.Context) {
+		c.String(200, "")
+	})
+
+	exitSignal := make(chan os.Signal, 1)
+	signal.Notify(exitSignal, syscall.SIGINT, syscall.SIGTERM)
+
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%d", params.HTTPPort),
+		Handler: router,
+	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			exitSignal <- syscall.SIGTERM
+		}
+	}()
 
 	var wg sync.WaitGroup
 	terminationChan := make(chan struct{})
@@ -133,13 +164,17 @@ func main() {
 
 	log.Infof(">>> Started <<<")
 
-	exitSignal := make(chan os.Signal, 1)
-	signal.Notify(exitSignal, syscall.SIGINT, syscall.SIGTERM)
 	<-exitSignal
 
 	log.Infof(">>> Terminating <<<")
-	close(terminationChan)
 	system.Stop()
+	close(terminationChan)
 	wg.Wait()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatal("Server Shutdown:", err)
+	}
+
 	log.Infof(">>> Terminated <<<")
 }

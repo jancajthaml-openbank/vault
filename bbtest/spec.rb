@@ -22,6 +22,8 @@ RSpec.configure do |config|
 
     ZMQHelper.start()
 
+    $http_client = HTTPClient.new()
+
     ["/data", "/reports"].each { |folder|
       FileUtils.mkdir_p folder
       FileUtils.rm_rf Dir.glob("#{folder}/*")
