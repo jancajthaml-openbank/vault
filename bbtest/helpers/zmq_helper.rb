@@ -33,17 +33,20 @@ module ZMQHelper
   end
 
   def self.stop
-    self.pull_daemon.exit() unless self.pull_daemon.nil?
+    begin
+      self.pull_daemon.exit() unless self.pull_daemon.nil?
 
-    self.pub_channel.close() unless self.pub_channel.nil?
-    self.pull_channel.close() unless self.pull_channel.nil?
+      self.pub_channel.close() unless self.pub_channel.nil?
+      self.pull_channel.close() unless self.pull_channel.nil?
 
-    self.ctx.terminate() unless self.ctx.nil?
-
-    self.pull_daemon = nil
-    self.ctx = nil
-    self.pull_channel = nil
-    self.pub_channel = nil
+      self.ctx.terminate() unless self.ctx.nil?
+    rescue => _
+    ensure
+      self.pull_daemon = nil
+      self.ctx = nil
+      self.pull_channel = nil
+      self.pub_channel = nil
+    end
   end
 
   def ack_remote_message data
@@ -82,6 +85,7 @@ module ZMQHelper
   end
 
   def self.send data
+    return if self.pub_channel.nil?
     self.pub_channel.send_string(data)
   end
 
@@ -90,3 +94,9 @@ module ZMQHelper
   } end
 
 end
+
+
+
+
+
+

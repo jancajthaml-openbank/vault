@@ -9,82 +9,138 @@ step "tenant is :tenant" do |tenant|
   $tenant_id = tenant
 end
 
-step "no vaults are running" do ||
-  raise "openbank/vault:#{ENV.fetch("VERSION", "latest")} image not found" if %x(docker images -q openbank/vault:#{ENV.fetch("VERSION", "latest")} 2> /dev/null).strip.empty?
+step "no :container :label is running" do |container, label|
 
-  containers = %x(docker ps -a | awk '{ print $1,$2 }' | grep openbank/vault | awk '{print $1 }' 2>/dev/null)
-  containers = ($? == 0 ? containers.split("\n") : []).map(&:strip).reject(&:empty?)
+  containers = %x(docker ps -a -f name=#{label} | awk '{ print $1,$2 }' | grep #{container} | awk '{print $1 }' 2>/dev/null)
+  expect($?).to be_success
 
-  containers.each { |id|
+  ids = containers.split("\n").map(&:strip).reject(&:empty?)
+
+  return if ids.empty?
+
+  ids.each { |id|
     eventually(timeout: 3) {
-      %x(docker kill --signal="TERM" #{id} >/dev/null 2>&1)
+      puts "wanting to kill #{id}"
       send ":container running state is :state", id, false
 
       label = %x(docker inspect --format='{{.Name}}' #{id})
       label = ($? == 0 ? label.strip : id)
 
-      %x(docker logs #{id} >/reports/#{label}.log 2>&1)
+      %x(docker logs #{id} >/reports#{label}.log 2>&1)
       %x(docker rm -f #{id} &>/dev/null || :)
     }
   }
 end
 
-step "vault is restarted" do ||
-  containers = %x(docker ps -a | awk '{ print $1,$2 }' | grep vault_#{$tenant_id} | awk '{print $1 }' 2>/dev/null)
-  expect($?).to be_success
-
-  containers.split("\n").map(&:strip).reject(&:empty?).each { |id|
-    eventually(timeout: 3) {
-      send ":container running state is :state", id, false
-    }
-    eventually(timeout: 3) {
-      send ":container running state is :state", id, true
-    }
-  }
-  remote_handshake($tenant_id)
-end
-
-step "vault is started" do ||
-  send "no vaults are running"
-
-  my_id = %x(cat /etc/hostname).strip
-  id = %x(docker run \
-    -d \
-    -h vault \
-    -e VAULT_STORAGE=/data \
-    -e VAULT_LOG_LEVEL=DEBUG \
-    -e VAULT_HTTP_PORT=8080 \
-    -e VAULT_TENANT=#{$tenant_id} \
-    -e VAULT_JOURNAL_SATURATION=1 \
-    -e VAULT_SNAPSHOT_SCANINTERVAL=1s \
-    -e VAULT_LAKE_HOSTNAME=#{my_id} \
-    -e VAULT_METRICS_REFRESHRATE=1s \
-    -e VAULT_METRICS_OUTPUT=/reports/metrics_#{$tenant_id}.json \
-    -v #{ENV["COMPOSE_PROJECT_NAME"]}_journal:/data \
-    --net-alias=vault \
-    --net=vault_default \
-    --volumes-from=#{my_id} \
-    --name=vault_#{$tenant_id} \
-  openbank/vault:#{ENV.fetch("VERSION", "latest")} 2>&1)
-  expect($?).to be_success, id
-
-  eventually(timeout: 3) {
-    send ":container running state is :state", id, true
-  }
-
-  remote_handshake($tenant_id)
-
-  eventually(timeout: 4) {
-    resp = $http_client.vault.health_check()
-    expect(resp.status).to eq(200)
-  }
-end
-
 step ":container running state is :state" do |container, state|
-  eventually(timeout: 3) {
+  eventually(timeout: 5) {
     %x(docker #{state ? "start" : "stop"} #{container} >/dev/null 2>&1)
     container_state = %x(docker inspect -f {{.State.Running}} #{container} 2>/dev/null)
     expect($?).to be_success
     expect(container_state.strip).to eq(state ? "true" : "false")
   }
+end
+
+
+step "single container :label is restarted" do |label|
+  containers = %x(docker ps -a -f status=running -f name=#{label} | awk '{ print $1 }' | sed 1,1d)
+  expect($?).to be_success
+  containers = containers.split("\n").map(&:strip).reject(&:empty?)
+
+  return if containers.empty?
+
+  id = containers[0]
+
+  eventually(timeout: 10) {
+    send ":container running state is :state", id, false
+  }
+  eventually(timeout: 10) {
+    send ":container running state is :state", id, true
+  }
+end
+
+step ":container :version is started with" do |container, version, label, params|
+  containers = %x(docker ps -a -f status=running -f name=#{label} | awk '{ print $1,$2 }' | sed 1,1d)
+  expect($?).to be_success
+  containers = containers.split("\n").map(&:strip).reject(&:empty?)
+
+  unless containers.empty?
+    id, image = containers[0].split(" ")
+    return if (image == "#{container}:#{version}")
+  end
+
+  send "no :container :label is running", container, label
+
+  prefix = ENV.fetch('COMPOSE_PROJECT_NAME', "")
+  my_id = %x(cat /etc/hostname).strip
+  args = [
+    "docker",
+    "run",
+    "-d",
+    "--net=#{prefix}_default",
+    "--volumes-from=#{my_id}",
+    "--log-driver=json-file",
+    "-h #{label}",
+    "--net-alias=#{label}",
+    "--name=#{label}"
+  ] << params << [
+    "#{container}:#{version}",
+    "2>&1"
+  ]
+
+  id = %x(#{args.join(" ")})
+  expect($?).to be_success, id
+
+  eventually(timeout: 10) {
+    send ":container running state is :state", id, true
+  }
+end
+
+step "vault is restarted" do ||
+  send "single container :label is restarted", "vault_#{$tenant_id}"
+  remote_handshake($tenant_id)
+end
+
+step "vault is running" do ||
+  my_id = %x(cat /etc/hostname).strip
+  send ":container :version is started with", "openbank/vault", ENV.fetch("VERSION", "latest"), "vault_#{$tenant_id}", [
+    "-e VAULT_STORAGE=/data",
+    "-e VAULT_LOG_LEVEL=DEBUG",
+    "-e VAULT_HTTP_PORT=8080",
+    "-e VAULT_TENANT=#{$tenant_id}",
+    "-e VAULT_JOURNAL_SATURATION=100",
+    "-e VAULT_SNAPSHOT_SCANINTERVAL=120s",
+    "-e VAULT_LAKE_HOSTNAME=#{my_id}",
+    "-e VAULT_METRICS_REFRESHRATE=1s",
+    "-e VAULT_METRICS_OUTPUT=/metrics/vault_#{$tenant_id}_metrics.json",
+    "-v #{ENV["COMPOSE_PROJECT_NAME"]}_journal:/data",
+    "-v #{ENV["COMPOSE_PROJECT_NAME"]}_metrics:/metrics",
+    "-p 8080"
+  ]
+
+  remote_handshake($tenant_id)
+
+  eventually(timeout: 10) {
+    send ":host is healthy", "vault"
+  }
+end
+
+step ":host is listening on :port" do |host, port|
+  eventually(timeout: 3) {
+    %x(nc -z #{host} #{port} 2> /dev/null)
+    expect($?).to be_success
+  }
+end
+
+step ":host is healthy" do |host|
+  case host
+  when "vault"
+    resp = $http_client.vault.health_check()
+    expect(resp.status).to eq(200)
+  when "lake"
+    resp = $http_client.lake.health_check()
+    expect(resp.status).to eq(200)
+  else
+    raise "unknown host #{host}"
+  end
 end
