@@ -108,8 +108,9 @@ services:
       - COMPOSE_PROJECT_NAME
       - VERSION
     volumes:
-      - journal:/data
       - ./reports:/reports
+      - journal:/data
+      - metrics:/metrics
       - ./bbtest:/opt/bbtest
       - /var/run/docker.sock:/var/run/docker.sock
       - /var/lib/docker/containers:/var/lib/docker/containers
@@ -118,6 +119,8 @@ services:
 
 volumes:
   journal:
+    driver: local
+  metrics:
     driver: local
 
 # ---------------------------------------------------------------------------- #

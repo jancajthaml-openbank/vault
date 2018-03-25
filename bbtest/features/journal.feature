@@ -2,8 +2,8 @@ Feature: Persistent journal
 
   Scenario: create account
     Given tenant is random
-    And no vaults are running
-    And vault is started
+    And vault is running
+
     And pasive EUR account Euro is created
     Then snapshot Euro version 0 should be
     """

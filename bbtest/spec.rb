@@ -17,6 +17,11 @@ RSpec.configure do |config|
   config.before(:suite) do |_|
     print "[ suite starting ]\n"
 
+    ["/data", "/metrics", "/reports"].each { |folder|
+      FileUtils.mkdir_p folder
+      FileUtils.rm_rf Dir.glob("#{folder}/*")
+    }
+
     $vault_instance_counter = 0
     $tenant_id = nil
 
@@ -24,10 +29,6 @@ RSpec.configure do |config|
 
     $http_client = HTTPClient.new()
 
-    ["/data", "/reports"].each { |folder|
-      FileUtils.mkdir_p folder
-      FileUtils.rm_rf Dir.glob("#{folder}/*")
-    }
 
     print "[ suite started  ]\n"
   end
@@ -35,7 +36,6 @@ RSpec.configure do |config|
   config.after(:suite) do |_|
     print "\n[ suite ending   ]\n"
 
-    ZMQHelper.stop()
 
     get_containers = lambda do |image|
       containers = %x(docker ps -a | awk '{ print $1,$2 }' | grep #{image} | awk '{print $1 }' 2>/dev/null)
@@ -53,7 +53,13 @@ RSpec.configure do |config|
 
     get_containers.call("openbank/vault").each { |container| teardown_container.call(container) }
 
-    FileUtils.rm_rf Dir.glob("/data/*")
+    ZMQHelper.stop()
+
+    #FileUtils.rm_rf Dir.glob("/data/*")
+    FileUtils.cp_r '/metrics/.', '/reports'
+    ["/data", "/metrics"].each { |folder|
+      FileUtils.rm_rf Dir.glob("#{folder}/*")
+    }
 
     print "[ suite ended    ]"
   end

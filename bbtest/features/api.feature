@@ -2,8 +2,7 @@ Feature: Remote API
 
   Scenario: setup
     Given tenant is random
-    And no vaults are running
-    And vault is started
+    And vault is running
 
   Scenario: create account
     When vault receives "account_name_1 req_id_1 NA EUR f"
