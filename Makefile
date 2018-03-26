@@ -1,6 +1,5 @@
 VERSION = $$(git rev-parse --abbrev-ref HEAD 2> /dev/null | rev | cut -d/ -f1 | rev)
 CORES := $$(getconf _NPROCESSORS_ONLN)
-MACOSX_DEPLOYMENT_TARGET := $$(sw_vers -productVersion)
 
 .PHONY: all
 all: bootstrap package test
@@ -55,7 +54,6 @@ bbtest:
 package:
 	\
 	VERSION=$(VERSION) \
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
 	\
 	docker-compose run --rm package
 	docker-compose build service

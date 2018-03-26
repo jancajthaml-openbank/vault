@@ -16,8 +16,18 @@ package utils
 
 import "time"
 
-// RunParams is a structure of application parameters
+// RunParams is a structure of all configurable application parameters
 type RunParams struct {
+	//Journal reprensents setup parameters
+	Setup SetupParams
+	//Journal reprensents journal parameters
+	Journal JournalParams
+	//Metrics reprensents metrics parameters
+	Metrics MetricsParams
+}
+
+// SetupParams is a structure of application setup parameters
+type SetupParams struct {
 	// Tenant represent tenant of given vault
 	Tenant string
 	// LakeHostname represent hostname of openbank lake service
@@ -30,15 +40,23 @@ type RunParams struct {
 	LogLevel string
 	// HTTPPort represents where http api is exposed
 	HTTPPort int
+}
+
+// MetricsParams is a structure of application metrics parameters
+type MetricsParams struct {
+	// RefreshRate represents interval in which in memory metrics should be
+	// persisted to disk
+	RefreshRate time.Duration
+	// Output represents output file for metrics persistence
+	Output string
+}
+
+// JournalParams is a structure of application journal parameters
+type JournalParams struct {
 	// JournalSaturation represents number of events needed in account to consider
 	// account snapshot in given version to be saturated
 	JournalSaturation int
 	// SnapshotScanInterval represents backoff between scan for saturated
 	// snapshots
 	SnapshotScanInterval time.Duration
-	// MetricsRefreshRate represents interval in which in memory metrics should
-	// be persisted to disk
-	MetricsRefreshRate time.Duration
-	// MetricsOutput represents output file for metrics persistence
-	MetricsOutput string
 }

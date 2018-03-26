@@ -32,12 +32,12 @@ func (system *ActorSystem) Start(params utils.RunParams, m *metrics.Metrics) {
 		return
 	}
 
-	name := "Vault/" + params.Tenant
+	name := "Vault/" + params.Setup.Tenant
 
 	log.Infof("ActorSystem Starting - %v", name)
 
 	system.Name = name
-	system.Client = queue.NewZMQClient(name, params.LakeHostname)
+	system.Client = queue.NewZMQClient(name, params.Setup.LakeHostname)
 
 	go system.sourceRemoteMessages(params, m)
 

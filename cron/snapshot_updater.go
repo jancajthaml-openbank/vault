@@ -26,7 +26,7 @@ func updateSaturated(params utils.RunParams, m *metrics.Metrics, callback satura
 		if version == -1 {
 			continue
 		}
-		if getEvents(params, name, version) >= params.JournalSaturation {
+		if getEvents(params, name, version) >= params.Journal.JournalSaturation {
 			updateAccount(params, m, name, version, version+1, callback)
 			numberOfSnapshotsUpdated++
 		}
@@ -67,7 +67,7 @@ func getEvents(params utils.RunParams, name string, version int) int {
 func SnapshotSaturationScan(wg *sync.WaitGroup, terminationChan chan struct{}, params utils.RunParams, m *metrics.Metrics, callback saturationCallback) {
 	defer wg.Done()
 
-	ticker := time.NewTicker(params.SnapshotScanInterval)
+	ticker := time.NewTicker(params.Journal.SnapshotScanInterval)
 	defer ticker.Stop()
 
 	for {

@@ -18,32 +18,32 @@ import "strconv"
 
 // AccountsPath returns filepath for accounts
 func AccountsPath(params RunParams) string {
-	return params.RootStorage + "/account"
+	return params.Setup.RootStorage + "/account"
 }
 
 // EventsPath returns filepath for events
 func EventsPath(params RunParams, name string) string {
-	return params.RootStorage + "/account/" + name + "/events"
+	return params.Setup.RootStorage + "/account/" + name + "/events"
 }
 
 // SnapshotsPath returns filepath for snapshots
 func SnapshotsPath(params RunParams, name string) string {
-	return params.RootStorage + "/account/" + name + "/snapshot"
+	return params.Setup.RootStorage + "/account/" + name + "/snapshot"
 }
 
 // EventPath returns filepath for given event
 func EventPath(params RunParams, name string, version int) string {
 	value := strconv.Itoa(version)
-	return params.RootStorage + "/account/" + name + "/events/" + "0000000000"[0:10-len(value)] + value
+	return params.Setup.RootStorage + "/account/" + name + "/events/" + "0000000000"[0:10-len(value)] + value
 }
 
 // SnapshotPath returns filepath for given snapshot
 func SnapshotPath(params RunParams, name string, version int) string {
 	value := strconv.Itoa(version)
-	return params.RootStorage + "/account/" + name + "/snapshot/" + "0000000000"[0:10-len(value)] + value
+	return params.Setup.RootStorage + "/account/" + name + "/snapshot/" + "0000000000"[0:10-len(value)] + value
 }
 
 // MetadataPath returns filepath for given metadata
 func MetadataPath(params RunParams, name string) string {
-	return params.RootStorage + "/account/" + name + "/meta"
+	return params.Setup.RootStorage + "/account/" + name + "/meta"
 }
