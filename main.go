@@ -45,13 +45,13 @@ var (
 )
 
 func setupLogOutput(params utils.RunParams) {
-	if len(params.Log) == 0 {
+	if len(params.Setup.Log) == 0 {
 		return
 	}
 
-	file, err := os.Create(params.Log)
+	file, err := os.Create(params.Setup.Log)
 	if err != nil {
-		log.Warnf("Unable to create %s: %v", params.Log, err)
+		log.Warnf("Unable to create %s: %v", params.Setup.Log, err)
 		return
 	}
 	defer file.Close()
@@ -60,12 +60,12 @@ func setupLogOutput(params utils.RunParams) {
 }
 
 func setupLogLevel(params utils.RunParams) {
-	level, err := log.ParseLevel(params.LogLevel)
+	level, err := log.ParseLevel(params.Setup.LogLevel)
 	if err != nil {
-		log.Warnf("Invalid log level %v, using level WARN", params.LogLevel)
+		log.Warnf("Invalid log level %v, using level WARN", params.Setup.LogLevel)
 		return
 	}
-	log.Infof("Log level set to %v", strings.ToUpper(params.LogLevel))
+	log.Infof("Log level set to %v", strings.ToUpper(params.Setup.LogLevel))
 	log.SetLevel(level)
 }
 
@@ -83,17 +83,17 @@ func init() {
 }
 
 func validParams(params utils.RunParams) bool {
-	if len(params.Tenant) == 0 || len(params.LakeHostname) == 0 {
+	if len(params.Setup.Tenant) == 0 || len(params.Setup.LakeHostname) == 0 {
 		log.Error("missing required parameter to run")
 		return false
 	}
 
-	if os.MkdirAll(params.RootStorage, os.ModePerm) != nil {
+	if os.MkdirAll(params.Setup.RootStorage, os.ModePerm) != nil {
 		log.Error("unable to assert storage directory")
 		return false
 	}
 
-	if len(params.MetricsOutput) != 0 && os.MkdirAll(filepath.Dir(params.MetricsOutput), os.ModePerm) != nil {
+	if len(params.Metrics.Output) != 0 && os.MkdirAll(filepath.Dir(params.Metrics.Output), os.ModePerm) != nil {
 		log.Error("unable to assert metrics output")
 		return false
 	}
@@ -101,22 +101,31 @@ func validParams(params utils.RunParams) bool {
 	return true
 }
 
+func loadParams() utils.RunParams {
+	return utils.RunParams{
+		Setup: utils.SetupParams{
+			RootStorage:  viper.GetString("storage") + "/" + viper.GetString("tenant"),
+			Tenant:       viper.GetString("tenant"),
+			LakeHostname: viper.GetString("lake.hostname"),
+			Log:          viper.GetString("log"),
+			LogLevel:     viper.GetString("log.level"),
+			HTTPPort:     viper.GetInt("http.port"),
+		},
+		Journal: utils.JournalParams{
+			SnapshotScanInterval: viper.GetDuration("snasphot.scaninteval"),
+			JournalSaturation:    viper.GetInt("journal.saturation"),
+		},
+		Metrics: utils.MetricsParams{
+			RefreshRate: viper.GetDuration("metrics.refreshrate"),
+			Output:      viper.GetString("metrics.output"),
+		},
+	}
+}
+
 func main() {
 	log.Infof(">>> Setup <<<")
 
-	params := utils.RunParams{
-		RootStorage:          viper.GetString("storage") + "/" + viper.GetString("tenant"),
-		Tenant:               viper.GetString("tenant"),
-		LakeHostname:         viper.GetString("lake.hostname"),
-		JournalSaturation:    viper.GetInt("journal.saturation"),
-		Log:                  viper.GetString("log"),
-		LogLevel:             viper.GetString("log.level"),
-		HTTPPort:             viper.GetInt("http.port"),
-		SnapshotScanInterval: viper.GetDuration("snasphot.scaninteval"),
-		MetricsRefreshRate:   viper.GetDuration("metrics.refreshrate"),
-		MetricsOutput:        viper.GetString("metrics.output"),
-	}
-
+	params := loadParams()
 	if !validParams(params) {
 		return
 	}
@@ -145,7 +154,7 @@ func main() {
 	signal.Notify(exitSignal, syscall.SIGINT, syscall.SIGTERM)
 
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", params.HTTPPort),
+		Addr:    fmt.Sprintf(":%d", params.Setup.HTTPPort),
 		Handler: router,
 	}
 

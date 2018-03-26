@@ -123,22 +123,22 @@ func (entity *Metrics) persist(filename string) {
 func PersistMetrics(wg *sync.WaitGroup, terminationChan chan struct{}, params utils.RunParams, data *Metrics) {
 	defer wg.Done()
 
-	if len(params.MetricsOutput) == 0 {
+	if len(params.Metrics.Output) == 0 {
 		log.Warnf("no metrics output defined, skipping metrics persistence")
 		return
 	}
 
-	ticker := time.NewTicker(params.MetricsRefreshRate)
+	ticker := time.NewTicker(params.Metrics.RefreshRate)
 	defer ticker.Stop()
 
-	log.Debugf("Updating metrics each %v into %v", params.MetricsRefreshRate, params.MetricsOutput)
+	log.Debugf("Updating metrics each %v into %v", params.Metrics.RefreshRate, params.Metrics.Output)
 
 	for {
 		select {
 		case <-ticker.C:
-			data.persist(params.MetricsOutput)
+			data.persist(params.Metrics.Output)
 		case <-terminationChan:
-			data.persist(params.MetricsOutput)
+			data.persist(params.Metrics.Output)
 			return
 		}
 	}

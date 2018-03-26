@@ -16,6 +16,8 @@
 
 FROM library/debian:stretch AS base
 
+MAINTAINER Jan Cajthaml <jan.cajthaml@gmail.com>
+
 ENV DEBIAN_FRONTEND=noninteractive \
     LD_LIBRARY_PATH=/usr/lib
 

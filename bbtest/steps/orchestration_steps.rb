@@ -41,7 +41,6 @@ step ":container running state is :state" do |container, state|
   }
 end
 
-
 step "single container :label is restarted" do |label|
   containers = %x(docker ps -a -f status=running -f name=#{label} | awk '{ print $1 }' | sed 1,1d)
   expect($?).to be_success
@@ -125,20 +124,10 @@ step "vault is running" do ||
   }
 end
 
-step ":host is listening on :port" do |host, port|
-  eventually(timeout: 3) {
-    %x(nc -z #{host} #{port} 2> /dev/null)
-    expect($?).to be_success
-  }
-end
-
 step ":host is healthy" do |host|
   case host
   when "vault"
     resp = $http_client.vault.health_check()
-    expect(resp.status).to eq(200)
-  when "lake"
-    resp = $http_client.lake.health_check()
     expect(resp.status).to eq(200)
   else
     raise "unknown host #{host}"

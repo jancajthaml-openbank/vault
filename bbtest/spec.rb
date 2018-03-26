@@ -55,7 +55,6 @@ RSpec.configure do |config|
 
     ZMQHelper.stop()
 
-    #FileUtils.rm_rf Dir.glob("/data/*")
     FileUtils.cp_r '/metrics/.', '/reports'
     ["/data", "/metrics"].each { |folder|
       FileUtils.rm_rf Dir.glob("#{folder}/*")
