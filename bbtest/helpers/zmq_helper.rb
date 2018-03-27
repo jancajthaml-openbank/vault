@@ -4,15 +4,16 @@ require 'thread'
 module ZMQHelper
 
   def self.start
+    raise "cannot start when shutting down" if self.poisonPill
+    self.poisonPill = false
+
     begin
       ctx = ZMQ::Context.new
-
       pull_channel = ctx.socket(ZMQ::PULL)
       raise "unable to bind PULL" unless pull_channel.bind("tcp://*:5562") >= 0
-
       pub_channel = ctx.socket(ZMQ::PUB)
       raise "unable to bind PUB" unless pub_channel.bind("tcp://*:5561") >= 0
-    rescue
+    rescue ContextError => _
       raise "Failed to allocate context or socket!"
     end
 
@@ -22,31 +23,32 @@ module ZMQHelper
 
     self.pull_daemon = Thread.new do
       loop do
+        break if self.poisonPill or self.pull_channel.nil?
         data = ""
         self.pull_channel.recv_string(data, ZMQ::DONTWAIT)
         next if data.empty? || !data.start_with?("BBTEST")
-        self.mutex.synchronize {
+        self.mutex.synchronize do
           self.recv_backlog << data.split(" ").drop(2).join(" ")
-        }
+        end
       end
     end
   end
 
   def self.stop
+    self.poisonPill = true
     begin
-      self.pull_daemon.exit() unless self.pull_daemon.nil?
-
+      self.pull_daemon.join() unless self.pull_daemon.nil?
       self.pub_channel.close() unless self.pub_channel.nil?
       self.pull_channel.close() unless self.pull_channel.nil?
-
       self.ctx.terminate() unless self.ctx.nil?
-    rescue => _
+    rescue
     ensure
       self.pull_daemon = nil
       self.ctx = nil
       self.pull_channel = nil
       self.pub_channel = nil
     end
+    self.poisonPill = false
   end
 
   def ack_remote_message data
@@ -71,16 +73,20 @@ module ZMQHelper
                   :pub_channel,
                   :pull_daemon,
                   :mutex,
-                  :recv_backlog
+                  :recv_backlog,
+                  :poisonPill
   end
 
   self.recv_backlog = []
+
   self.mutex = Mutex.new
+  self.poisonPill = false
 
   def self.mailbox
-    self.mutex.lock
-    res = self.recv_backlog.dup
-    self.mutex.unlock
+    res = nil
+    self.mutex.synchronize do
+      res = self.recv_backlog.dup
+    end
     res
   end
 
@@ -89,9 +95,11 @@ module ZMQHelper
     self.pub_channel.send_string(data)
   end
 
-  def self.remove data ; self.mutex.synchronize {
-    self.recv_backlog.reject! { |v| v == data }
-  } end
+  def self.remove data
+    self.mutex.synchronize do
+      self.recv_backlog.reject! { |v| v == data }
+    end
+  end
 
 end
 
