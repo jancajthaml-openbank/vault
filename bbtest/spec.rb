@@ -17,6 +17,8 @@ RSpec.configure do |config|
   config.before(:suite) do |_|
     print "[ suite starting ]\n"
 
+    ZMQHelper.start()
+
     ["/data", "/metrics", "/reports"].each { |folder|
       FileUtils.mkdir_p folder
       FileUtils.rm_rf Dir.glob("#{folder}/*")
@@ -25,10 +27,7 @@ RSpec.configure do |config|
     $vault_instance_counter = 0
     $tenant_id = nil
 
-    ZMQHelper.start()
-
     $http_client = HTTPClient.new()
-
 
     print "[ suite started  ]\n"
   end
@@ -53,12 +52,12 @@ RSpec.configure do |config|
 
     get_containers.call("openbank/vault").each { |container| teardown_container.call(container) }
 
-    ZMQHelper.stop()
-
     FileUtils.cp_r '/metrics/.', '/reports'
     ["/data", "/metrics"].each { |folder|
       FileUtils.rm_rf Dir.glob("#{folder}/*")
     }
+
+    ZMQHelper.stop()
 
     print "[ suite ended    ]"
   end
