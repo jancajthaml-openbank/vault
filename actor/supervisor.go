@@ -19,7 +19,7 @@ import (
 	"github.com/jancajthaml-openbank/vault/model"
 	"github.com/jancajthaml-openbank/vault/utils"
 
-	queue "github.com/jancajthaml-openbank/lake/utils"
+	lake "github.com/jancajthaml-openbank/lake-client"
 
 	log "github.com/sirupsen/logrus"
 	money "gopkg.in/inf.v0"
@@ -37,7 +37,7 @@ func (system *ActorSystem) Start(params utils.RunParams, m *metrics.Metrics) {
 	log.Infof("ActorSystem Starting - %v", name)
 
 	system.Name = name
-	system.Client = queue.NewZMQClient(name, params.Setup.LakeHostname)
+	system.Client = lake.NewClient(name, params.Setup.LakeHostname)
 
 	go system.sourceRemoteMessages(params, m)
 
