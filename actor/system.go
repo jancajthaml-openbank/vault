@@ -18,14 +18,14 @@ import (
 	"fmt"
 	"sync"
 
-	queue "github.com/jancajthaml-openbank/lake/utils"
+	lake "github.com/jancajthaml-openbank/lake-client"
 	"github.com/jancajthaml-openbank/vault/model"
 	log "github.com/sirupsen/logrus"
 )
 
 type ActorSystem struct {
 	Actors sync.Map
-	Client *queue.ZMQClient
+	Client *lake.Client
 	Name   string
 }
 
