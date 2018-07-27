@@ -1,44 +1,44 @@
-VERSION = $$(git rev-parse --abbrev-ref HEAD 2> /dev/null | rev | cut -d/ -f1 | rev)
-CORES := $$(getconf _NPROCESSORS_ONLN)
+ifndef GITHUB_RELEASE_TOKEN
+$(warning GITHUB_RELEASE_TOKEN is not set)
+endif
+
+META := $(shell git rev-parse --abbrev-ref HEAD 2> /dev/null | sed 's:.*/::')
+VERSION := $(shell git fetch --tags --force && tags=($$(git tag --sort=-v:refname)) && ([ $${\#tags[@]} -eq 0 ] && echo v0.0.0 || echo $${tags[0]}))
+
+.ONESHELL:
 
 .PHONY: all
-all: bootstrap package test
+all: bootstrap sync test package bbtest
+
+.PHONY: package
+package:
+	@(rm -rf packaging/bin/* &> /dev/null || :)
+	docker-compose run --rm package --target linux --arch amd64
+	docker-compose build service
 
 .PHONY: bootstrap
 bootstrap:
-	docker-compose build go
+	@docker-compose build go
 
 .PHONY: fetch
 fetch:
-	docker-compose run fetch
-
-.PHONY: build-lint
-build-lint:
-	docker-compose build lint
-
-.PHONY: build-sync
-build-sync:
-	docker-compose build sync
-
-.PHONY: build-package
-build-package:
-	docker-compose build package
+	@docker-compose run fetch
 
 .PHONY: lint
 lint:
-	docker-compose run --rm lint || :
+	@docker-compose run --rm lint || :
 
 .PHONY: sync
 sync:
-	docker-compose run --rm sync
+	@docker-compose run --rm sync
 
 .PHONY: test
 test:
-	docker-compose run --rm test
+	@docker-compose run --rm test
 
-.PHONY: bench
-bench:
-	docker-compose run --rm bench
+.PHONY: release
+release:
+	@docker-compose run --rm release -v $(VERSION)+$(META) -t ${GITHUB_RELEASE_TOKEN}
 
 .PHONY: bbtest
 bbtest:
@@ -50,18 +50,6 @@ bbtest:
 	@(docker rm -f $$(docker-compose ps -q) 2> /dev/null || :) &> /dev/null
 	@(docker rm -f $$(docker ps -aqf "name=bbtest") || :) &> /dev/null
 
-.PHONY: package
-package:
-	\
-	VERSION=$(VERSION) \
-	\
-	docker-compose run --rm package
-	docker-compose build service
-
-.PHONY: version
-version:
-	docker-compose run --rm service version
-
-.PHONY: perf
-perf: build-perf
-	./dev/lifecycle/performance
+.PHONY: run
+run:
+	@docker-compose run --rm --service-ports service run

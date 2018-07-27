@@ -12,21 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM library/debian:stretch
+FROM debian:stretch AS base
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=C.UTF-8
+
+RUN apt-get update -y && \
+    apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends apt-utils
+
+# ---------------------------------------------------------------------------- #
+
+FROM base
 
 MAINTAINER Jan Cajthaml <jan.cajthaml@gmail.com>
 
-ENV DEBIAN_FRONTEND=noninteractive \
-    LD_LIBRARY_PATH=/usr/lib
-
-RUN apt-get update && \
-    apt-get -y install --no-install-recommends \
+RUN apt-get -y install --allow-downgrades --no-install-recommends \
       libzmq5=4.2.1-4 && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    apt-get clean
 
-COPY bin/vault /entrypoint
-RUN chmod +x /entrypoint
+COPY packaging/bin/linux-amd64 /linux-amd64
 
 STOPSIGNAL SIGTERM
 
-ENTRYPOINT ["/entrypoint"]
+ENTRYPOINT ["/linux-amd64"]

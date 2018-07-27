@@ -1,76 +1,77 @@
 #!/bin/bash
 
-set -eo pipefail
-
+set -eu
 trap exit INT TERM
 
-################################################################################
-
-dist=bin
-arch=amd64
-platforms=(linux)
-build=$(git rev-parse HEAD 2> /dev/null || :)
-
-export LD_LIBRARY_PATH=/usr/lib
-
-################################################################################
-
-echo "[info] cleaning"
-
-if [ -d ${dist} ] && [ "$(ls -A ${dist})" ] ; then
-  rm -rf ${dist}/*
-fi
-
-if [ -n "${VERSION}" ] ; then
-  version="${VERSION}"
-elif [ -n "${GIT_TAG_NAME}" ] && [[ "${GIT_TAG_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-.+)?$ ]] ; then
-  version="${GIT_TAG_NAME}"
-else
-  version="snapshot-${build}"
-fi
-
-################################################################################
-
-package_linux() {
-  CGO_ENABLED=1 \
-  GOOS=linux \
-  GOARCH=${arch} \
-  go build -a -o ${dist}/${1}-linux-${version} \
-  --ldflags "-X main.version=$version -X main.build=${build}"
-}
+dist="packaging/bin"
+platforms=("darwin")
+archs=("amd64 386 arm")
 
 package_service() {
-  echo "[info] building ${2} binary ${1}"
-
-  case ${2} in
-    linux)
-      package_linux ${1}
-      ;;
-    esac
-
-  if [ $? -eq 0 ] ; then
-    chmod +x ${dist}/${1}-${2}-${version}
-  else
-    exit 1
+  local arch=${3}
+  local plafrom=${2}
+  local output=${1}/${platform}-${arch}
+  if [ -f ${output} ] ; then
+    rm -f ${output}
   fi
+
+  echo "[info] packaging for ${platform}-${arch}"
+
+  GOOS=${platform} \
+  GOARCH=${arch} \
+  CGO_ENABLED=1 \
+  \
+  go build -a -o ${output} || {
+    (>&2 echo "unable to build ${platform} ${arch} distribution")
+    exit 1
+  }
+
+  chmod +x ${output}
 }
 
-################################################################################
+while [ $# -gt 0 ] ; do
+key="$1"
 
-echo "[info] building ${version}"
+case $key in
 
-for platform in "${platforms[@]}" ; do
-  package_service vault ${platform} &
+    --target)
+      platforms=($(sed "s/,/ /g" <<< "$2"))
+      shift
+      shift
+      ;;
+
+    --arch)
+      archs=($(sed "s/,/ /g" <<< "$2"))
+      shift
+      shift
+      ;;
+
+    -o|--output)
+      dist="$2"
+      shift
+      shift
+      ;;
+
+    *)
+      shift
+      ;;
+
+esac
 done
-wait
 
-if [ ! -f ${dist}/vault-linux-${version} ] ; then
-  echo "[error] ${dist}/vault-linux-${version} not found"
-  exit
+
+echo "[info] cleaning"
+go clean
+
+for platform in ${platforms[@]} ; do
+  for arch in ${archs[@]} ; do
+    package_service ${dist} ${platform} ${arch}
+  done
+done
+
+if [ ! -f ${dist}/linux-amd64 ] ; then
+  (>&2 echo "[error] ${dist}/linux-amd64 not found")
+  exit 1
 fi
 
-cp ${dist}/vault-linux-${version} ${dist}/vault
-
 echo "[info] done"
-
-################################################################################

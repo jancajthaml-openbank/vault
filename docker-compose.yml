@@ -82,12 +82,6 @@ services:
 
   test:
     extends: go
-    command: ["test", "-v", "./...", "-timeout=20s"]
-
-  # -------------------------------------------------------------------------- #
-
-  bench:
-    extends: go
     environment:
       - GOMAXPROCS=1
     command: ["test", "-v", "./...", "-benchmem", "-bench=.", "-timeout=20s"]
