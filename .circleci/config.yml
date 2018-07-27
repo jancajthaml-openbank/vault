@@ -8,19 +8,43 @@ workflows:
 
   commit:
     jobs:
-      - setup
+      - setup:
+          filters:
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.+)?/
       - test:
           requires:
             - setup
+          filters:
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.+)?/
       - build:
           requires:
             - setup
+          filters:
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.+)?/
       - package:
           requires:
             - build
+            - test
+          filters:
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.+)?/
       - bbtest:
           requires:
             - package
+          filters:
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.+)?/
+      - release:
+          requires:
+            - bbtest
+          filters:
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.+)?/
+            branches:
+              ignore: /.*/
 
   rolling:
     triggers:
@@ -28,8 +52,7 @@ workflows:
           cron: "0 * * * *"
           filters:
             branches:
-              only:
-                - master
+              only: master
     jobs:
       - bbtest
 
@@ -40,7 +63,6 @@ jobs:
   # -------------------------------------------------------------------------- #
 
   setup:
-
     docker:
       - image: docker:17.09.0-ce-git
         environment:
@@ -48,29 +70,15 @@ jobs:
           - GOARCH: amd64
           - GOOS: linux
           - GOBIN: /usr/lib/go/bin/go
-
-    working_directory: /home/circleci/project
-
+    working_directory: /go/src/github.com/jancajthaml-openbank/vault
     steps:
-
       - checkout
-
       - setup_remote_docker
-
-      - run:
-          name: Build images
-          command: |
-            docker build -t openbankdev/vault_bbtest ./bbtest &
-            docker build -t openbankdev/vault_base ./dev &
-            wait
-
-      - run:
-          name: Login to DockerHUB
-          command: |
-            docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}
-
+      - run: docker build -t openbankdev/vault_bbtest ./bbtest
+      - run: docker build -t openbankdev/vault_base ./dev
+      - run: docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}
       - deploy:
-          name: Push to docker hub
+          name: Push dev docker images to DockerHUB
           command: |
             upload_to_docker_hub() {
               docker tag ${1} "${1}:latest"
@@ -80,167 +88,128 @@ jobs:
             upload_to_docker_hub openbankdev/vault_bbtest &
             upload_to_docker_hub openbankdev/vault_base &
             wait
+      - save_cache:
+          key: vault-base-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - /go/src/github.com/jancajthaml-openbank/vault
 
   # -------------------------------------------------------------------------- #
 
   test:
-
     docker:
       - image: openbankdev/vault_base
-        environment:
-          - DIST: /go/src/github.com/jancajthaml-openbank/vault/bin
-
     working_directory: /go/src/github.com/jancajthaml-openbank/vault
-
     steps:
-
-      - checkout
-
+      - restore_cache:
+          keys:
+            - vault-base-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
       - run: dep ensure
-
       - run: go test -v ./... -benchmem -bench=. -timeout=20s
 
   # -------------------------------------------------------------------------- #
 
   build:
-
     docker:
       - image: openbankdev/vault_base
-        environment:
-          - DIST: /go/src/github.com/jancajthaml-openbank/vault/bin
-
     working_directory: /go/src/github.com/jancajthaml-openbank/vault
-
     steps:
-
-      - checkout
-
+      - restore_cache:
+          keys:
+            - vault-base-{{ .Environment.CIRCLE_SHA1 }}
       - run: dep ensure
-
-      - run: if [ -d ${DIST} ] && [ "$(ls -A ${DIST})" ] ; then rm -rf ${DIST}/* ; fi
-
-      - run:
-          name: Package binary
-          command: |
-            mkdir -p /tmp
-            build=$(git rev-parse HEAD 2> /dev/null || :)
-
-            if [ -n "${VERSION}" ] ; then
-              version="${VERSION}"
-            elif [ -n "${GIT_TAG_NAME}" ] && [[ "${GIT_TAG_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-.+)?$ ]] ; then
-              version="${GIT_TAG_NAME}"
-            else
-              version="snapshot-${build}"
-            fi
-
-            go clean
-
-            go build -a -o ${DIST}/vault \
-              --ldflags "-X main.version=$version -X main.build=$build"
-
-      - run: if [ ! -f ${DIST}/vault ] ; then exit 1 ; fi
-
-      - persist_to_workspace:
-          root: /go/src/github.com/jancajthaml-openbank/vault/bin
+      - run: ./dev/lifecycle/package --target linux --arch amd64
+      - save_cache:
+          key: vault-binaries-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
           paths:
-            - vault
+            - /go/src/github.com/jancajthaml-openbank/vault
 
   # -------------------------------------------------------------------------- #
 
   package:
-
     docker:
-      - image: docker:17.09.0-ce-git
-
-    working_directory: /app
-
+      - image: openbankdev/vault_base
+    working_directory: /go/src/github.com/jancajthaml-openbank/vault
     steps:
-
-      - attach_workspace:
-          at: /go/src/github.com/jancajthaml-openbank/vault/bin
-
-      - checkout
-
       - setup_remote_docker
-
-      - run: mkdir -p /app/bin
-
-      - run: cp /go/src/github.com/jancajthaml-openbank/vault/bin/vault /app/bin/vault
-
+      - restore_cache:
+          keys:
+            - vault-binaries-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
+      - run: if [ ! -f ./packaging/bin/linux-amd64 ] ; then exit 1 ; fi
       - run: docker build -t openbank/vault .
-
       - run: docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}
-
       - deploy:
-          name: Push images to DockerHUB
+          name: Push snapshot docker images to DockerHUB
           command: |
-            upload_to_docker_hub() {
-              docker tag ${1} "${1}:${2}"
-              docker push "${1}:${2}"
-            }
 
-            if git log -1 --pretty=%B | grep "[v?][0-9]\+\.[0-9]\+\.[0-9]\+" ; then
-              git fetch --tags --force
-              VERSION=$(git tag | grep "[v?][0-9]\+\.[0-9]\+\.[0-9]\+" | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1 | sed 's/\v//g')
-              upload_to_docker_hub openbank/vault latest
-              upload_to_docker_hub openbank/vault ${VERSION}
+            if [ -z ${CIRCLE_TAG} ] ; then
+              VERSION=$(sed 's:.*/::' <<< ${CIRCLE_BRANCH})
+              echo "snapshot ${VERSION}"
+
+              docker tag openbank/vault openbank/vault:${VERSION}
+              docker push openbank/vault:${VERSION}
+
             else
-              VERSION=$(git rev-parse --abbrev-ref HEAD 2> /dev/null | sed 's:.*/::')
-              upload_to_docker_hub openbank/vault ${VERSION}
+              VERSION=${CIRCLE_TAG}
+              echo "release ${VERSION}"
+
+              docker tag openbank/vault openbank/vault:${VERSION}
+              docker push openbank/vault:${VERSION}
+
+              docker tag openbank/vault openbank/vault:latest
+              docker push openbank/vault:latest
             fi
 
   # -------------------------------------------------------------------------- #
 
   bbtest:
     machine: true
-
-    environment:
-      - PERSISTENCE_PATH: /home/circleci/project/dev/data
-
     working_directory: /home/circleci/project
-
     steps:
-
       - checkout
-
       - run:
-          name: Prepare blackbox tests
+          name: Run blackbox tests
           command: |
-            if git log -1 --pretty=%B | grep "[v?][0-9]\+\.[0-9]\+\.[0-9]\+" ; then
-              VERSION=$(git tag | grep "[v?][0-9]\+\.[0-9]\+\.[0-9]\+" | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1 | sed 's/\v//g')
-            else
-              VERSION=$(git rev-parse --abbrev-ref HEAD 2> /dev/null | sed 's:.*/::')
-            fi
-
             pull() {
               echo "pulling ${1}:${2}"
               docker pull ${1}:${2}
             }
 
+            if [ -z ${CIRCLE_TAG} ] ; then
+              VERSION=$(sed 's:.*/::' <<< ${CIRCLE_BRANCH})
+            else
+              VERSION=${CIRCLE_TAG}
+            fi
+
             pull openbank/vault ${VERSION} & \
             pull openbankdev/vault_bbtest latest & \
             wait
 
-      - run:
-          name: Run blackbox tests
-          command: |
-            if git log -1 --pretty=%B | grep "[v?][0-9]\+\.[0-9]\+\.[0-9]\+" ; then
-              VERSION=$(git tag | grep "[v?][0-9]\+\.[0-9]\+\.[0-9]\+" | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1 | sed 's/\v//g')
-            else
-              VERSION=$(git rev-parse --abbrev-ref HEAD 2> /dev/null | sed 's:.*/::')
-            fi
-
             VERSION=${VERSION} docker-compose run --rm bbtest
-
       - store_test_results:
           path: /home/circleci/project/bbtest
-
       - store_artifacts:
           path: /home/circleci/project/reports
           destination: reports
 
-      - run: (docker rm -f $(docker-compose ps -q) 2> /dev/null || :) &> /dev/null
+  # -------------------------------------------------------------------------- #
 
-      - run: (docker rm -f $(docker ps -aqf "name=bbtest") || :) &> /dev/null
+  release:
+
+    docker:
+      - image: openbankdev/vault_base
+
+    working_directory: /go/src/github.com/jancajthaml-openbank/vault
+
+    steps:
+      - setup_remote_docker
+      - restore_cache:
+          keys:
+            - vault-binaries-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
+      - run: ls -al packaging/bin
+      - run: if [ ! -f ./packaging/bin/linux-amd64 ] ; then exit 1 ; fi
+      - deploy:
+          name: Release artifacts to github
+          command: |
+            ./dev/lifecycle/release -v ${CIRCLE_TAG} -t ${GITHUB_RELEASE_TOKEN}
 
 # ---------------------------------------------------------------------------- #

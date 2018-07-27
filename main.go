@@ -39,11 +39,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var (
-	version string
-	build   string
-)
-
 func setupLogOutput(params utils.RunParams) {
 	if len(params.Setup.Log) == 0 {
 		return
