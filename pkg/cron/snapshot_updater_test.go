@@ -5,10 +5,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jancajthaml-openbank/vault/actor"
-	"github.com/jancajthaml-openbank/vault/metrics"
-	"github.com/jancajthaml-openbank/vault/model"
-	"github.com/jancajthaml-openbank/vault/utils"
+	"github.com/jancajthaml-openbank/vault/pkg/actor"
+	"github.com/jancajthaml-openbank/vault/pkg/metrics"
+	"github.com/jancajthaml-openbank/vault/pkg/model"
+	"github.com/jancajthaml-openbank/vault/pkg/persistence"
+	"github.com/jancajthaml-openbank/vault/pkg/utils"
 
 	money "gopkg.in/inf.v0"
 
@@ -54,17 +55,16 @@ func init() {
 
 func TestUpdateSaturated(t *testing.T) {
 
-	require.NotNil(t, utils.CreateMetadata(snapshotTestParams, "account_1", "EUR", true))
-	s := utils.CreateSnapshot(snapshotTestParams, "account_1")
+	require.NotNil(t, persistence.CreateMetadata(snapshotTestParams, "account_1", "EUR", true))
+	s := persistence.CreateSnapshot(snapshotTestParams, "account_1")
 	require.NotNil(t, s)
-	require.True(t, utils.PersistPromise(snapshotTestParams, "account_1", 0, new(money.Dec), "transaction_1"))
-	s = utils.UpdateSnapshot(snapshotTestParams, "account_1", s)
-	require.True(t, utils.PersistPromise(snapshotTestParams, "account_1", 1, new(money.Dec), "transaction_2"))
-	require.True(t, utils.PersistCommit(snapshotTestParams, "account_1", 1, new(money.Dec), "transaction_2"))
+	require.True(t, persistence.PersistPromise(snapshotTestParams, "account_1", 0, new(money.Dec), "transaction_1"))
+	s = persistence.UpdateSnapshot(snapshotTestParams, "account_1", s)
+	require.True(t, persistence.PersistPromise(snapshotTestParams, "account_1", 1, new(money.Dec), "transaction_2"))
+	require.True(t, persistence.PersistCommit(snapshotTestParams, "account_1", 1, new(money.Dec), "transaction_2"))
 	require.NotNil(t, s)
-
-	require.NotNil(t, utils.CreateMetadata(snapshotTestParams, "account_2", "EUR", true))
-	require.NotNil(t, utils.CreateSnapshot(snapshotTestParams, "account_2"))
+	require.NotNil(t, persistence.CreateMetadata(snapshotTestParams, "account_2", "EUR", true))
+	require.NotNil(t, persistence.CreateSnapshot(snapshotTestParams, "account_2"))
 
 	t.Log("return valid accounts")
 	{

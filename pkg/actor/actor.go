@@ -17,7 +17,7 @@ package actor
 import (
 	"fmt"
 
-	"github.com/jancajthaml-openbank/vault/model"
+	"github.com/jancajthaml-openbank/vault/pkg/model"
 
 	log "github.com/sirupsen/logrus"
 )

@@ -15,9 +15,10 @@
 package actor
 
 import (
-	"github.com/jancajthaml-openbank/vault/metrics"
-	"github.com/jancajthaml-openbank/vault/model"
-	"github.com/jancajthaml-openbank/vault/utils"
+	"github.com/jancajthaml-openbank/vault/pkg/metrics"
+	"github.com/jancajthaml-openbank/vault/pkg/model"
+	"github.com/jancajthaml-openbank/vault/pkg/persistence"
+	"github.com/jancajthaml-openbank/vault/pkg/utils"
 
 	log "github.com/sirupsen/logrus"
 	money "gopkg.in/inf.v0"
@@ -25,8 +26,8 @@ import (
 
 func nilAccount(params utils.RunParams, m *metrics.Metrics, system *ActorSystem) func(model.Snapshot, model.Account, Context) {
 	return func(state model.Snapshot, meta model.Account, context Context) {
-		snapshotHydration := utils.LoadSnapshot(params, meta.AccountName)
-		metaHydration := utils.LoadMetadata(params, meta.AccountName)
+		snapshotHydration := persistence.LoadSnapshot(params, meta.AccountName)
+		metaHydration := persistence.LoadMetadata(params, meta.AccountName)
 
 		if snapshotHydration == nil || metaHydration == nil {
 			context.Receiver.Become(state, meta, nonExistAccount(params, m, system))
@@ -50,8 +51,8 @@ func nonExistAccount(params utils.RunParams, m *metrics.Metrics, system *ActorSy
 
 			// FIXME not ideal there could be case where snapshot was created but meta data not
 			// and vice versa... should investigate what to do about that
-			snaphostResult := utils.CreateSnapshot(params, meta.AccountName)
-			metaResult := utils.CreateMetadata(params, meta.AccountName, currency, isBalanceCheck)
+			snaphostResult := persistence.CreateSnapshot(params, meta.AccountName)
+			metaResult := persistence.CreateMetadata(params, meta.AccountName, currency, isBalanceCheck)
 
 			if snaphostResult == nil || metaResult == nil {
 				system.SendRemote(context.Sender.Region, model.FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
@@ -106,7 +107,7 @@ func existAccount(params utils.RunParams, m *metrics.Metrics, system *ActorSyste
 			nextPromised := new(money.Dec).Add(state.Promised, msg.Amount)
 
 			if !meta.IsBalanceCheck || new(money.Dec).Add(state.Balance, nextPromised).Sign() >= 0 {
-				if !utils.PersistPromise(params, meta.AccountName, state.Version, msg.Amount, msg.Transaction) {
+				if !persistence.PersistPromise(params, meta.AccountName, state.Version, msg.Amount, msg.Transaction) {
 					system.SendRemote(context.Sender.Region, model.FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
 					log.Warnf("%s ~ (Exist Promise) Error Could not Persist", meta.AccountName)
 					return
@@ -141,7 +142,7 @@ func existAccount(params utils.RunParams, m *metrics.Metrics, system *ActorSyste
 				return
 			}
 
-			if !utils.PersistCommit(params, meta.AccountName, state.Version, msg.Amount, msg.Transaction) {
+			if !persistence.PersistCommit(params, meta.AccountName, state.Version, msg.Amount, msg.Transaction) {
 				system.SendRemote(context.Sender.Region, model.FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
 				log.Warnf("%s ~ (Exist Commit) Error Could not Persist", meta.AccountName)
 				return
@@ -165,7 +166,7 @@ func existAccount(params utils.RunParams, m *metrics.Metrics, system *ActorSyste
 				return
 			}
 
-			if !utils.PersistRollback(params, meta.AccountName, state.Version, msg.Amount, msg.Transaction) {
+			if !persistence.PersistRollback(params, meta.AccountName, state.Version, msg.Amount, msg.Transaction) {
 				system.SendRemote(context.Sender.Region, model.FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
 				log.Warnf("%s ~ (Exist Rollback) Error Could not Persist", meta.AccountName)
 				return
@@ -187,13 +188,13 @@ func existAccount(params utils.RunParams, m *metrics.Metrics, system *ActorSyste
 				return
 			}
 
-			result := utils.LoadSnapshot(params, meta.AccountName)
+			result := persistence.LoadSnapshot(params, meta.AccountName)
 			if result == nil {
 				log.Warnf("%s ~ (Exist Update) Error no existing snapshot", meta.AccountName)
 				return
 			}
 
-			next := utils.UpdateSnapshot(params, meta.AccountName, result)
+			next := persistence.UpdateSnapshot(params, meta.AccountName, result)
 			if next == nil {
 				log.Warnf("%s ~ (Exist Update) Error unable to update", meta.AccountName)
 				return

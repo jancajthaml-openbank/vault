@@ -5,20 +5,20 @@ require 'json'
 require 'date'
 
 step "snapshot :account version :count should be" do |account, count, expectation|
-  snapshot = account_snapshot($tenant_id, account, count)
+  actual = account_snapshot($tenant_id, account, count)
   expectation = JSON.parse(expectation)
 
-  expect(snapshot[:version]).to eq(expectation["version"])
-  expect(snapshot[:balance]).to eq(expectation["balance"])
-  expect(snapshot[:promised]).to eq(expectation["promised"])
-  expect(snapshot[:buffer]).to match_array(expectation["promiseBuffer"])
+  expect(actual[:version]).to eq(expectation["version"]), "expected: #{expectation}\nactual: #{actual}"
+  expect(actual[:balance]).to eq(expectation["balance"]), "expected: #{expectation}\nactual: #{actual}"
+  expect(actual[:promised]).to eq(expectation["promised"]), "expected: #{expectation}\nactual: #{actual}"
+  expect(actual[:buffer]).to match_array(expectation["promiseBuffer"]), "expected: #{expectation}\nactual: #{actual}"
 end
 
 step "meta data of :account should be" do |account, expectation|
-  meta = account_meta($tenant_id, account)
+  actual = account_meta($tenant_id, account)
   expectation = JSON.parse(expectation)
 
-  expect(meta[:account_name]).to eq(expectation["accountName"])
-  expect(meta[:balance_check]).to eq(expectation["isBalanceCheck"])
-  expect(meta[:currency]).to eq(expectation["currency"])
+  expect(actual[:account_name]).to eq(expectation["accountName"]), "expected: #{expectation}\nactual: #{actual}"
+  expect(actual[:balance_check]).to eq(expectation["isBalanceCheck"]), "expected: #{expectation}\nactual: #{actual}"
+  expect(actual[:currency]).to eq(expectation["currency"]), "expected: #{expectation}\nactual: #{actual}"
 end

@@ -18,8 +18,9 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/jancajthaml-openbank/vault/pkg/model"
+
 	lake "github.com/jancajthaml-openbank/lake-client"
-	"github.com/jancajthaml-openbank/vault/model"
 	log "github.com/sirupsen/logrus"
 )
 

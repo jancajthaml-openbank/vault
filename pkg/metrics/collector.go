@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jancajthaml-openbank/vault/utils"
+	"github.com/jancajthaml-openbank/vault/pkg/utils"
 
 	gom "github.com/rcrowley/go-metrics"
 	log "github.com/sirupsen/logrus"

@@ -31,38 +31,13 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/jancajthaml-openbank/vault/actor"
-	"github.com/jancajthaml-openbank/vault/cron"
-	"github.com/jancajthaml-openbank/vault/metrics"
-	"github.com/jancajthaml-openbank/vault/utils"
+	"github.com/jancajthaml-openbank/vault/pkg/actor"
+	"github.com/jancajthaml-openbank/vault/pkg/cron"
+	"github.com/jancajthaml-openbank/vault/pkg/metrics"
+	"github.com/jancajthaml-openbank/vault/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 )
-
-func setupLogOutput(params utils.RunParams) {
-	if len(params.Setup.Log) == 0 {
-		return
-	}
-
-	file, err := os.Create(params.Setup.Log)
-	if err != nil {
-		log.Warnf("Unable to create %s: %v", params.Setup.Log, err)
-		return
-	}
-	defer file.Close()
-
-	log.SetOutput(bufio.NewWriter(file))
-}
-
-func setupLogLevel(params utils.RunParams) {
-	level, err := log.ParseLevel(params.Setup.LogLevel)
-	if err != nil {
-		log.Warnf("Invalid log level %v, using level WARN", params.Setup.LogLevel)
-		return
-	}
-	log.Infof("Log level set to %v", strings.ToUpper(params.Setup.LogLevel))
-	log.SetLevel(level)
-}
 
 func init() {
 	viper.SetEnvPrefix("VAULT")
@@ -75,6 +50,8 @@ func init() {
 	viper.SetDefault("journal.saturation", 100)
 	viper.SetDefault("snasphot.scaninteval", "1m")
 	viper.SetDefault("metrics.refreshrate", "1s")
+
+	log.SetFormatter(new(utils.LogFormat))
 }
 
 func validParams(params utils.RunParams) bool {
@@ -117,18 +94,42 @@ func loadParams() utils.RunParams {
 	}
 }
 
+func setupRootDirectory(params utils.RunParams) bool {
+	return os.MkdirAll(params.Setup.RootStorage, os.ModePerm) == nil
+}
+
 func main() {
-	log.Infof(">>> Setup <<<")
+	log.Info(">>> Setup <<<")
 
 	params := loadParams()
 	if !validParams(params) {
 		return
 	}
 
-	setupLogOutput(params)
-	setupLogLevel(params)
+	if len(params.Setup.Log) == 0 {
+		log.SetOutput(os.Stdout)
+	} else if file, err := os.OpenFile(params.Setup.Log, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644); err == nil {
+		defer file.Close()
+		log.SetOutput(bufio.NewWriter(file))
+	} else {
+		log.SetOutput(os.Stdout)
+		log.Warnf("Unable to create %s: %v", params.Setup.Log, err)
+	}
 
-	log.Infof(">>> Starting <<<")
+	if level, err := log.ParseLevel(params.Setup.LogLevel); err == nil {
+		log.Infof("Log level set to %v", strings.ToUpper(params.Setup.LogLevel))
+		log.SetLevel(level)
+	} else {
+		log.Warnf("Invalid log level %v, using level WARN", params.Setup.LogLevel)
+		log.SetLevel(log.WarnLevel)
+	}
+
+	if !setupRootDirectory(params) {
+		log.Errorf("unable to assert storage directory")
+		return
+	}
+
+	log.Info(">>> Starting <<<")
 
 	// FIXME separate into its own go routine to be stopable
 	m := metrics.NewMetrics()
@@ -166,11 +167,11 @@ func main() {
 	go cron.SnapshotSaturationScan(&wg, terminationChan, params, m, system.ProcessLocalMessage)
 	go metrics.PersistMetrics(&wg, terminationChan, params, m)
 
-	log.Infof(">>> Started <<<")
+	log.Info(">>> Started <<<")
 
 	<-exitSignal
 
-	log.Infof(">>> Terminating <<<")
+	log.Info(">>> Terminating <<<")
 	system.Stop()
 	close(terminationChan)
 	wg.Wait()
@@ -180,5 +181,5 @@ func main() {
 		log.Fatal("Server Shutdown:", err)
 	}
 
-	log.Infof(">>> Terminated <<<")
+	log.Info(">>> Terminated <<<")
 }

@@ -12,22 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+package persistence
 
 import (
 	"math"
 	"strings"
 
-	"github.com/jancajthaml-openbank/vault/model"
+	"github.com/jancajthaml-openbank/vault/pkg/model"
+	"github.com/jancajthaml-openbank/vault/pkg/utils"
 
 	money "gopkg.in/inf.v0"
 )
 
 // LoadMetadata rehydrates account entity meta data from storage
-func LoadMetadata(params RunParams, name string) *model.Account {
-	metaPath := MetadataPath(params, name)
+func LoadMetadata(params utils.RunParams, name string) *model.Account {
+	metaPath := utils.MetadataPath(params, name)
 
-	ok, data := ReadFileFully(metaPath)
+	ok, data := utils.ReadFileFully(metaPath)
 
 	if !ok {
 		return nil
@@ -40,15 +41,15 @@ func LoadMetadata(params RunParams, name string) *model.Account {
 }
 
 // LoadSnapshot rehydrates account entity state from storage
-func LoadSnapshot(params RunParams, name string) *model.Snapshot {
-	allPath := SnapshotsPath(params, name)
-	snapshots := ListDirectory(allPath, false)
+func LoadSnapshot(params utils.RunParams, name string) *model.Snapshot {
+	allPath := utils.SnapshotsPath(params, name)
+	snapshots := utils.ListDirectory(allPath, false)
 
 	if len(snapshots) == 0 {
 		return nil
 	}
 
-	ok, data := ReadFileFully(allPath + "/" + snapshots[0])
+	ok, data := utils.ReadFileFully(allPath + "/" + snapshots[0])
 	if !ok {
 		return nil
 	}
@@ -56,7 +57,7 @@ func LoadSnapshot(params RunParams, name string) *model.Snapshot {
 	result := new(model.Snapshot)
 	result.DeserializeFromStorage(data)
 
-	events := ListDirectory(EventPath(params, name, result.Version), false)
+	events := utils.ListDirectory(utils.EventPath(params, name, result.Version), false)
 	for _, event := range events {
 
 		s := strings.SplitN(event, "_", 3)
@@ -86,7 +87,7 @@ func LoadSnapshot(params RunParams, name string) *model.Snapshot {
 }
 
 // CreateMetadata persist account entity meta data to storage
-func CreateMetadata(params RunParams, name string, currency string, isBalanceCheck bool) *model.Account {
+func CreateMetadata(params utils.RunParams, name string, currency string, isBalanceCheck bool) *model.Account {
 	return StoreMetadata(params, &model.Account{
 		AccountName:    name,
 		Currency:       currency,
@@ -95,7 +96,7 @@ func CreateMetadata(params RunParams, name string, currency string, isBalanceChe
 }
 
 // CreateSnapshot persist account entity state to storage
-func CreateSnapshot(params RunParams, name string) *model.Snapshot {
+func CreateSnapshot(params utils.RunParams, name string) *model.Snapshot {
 	return StoreSnapshot(params, name, &model.Snapshot{
 		Balance:       new(money.Dec),
 		Promised:      new(money.Dec),
@@ -105,7 +106,7 @@ func CreateSnapshot(params RunParams, name string) *model.Snapshot {
 }
 
 // UpdateSnapshot persist account entity state with incremented version
-func UpdateSnapshot(params RunParams, name string, entity *model.Snapshot) *model.Snapshot {
+func UpdateSnapshot(params utils.RunParams, name string, entity *model.Snapshot) *model.Snapshot {
 	if entity.Version == math.MaxInt32 {
 		return entity
 	}
@@ -119,11 +120,11 @@ func UpdateSnapshot(params RunParams, name string, entity *model.Snapshot) *mode
 }
 
 // StoreSnapshot persist account entity state
-func StoreSnapshot(params RunParams, name string, entity *model.Snapshot) *model.Snapshot {
+func StoreSnapshot(params utils.RunParams, name string, entity *model.Snapshot) *model.Snapshot {
 	data := entity.SerializeForStorage()
-	path := SnapshotPath(params, name, entity.Version)
+	path := utils.SnapshotPath(params, name, entity.Version)
 
-	if !WriteFile(path, data) {
+	if !utils.WriteFile(path, data) {
 		return nil
 	}
 
@@ -131,11 +132,11 @@ func StoreSnapshot(params RunParams, name string, entity *model.Snapshot) *model
 }
 
 // StoreMetadata persist account entity meta data
-func StoreMetadata(params RunParams, entity *model.Account) *model.Account {
+func StoreMetadata(params utils.RunParams, entity *model.Account) *model.Account {
 	data := entity.SerializeForStorage()
-	path := MetadataPath(params, entity.AccountName)
+	path := utils.MetadataPath(params, entity.AccountName)
 
-	if !WriteFile(path, data) {
+	if !utils.WriteFile(path, data) {
 		return nil
 	}
 
@@ -143,22 +144,22 @@ func StoreMetadata(params RunParams, entity *model.Account) *model.Account {
 }
 
 // PersistPromise persists promise event
-func PersistPromise(params RunParams, name string, version int, amount *money.Dec, transaction string) bool {
+func PersistPromise(params utils.RunParams, name string, version int, amount *money.Dec, transaction string) bool {
 	event := model.EventPromise + "_" + amount.String() + "_" + transaction
-	fullPath := EventPath(params, name, version) + "/" + event
-	return TouchFile(fullPath)
+	fullPath := utils.EventPath(params, name, version) + "/" + event
+	return utils.TouchFile(fullPath)
 }
 
 // PersistCommit persists commit event
-func PersistCommit(params RunParams, name string, version int, amount *money.Dec, transaction string) bool {
+func PersistCommit(params utils.RunParams, name string, version int, amount *money.Dec, transaction string) bool {
 	event := model.EventCommit + "_" + amount.String() + "_" + transaction
-	fullPath := EventPath(params, name, version) + "/" + event
-	return TouchFile(fullPath)
+	fullPath := utils.EventPath(params, name, version) + "/" + event
+	return utils.TouchFile(fullPath)
 }
 
 // PersistRollback persists rollback event
-func PersistRollback(params RunParams, name string, version int, amount *money.Dec, transaction string) bool {
+func PersistRollback(params utils.RunParams, name string, version int, amount *money.Dec, transaction string) bool {
 	event := model.EventRollback + "_" + amount.String() + "_" + transaction
-	fullPath := EventPath(params, name, version) + "/" + event
-	return TouchFile(fullPath)
+	fullPath := utils.EventPath(params, name, version) + "/" + event
+	return utils.TouchFile(fullPath)
 }
