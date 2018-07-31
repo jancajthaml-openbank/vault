@@ -15,9 +15,9 @@
 package actor
 
 import (
-	"github.com/jancajthaml-openbank/vault/metrics"
-	"github.com/jancajthaml-openbank/vault/model"
-	"github.com/jancajthaml-openbank/vault/utils"
+	"github.com/jancajthaml-openbank/vault/pkg/metrics"
+	"github.com/jancajthaml-openbank/vault/pkg/model"
+	"github.com/jancajthaml-openbank/vault/pkg/utils"
 
 	lake "github.com/jancajthaml-openbank/lake-client"
 

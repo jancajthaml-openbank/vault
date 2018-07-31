@@ -5,10 +5,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jancajthaml-openbank/vault/actor"
-	"github.com/jancajthaml-openbank/vault/metrics"
-	"github.com/jancajthaml-openbank/vault/model"
-	"github.com/jancajthaml-openbank/vault/utils"
+	"github.com/jancajthaml-openbank/vault/pkg/actor"
+	"github.com/jancajthaml-openbank/vault/pkg/metrics"
+	"github.com/jancajthaml-openbank/vault/pkg/model"
+	"github.com/jancajthaml-openbank/vault/pkg/utils"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -58,7 +58,7 @@ func getVersion(params utils.RunParams, name string) int {
 }
 
 func getEvents(params utils.RunParams, name string, version int) int {
-	return utils.CountNodes(utils.EventPath(params, name, version))
+	return utils.CountFiles(utils.EventPath(params, name, version))
 }
 
 // SnapshotSaturationScan runs scan of accounts snapshots and events and orders

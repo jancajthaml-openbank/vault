@@ -10,15 +10,17 @@ import (
 
 func TestMetricsPersist(t *testing.T) {
 	entity := NewMetrics()
+	delay := 1e8
+	delta := 1e7
 
 	t.Log("TimeUpdateSaturatedSnapshots properly times run of UpdateSaturatedSnapshots function")
 	{
-		require.Equal(t, float64(0), entity.snapshotCronLatency.Percentile(0.95))
+		require.Equal(t, int64(0), entity.snapshotCronLatency.Count())
 		entity.TimeUpdateSaturatedSnapshots(func() {
-			time.Sleep(10 * time.Millisecond)
+			time.Sleep(time.Duration(delay))
 		})
-		assert.True(t, entity.snapshotCronLatency.Percentile(0.95) >= 10*1e6)
-		assert.True(t, entity.snapshotCronLatency.Percentile(0.95) <= 20*1e6)
+		assert.Equal(t, int64(1), entity.snapshotCronLatency.Count())
+		assert.InDelta(t, entity.snapshotCronLatency.Percentile(0.95), delay, delta)
 	}
 
 	t.Log("SnapshotsUpdated properly updates number of updated snapshots")

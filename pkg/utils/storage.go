@@ -15,30 +15,84 @@
 package utils
 
 import (
+	"bytes"
 	"io"
 	"os"
 	"path/filepath"
+	"reflect"
 	"sort"
+	"syscall"
+	"unsafe"
 )
+
+var defaultBufferSize int
+
+func init() {
+	defaultBufferSize = 2 * os.Getpagesize()
+}
+
+func nameFromDirent(de *syscall.Dirent) []byte {
+	ml := int(uint64(de.Reclen) - uint64(unsafe.Offsetof(syscall.Dirent{}.Name)))
+
+	var name []byte
+	sh := (*reflect.SliceHeader)(unsafe.Pointer(&name))
+	sh.Cap = ml
+	sh.Len = ml
+	sh.Data = uintptr(unsafe.Pointer(&de.Name[0]))
+
+	if index := bytes.IndexByte(name, 0); index >= 0 {
+		sh.Cap = index
+		sh.Len = index
+	}
+
+	return name
+}
 
 // ListDirectory returns sorted slice of item names in given absolute path
 // default sorting is ascending
 func ListDirectory(absPath string, ascending bool) []string {
-	f, err := os.Open(absPath)
-	if err != nil {
-		return nil
-	}
-	defer f.Close()
+	v := make([]string, 0)
 
-	list, err := f.Readdir(-1)
+	dh, err := os.Open(absPath)
 	if err != nil {
 		return nil
 	}
 
-	v := make([]string, len(list))
+	fd := int(dh.Fd())
 
-	for i, value := range list {
-		v[i] = filepath.Base(value.Name())
+	scratchBuffer := make([]byte, defaultBufferSize)
+
+	var de *syscall.Dirent
+
+	for {
+		n, err := syscall.ReadDirent(fd, scratchBuffer)
+		if err != nil {
+			_ = dh.Close()
+			return nil
+		}
+		if n <= 0 {
+			break
+		}
+		buf := scratchBuffer[:n]
+		for len(buf) > 0 {
+			de = (*syscall.Dirent)(unsafe.Pointer(&buf[0]))
+			buf = buf[de.Reclen:]
+
+			if de.Ino == 0 {
+				continue
+			}
+
+			nameSlice := nameFromDirent(de)
+			namlen := len(nameSlice)
+			if (namlen == 0) || (namlen == 1 && nameSlice[0] == '.') || (namlen == 2 && nameSlice[0] == '.' && nameSlice[1] == '.') {
+				continue
+			}
+			v = append(v, string(nameSlice))
+		}
+	}
+
+	if err = dh.Close(); err != nil {
+		return nil
 	}
 
 	if ascending {
@@ -54,26 +108,49 @@ func ListDirectory(absPath string, ascending bool) []string {
 	return v
 }
 
-// CountNodes returns number of items in directory
-func CountNodes(absPath string) int {
-	f, err := os.Open(absPath)
-	if err != nil {
-		return -1
-	}
-	defer f.Close()
-
-	list, err := f.Readdir(-1)
+// CountFiles returns number of items in directory
+func CountFiles(absPath string) int {
+	dh, err := os.Open(absPath)
 	if err != nil {
 		return -1
 	}
 
-	return len(list)
+	nodes := 0
+	fd := int(dh.Fd())
+
+	scratchBuffer := make([]byte, defaultBufferSize)
+
+	var de *syscall.Dirent
+
+	for {
+		n, err := syscall.ReadDirent(fd, scratchBuffer)
+		if err != nil {
+			_ = dh.Close()
+			return -1
+		}
+		if n <= 0 {
+			break
+		}
+		buf := scratchBuffer[:n]
+		for len(buf) > 0 {
+			de = (*syscall.Dirent)(unsafe.Pointer(&buf[0]))
+			buf = buf[de.Reclen:]
+
+			if de.Ino == 0 || de.Type != syscall.DT_REG {
+				continue
+			}
+
+			nodes++
+		}
+	}
+
+	return nodes
 }
 
 // Exists returns true if absolute path exists
 func Exists(absPath string) bool {
 	_, err := os.Stat(absPath)
-	return err == nil
+	return !os.IsNotExist(err)
 }
 
 // TouchFile creates files given absolute path if file does not already exist

@@ -1,36 +1,28 @@
-package utils
+package persistence
 
 import (
+	"io/ioutil"
 	"math"
 	"os"
-	"path/filepath"
 
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/jancajthaml-openbank/vault/model"
+	"github.com/jancajthaml-openbank/vault/pkg/model"
+	"github.com/jancajthaml-openbank/vault/pkg/utils"
 
 	money "gopkg.in/inf.v0"
 )
 
-var journalTestParams = RunParams{
-	Setup: SetupParams{
+var journalTestParams = utils.RunParams{
+	Setup: utils.SetupParams{
 		Tenant:      "tenant",
 		RootStorage: "/tmp",
 	},
-	Journal: JournalParams{},
-	Metrics: MetricsParams{},
-}
-
-var journalBenchmarkParams = RunParams{
-	Setup: SetupParams{
-		Tenant:      "tenant",
-		RootStorage: "/benchmark",
-	},
-	Journal: JournalParams{},
-	Metrics: MetricsParams{},
+	Journal: utils.JournalParams{},
+	Metrics: utils.MetricsParams{},
 }
 
 func TestMetadataPersist(t *testing.T) {
@@ -152,49 +144,54 @@ func TestSnapshotPromiseBuffer(t *testing.T) {
 	}
 }
 
-func init() {
-	removeContents := func(dir string) {
-		d, err := os.Open(dir)
-		if err != nil {
-			return
-		}
-		defer d.Close()
-		names, err := d.Readdirnames(-1)
-		if err != nil {
-			return
-		}
-		for _, name := range names {
-			err = os.RemoveAll(filepath.Join(dir, name))
-			if err != nil {
-				return
-			}
-		}
-		return
-	}
-
-	removeContents(journalBenchmarkParams.Setup.RootStorage)
-
-	meta := CreateMetadata(journalBenchmarkParams, "bench", "cur", false)
-	if meta == nil {
-		panic("nil meta")
-	}
-
-	snapshot := CreateSnapshot(journalBenchmarkParams, "bench")
-	if snapshot == nil {
-		panic("nil snapshot")
-	}
-}
-
 func BenchmarkMetadataLoad(b *testing.B) {
+	tmpDir, err := ioutil.TempDir("", "test")
+	if err != nil {
+		b.Fatal(err.Error())
+	}
+	defer os.RemoveAll(tmpDir)
+
+	params := utils.RunParams{
+		Setup: utils.SetupParams{
+			Tenant:      "tenant",
+			RootStorage: tmpDir,
+		},
+		Journal: utils.JournalParams{},
+		Metrics: utils.MetricsParams{},
+	}
+
+	meta := CreateMetadata(params, "bench", "cur", false)
+	require.NotNil(b, meta)
+
+	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		LoadMetadata(journalBenchmarkParams, "bench")
+		LoadMetadata(params, "bench")
 	}
 }
 
 func BenchmarkSnapshotLoad(b *testing.B) {
+	tmpDir, err := ioutil.TempDir("", "test")
+	if err != nil {
+		b.Fatal(err.Error())
+	}
+	defer os.RemoveAll(tmpDir)
+
+	params := utils.RunParams{
+		Setup: utils.SetupParams{
+			Tenant:      "tenant",
+			RootStorage: tmpDir,
+		},
+		Journal: utils.JournalParams{},
+		Metrics: utils.MetricsParams{},
+	}
+
+	snapshot := CreateSnapshot(params, "bench")
+	require.NotNil(b, snapshot)
+
+	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		LoadSnapshot(journalBenchmarkParams, "bench")
+		LoadSnapshot(params, "bench")
 	}
 }
