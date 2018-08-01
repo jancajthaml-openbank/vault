@@ -75,7 +75,7 @@ jobs:
       - checkout
       - setup_remote_docker
       - run: docker build -t openbankdev/vault_bbtest ./bbtest
-      - run: docker build -t openbankdev/vault_base ./dev
+      - run: docker build -t openbankdev/vault_linux ./dev/linux.Dockerfile
       - run: docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}
       - deploy:
           name: Push dev docker images to DockerHUB
@@ -86,7 +86,7 @@ jobs:
             }
 
             upload_to_docker_hub openbankdev/vault_bbtest &
-            upload_to_docker_hub openbankdev/vault_base &
+            upload_to_docker_hub openbankdev/vault_linux &
             wait
       - save_cache:
           key: vault-base-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
@@ -97,7 +97,7 @@ jobs:
 
   test:
     docker:
-      - image: openbankdev/vault_base
+      - image: openbankdev/vault_linux
     working_directory: /go/src/github.com/jancajthaml-openbank/vault
     steps:
       - restore_cache:
@@ -110,7 +110,7 @@ jobs:
 
   build:
     docker:
-      - image: openbankdev/vault_base
+      - image: openbankdev/vault_linux
     working_directory: /go/src/github.com/jancajthaml-openbank/vault
     steps:
       - restore_cache:
@@ -127,7 +127,7 @@ jobs:
 
   package:
     docker:
-      - image: openbankdev/vault_base
+      - image: openbankdev/vault_linux
     working_directory: /go/src/github.com/jancajthaml-openbank/vault
     steps:
       - setup_remote_docker
@@ -196,7 +196,7 @@ jobs:
   release:
 
     docker:
-      - image: openbankdev/vault_base
+      - image: openbankdev/vault_linux
 
     working_directory: /go/src/github.com/jancajthaml-openbank/vault
 
