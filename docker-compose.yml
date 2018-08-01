@@ -8,9 +8,9 @@ services:
 
   go:
     build:
-      dockerfile: dev/Dockerfile
+      dockerfile: dev/linux.Dockerfile
       context: .
-    image: openbankdev/vault_base
+    image: openbankdev/vault_linux
     volumes:
       - ./dev/lifecycle:/opt/lifecycle
       - .:/go/src/github.com/jancajthaml-openbank/vault

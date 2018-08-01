@@ -86,6 +86,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LIBRARY_PATH=/usr/lib \
     LD_LIBRARY_PATH=/usr/lib \
+    LDFLAGS="-lgcc -lgcc_s" \
     CGO_ENABLED=1 \
     GOPATH=/go \
     GOARCH=amd64 \
@@ -96,10 +97,16 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 RUN apt-get -y install --no-install-recommends \
     \
-        cmake=3.7.2-1 \
         make=4.1-9.1 \
+        cmake=3.7.2-1 \
         gcc=4:6.3.0-4 \
         g++=4:6.3.0-4 \
+        gcc-arm-linux-gnueabihf \
+        g++-arm-linux-gnueabihf \
+        libc6-armel-cross \
+        libc6-dev-armel-cross \
+        libncurses5-dev \
+        binutils-arm-linux-gnueabi \
         libzmq3-dev=4.2.1-4 \
         zlib1g-dev=1:1.2.8.dfsg-5 \
         libmpc-dev=1.0.3-1+b2 \
@@ -111,7 +118,7 @@ RUN apt-get -y install --no-install-recommends \
         fakeroot=1.21-3.1 \
         pkg-config>=0.29-4 && \
     \
-    apt-get clean && \
+    apt-get -y clean && apt-get -y autoremove && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY --from=jq /usr/bin/jq /usr/bin/jq
@@ -128,5 +135,8 @@ COPY --from=go /go/bin/golint /usr/bin/golint
 COPY --from=go /go/bin/misspell /usr/bin/misspell
 
 COPY --from=library/docker:18.06 /usr/local/bin/docker /usr/bin/docker
+
+RUN whereis zmq
+RUN ls -al /usr/lib
 
 # ---------------------------------------------------------------------------- #
