@@ -21,7 +21,7 @@ RSpec.configure do |config|
 
     ["/data", "/metrics", "/reports"].each { |folder|
       FileUtils.mkdir_p folder
-      FileUtils.rm_rf Dir.glob("#{folder}/*")
+      %x(rm -rf #{folder}/*)
     }
 
     $vault_instance_counter = 0
@@ -35,9 +35,8 @@ RSpec.configure do |config|
   config.after(:suite) do |_|
     print "\n[ suite ending   ]\n"
 
-
     get_containers = lambda do |image|
-      containers = %x(docker ps -a | awk '{ print $1,$2 }' | grep #{image} | awk '{print $1 }' 2>/dev/null)
+      containers = %x(docker ps -aqf "ancestor=#{image}" 2>/dev/null)
       return ($? == 0 ? containers.split("\n") : [])
     end
 
@@ -45,19 +44,46 @@ RSpec.configure do |config|
       label = %x(docker inspect --format='{{.Name}}' #{container})
       label = ($? == 0 ? label.strip : container)
 
-      %x(docker kill --signal="TERM" #{container} >/dev/null 2>&1 || :)
+      %x(docker exec #{container} systemctl stop lake.service 2>&1)
       %x(docker logs #{container} >/reports/#{label}.log 2>&1)
       %x(docker rm -f #{container} &>/dev/null || :)
     end
 
-    get_containers.call("openbank/vault").each { |container| teardown_container.call(container) }
+    capture_logs = lambda do |container|
+      label = %x(docker inspect --format='{{.Name}}' #{container})
+      label = ($? == 0 ? label.strip : container)
+
+      %x(docker logs #{container} >/reports/#{label}.log 2>&1)
+    end
+
+    kill = lambda do |container|
+      label = %x(docker inspect --format='{{.Name}}' #{container})
+      return unless $? == 0
+      %x(docker rm -f #{container.strip} &>/dev/null || :)
+    end
+
+    begin
+      Timeout.timeout(5) do
+        get_containers.call("openbank/vault").each { |container|
+          teardown_container.call(container)
+        }
+      end
+    rescue Timeout::Error => _
+      get_containers.call("openbank/vault").each { |container|
+        capture_logs.call(container)
+        kill.call(container)
+      }
+      print "[ suite ending   ] (was not able to teardown container in time)\n"
+    end
+
+    ZMQHelper.stop()
+
+    print "[ suite cleaning ]\n"
 
     FileUtils.cp_r '/metrics/.', '/reports'
     ["/data", "/metrics"].each { |folder|
-      FileUtils.rm_rf Dir.glob("#{folder}/*")
+      %x(rm -rf #{folder}/*)
     }
-
-    ZMQHelper.stop()
 
     print "[ suite ended    ]"
   end

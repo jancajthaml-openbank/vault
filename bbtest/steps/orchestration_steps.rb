@@ -10,10 +10,8 @@ step "tenant is :tenant" do |tenant|
 end
 
 step "no :container :label is running" do |container, label|
-
-  containers = %x(docker ps -a -f name=#{label} | awk '{ print $1,$2 }' | grep #{container} | awk '{print $1 }' 2>/dev/null)
+  containers = %x(docker ps -a -f name=#{label} | awk '$2 ~ "#{container}" {print $1}' 2>/dev/null)
   expect($?).to be_success
-
   ids = containers.split("\n").map(&:strip).reject(&:empty?)
 
   return if ids.empty?
@@ -33,16 +31,16 @@ step "no :container :label is running" do |container, label|
 end
 
 step ":container running state is :state" do |container, state|
-  eventually(timeout: 5) {
+  eventually(timeout: 10) {
     %x(docker #{state ? "start" : "stop"} #{container} >/dev/null 2>&1)
     container_state = %x(docker inspect -f {{.State.Running}} #{container} 2>/dev/null)
-    expect($?).to be_success
+    expect($?).to be_success, "failed to check running state of #{container}, err: #{container_state}"
     expect(container_state.strip).to eq(state ? "true" : "false")
   }
 end
 
 step "single container :label is restarted" do |label|
-  containers = %x(docker ps -a -f status=running -f name=#{label} | awk '{ print $1 }' | sed 1,1d)
+  containers = %x(docker ps -a --filter name=#{label} --filter status=running --format "{{.ID}}")
   expect($?).to be_success
   containers = containers.split("\n").map(&:strip).reject(&:empty?)
 
@@ -50,16 +48,12 @@ step "single container :label is restarted" do |label|
 
   id = containers[0]
 
-  eventually(timeout: 10) {
-    send ":container running state is :state", id, false
-  }
-  eventually(timeout: 10) {
-    send ":container running state is :state", id, true
-  }
+  send ":container running state is :state", id, false
+  send ":container running state is :state", id, true
 end
 
 step ":container :version is started with" do |container, version, label, params|
-  containers = %x(docker ps -a -f status=running -f name=#{label} | awk '{ print $1,$2 }' | sed 1,1d)
+  containers = %x(docker ps -a --filter name=#{label} --filter status=running --format "{{.ID}} {{.Image}}")
   expect($?).to be_success
   containers = containers.split("\n").map(&:strip).reject(&:empty?)
 
@@ -90,9 +84,7 @@ step ":container :version is started with" do |container, version, label, params
   id = %x(#{args.join(" ")})
   expect($?).to be_success, id
 
-  eventually(timeout: 10) {
-    send ":container running state is :state", id, true
-  }
+  send ":container running state is :state", id, true
 end
 
 step "vault is restarted" do ||
@@ -117,9 +109,11 @@ step "vault is running" do ||
     "-p 8080"
   ]
 
-  remote_handshake($tenant_id)
+  eventually(timeout: 5) {
+    remote_handshake($tenant_id)
+  }
 
-  eventually(timeout: 10) {
+  eventually(timeout: 5) {
     send ":host is healthy", "vault"
   }
 end
