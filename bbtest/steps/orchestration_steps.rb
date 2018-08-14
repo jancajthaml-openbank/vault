@@ -17,7 +17,7 @@ step "no :container :label is running" do |container, label|
   return if ids.empty?
 
   ids.each { |id|
-    eventually(timeout: 3) {
+    eventually(timeout: 5) {
       puts "wanting to kill #{id}"
       send ":container running state is :state", id, false
 

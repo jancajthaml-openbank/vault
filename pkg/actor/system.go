@@ -20,7 +20,7 @@ import (
 
 	"github.com/jancajthaml-openbank/vault/pkg/model"
 
-	lake "github.com/jancajthaml-openbank/lake-client"
+	lake "github.com/jancajthaml-openbank/lake-client/go"
 	log "github.com/sirupsen/logrus"
 )
 

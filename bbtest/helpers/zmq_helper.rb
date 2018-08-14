@@ -64,7 +64,7 @@ module ZMQHelper
   end
 
   def remote_handshake tenant
-    ZMQHelper.send("Vault/#{tenant}]")
+    ZMQHelper.send("Vault/#{tenant} ]")
   end
 
   class << self
