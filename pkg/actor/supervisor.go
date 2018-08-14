@@ -19,7 +19,7 @@ import (
 	"github.com/jancajthaml-openbank/vault/pkg/model"
 	"github.com/jancajthaml-openbank/vault/pkg/utils"
 
-	lake "github.com/jancajthaml-openbank/lake-client"
+	lake "github.com/jancajthaml-openbank/lake-client/go"
 
 	log "github.com/sirupsen/logrus"
 	money "gopkg.in/inf.v0"

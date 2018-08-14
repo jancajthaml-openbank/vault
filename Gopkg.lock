@@ -24,10 +24,11 @@
   packages = [
     ".",
     "binding",
+    "json",
     "render"
   ]
-  revision = "d459835d2b077e44f7c9b453505ee29881d5d12d"
-  version = "v1.2"
+  revision = "b869fe1415e4b9eb52f247441830d502aece2d4d"
+  version = "v1.3.0"
 
 [[projects]]
   name = "github.com/golang/protobuf"
@@ -55,8 +56,14 @@
 [[projects]]
   branch = "master"
   name = "github.com/jancajthaml-openbank/lake-client"
+  packages = ["go"]
+  revision = "f73cc4820f9d422d6e782866e90772dffe913b9f"
+
+[[projects]]
+  name = "github.com/json-iterator/go"
   packages = ["."]
-  revision = "710dd0eaaa0e30972a0276b9fb41c602b8dfc6ab"
+  revision = "1624edc4454b8682399def8740d46db5e4362ba4"
+  version = "1.1.5"
 
 [[projects]]
   name = "github.com/magiconair/properties"
@@ -77,10 +84,22 @@
   revision = "f15292f7a699fcc1a38a80977f80a046874ba8ac"
 
 [[projects]]
-  branch = "master"
+  name = "github.com/modern-go/concurrent"
+  packages = ["."]
+  revision = "bacd9c7ef1dd9b15be4a9909b8ac7a4e313eec94"
+  version = "1.0.3"
+
+[[projects]]
+  name = "github.com/modern-go/reflect2"
+  packages = ["."]
+  revision = "4b7aa43c6742a2c18fdef89dd197aaae7dac7ccd"
+  version = "1.0.1"
+
+[[projects]]
   name = "github.com/pebbe/zmq4"
   packages = ["."]
   revision = "5b443b6471cea4b4f9f85025530c04c93233f76a"
+  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/pelletier/go-toml"
@@ -125,19 +144,19 @@
   branch = "master"
   name = "github.com/spf13/jwalterweatherman"
   packages = ["."]
-  revision = "7c0cea34c8ece3fbeb2b27ab9b59511d360fb394"
+  revision = "14d3d4c518341bea657dd8a226f5121c0ff8c9f2"
 
 [[projects]]
   name = "github.com/spf13/pflag"
   packages = ["."]
-  revision = "583c0c0531f06d5278b7d917446061adc344b5cd"
-  version = "v1.0.1"
+  revision = "9a97c102cda95a86cec2345a6f09f55a939babf5"
+  version = "v1.0.2"
 
 [[projects]]
   name = "github.com/spf13/viper"
   packages = ["."]
-  revision = "b5e8006cbee93ec955a89ab31e0e3ce3204f3736"
-  version = "v1.0.2"
+  revision = "907c19d40d9a6c9bb55f040ff4ae45271a4754b9"
+  version = "v1.1.0"
 
 [[projects]]
   name = "github.com/stretchr/testify"
@@ -158,7 +177,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "c126467f60eb25f8f27e5a981f32a87e3965053f"
+  revision = "de0752318171da717af4ce24d0a2e8626afaeb11"
 
 [[projects]]
   branch = "master"
@@ -167,7 +186,7 @@
     "unix",
     "windows"
   ]
-  revision = "e072cadbbdc8dd3d3ffa82b8b4b9304c261d9311"
+  revision = "4e1fef5609515ec7a2cee7b5de30ba6d9b438cbf"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -203,6 +222,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "af1ef8509e352c40eb39fd3cb10c955d36dc0887968e07557d10e47ad7156212"
+  inputs-digest = "a3b6b788eab12973c76c09a96d25fb0db58d2a1e60b894af1f63549c2daaf228"
   solver-name = "gps-cdcl"
   solver-version = 1
