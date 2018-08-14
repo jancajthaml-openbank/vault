@@ -23,7 +23,6 @@ step ":account should have data integrity" do |account|
     expect(remote_mailbox()).to include(expected_response)
   }
   ack_remote_message(expected_response)
-
 end
 
 step ":activity :currency account :account is created" do |activity, currency, account|

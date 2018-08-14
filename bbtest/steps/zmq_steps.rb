@@ -11,5 +11,5 @@ step "vault responds with :data" do |data|
 end
 
 step "no other messages were received" do ||
-  expect(remote_mailbox()).to be_empty
+  expect(remote_mailbox()).to be_empty, "expected empty mailbox but got dangling messages: #{remote_mailbox()}"
 end
