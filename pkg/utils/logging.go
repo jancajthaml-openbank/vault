@@ -25,18 +25,17 @@ type LogFormat struct {
 }
 
 var (
-	timestampFormat = "2006-02-01 15:04:05.0000 "
-	debugPrefix     = []byte("DEBU ")
-	infoPrefix      = []byte("INFO ")
-	warnPrefix      = []byte("WARN ")
-	fatalPrefix     = []byte("FATA ")
-	errorPrefix     = []byte("ERRO ")
-	panicPrefix     = []byte("PANI ")
+	debugPrefix = []byte("DEBU ")
+	infoPrefix  = []byte("INFO ")
+	warnPrefix  = []byte("WARN ")
+	fatalPrefix = []byte("FATA ")
+	errorPrefix = []byte("ERRO ")
+	panicPrefix = []byte("PANI ")
 )
 
 // Format processed each log entry and produces formatted log line
 func (f *LogFormat) Format(entry *log.Entry) ([]byte, error) {
-	if len(entry.Message) == 0 {
+	if entry.Message == "" {
 		return nil, nil
 	}
 
@@ -46,8 +45,6 @@ func (f *LogFormat) Format(entry *log.Entry) ([]byte, error) {
 	} else {
 		b = new(bytes.Buffer)
 	}
-
-	b.Write([]byte(entry.Time.Format(timestampFormat)))
 
 	switch entry.Level {
 	case log.DebugLevel:

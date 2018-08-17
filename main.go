@@ -16,16 +16,13 @@ package main
 
 import (
 	"bufio"
-	"context"
-	"fmt"
-	"net/http"
+	"net"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"strings"
 	"sync"
 	"syscall"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -39,13 +36,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	SdNotifyReady    = "READY=1"
+	SdNotifyStopping = "STOPPING=1"
+)
+
 func init() {
 	viper.SetEnvPrefix("VAULT")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
 	viper.SetDefault("log.level", "DEBUG")
-	viper.SetDefault("http.port", 8080)
 	viper.SetDefault("storage", "/data")
 	viper.SetDefault("journal.saturation", 100)
 	viper.SetDefault("snasphot.scaninteval", "1m")
@@ -55,7 +56,7 @@ func init() {
 }
 
 func validParams(params utils.RunParams) bool {
-	if len(params.Setup.Tenant) == 0 || len(params.Setup.LakeHostname) == 0 {
+	if params.Setup.Tenant == "" || params.Setup.LakeHostname == "" {
 		log.Error("missing required parameter to run")
 		return false
 	}
@@ -65,7 +66,7 @@ func validParams(params utils.RunParams) bool {
 		return false
 	}
 
-	if len(params.Metrics.Output) != 0 && os.MkdirAll(filepath.Dir(params.Metrics.Output), os.ModePerm) != nil {
+	if params.Metrics.Output != "" && os.MkdirAll(filepath.Dir(params.Metrics.Output), os.ModePerm) != nil {
 		log.Error("unable to assert metrics output")
 		return false
 	}
@@ -81,7 +82,6 @@ func loadParams() utils.RunParams {
 			LakeHostname: viper.GetString("lake.hostname"),
 			Log:          viper.GetString("log"),
 			LogLevel:     viper.GetString("log.level"),
-			HTTPPort:     viper.GetInt("http.port"),
 		},
 		Journal: utils.JournalParams{
 			SnapshotScanInterval: viper.GetDuration("snasphot.scaninteval"),
@@ -94,8 +94,22 @@ func loadParams() utils.RunParams {
 	}
 }
 
-func setupRootDirectory(params utils.RunParams) bool {
-	return os.MkdirAll(params.Setup.RootStorage, os.ModePerm) == nil
+func systemNotify(state string) {
+	socketAddr := &net.UnixAddr{
+		Name: os.Getenv("NOTIFY_SOCKET"),
+		Net:  "unixgram",
+	}
+
+	if socketAddr.Name == "" {
+		return
+	}
+
+	conn, err := net.DialUnix(socketAddr.Net, nil, socketAddr)
+	if err != nil {
+		return
+	}
+	defer conn.Close()
+	conn.Write([]byte(state))
 }
 
 func main() {
@@ -124,11 +138,6 @@ func main() {
 		log.SetLevel(log.WarnLevel)
 	}
 
-	if !setupRootDirectory(params) {
-		log.Errorf("unable to assert storage directory")
-		return
-	}
-
 	log.Info(">>> Starting <<<")
 
 	// FIXME separate into its own go routine to be stopable
@@ -149,17 +158,6 @@ func main() {
 	exitSignal := make(chan os.Signal, 1)
 	signal.Notify(exitSignal, syscall.SIGINT, syscall.SIGTERM)
 
-	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", params.Setup.HTTPPort),
-		Handler: router,
-	}
-
-	go func() {
-		if err := srv.ListenAndServe(); err != nil {
-			exitSignal <- syscall.SIGTERM
-		}
-	}()
-
 	var wg sync.WaitGroup
 	terminationChan := make(chan struct{})
 	wg.Add(2)
@@ -169,17 +167,17 @@ func main() {
 
 	log.Info(">>> Started <<<")
 
+	systemNotify(SdNotifyReady)
+
 	<-exitSignal
 
 	log.Info(">>> Terminating <<<")
+
+	systemNotify(SdNotifyStopping)
+
 	system.Stop()
 	close(terminationChan)
 	wg.Wait()
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal("Server Shutdown:", err)
-	}
 
 	log.Info(">>> Terminated <<<")
 }

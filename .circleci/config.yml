@@ -117,7 +117,26 @@ jobs:
           keys:
             - vault-base-{{ .Environment.CIRCLE_SHA1 }}
       - run: dep ensure
-      - run: ./dev/lifecycle/package --target linux/amd64,linux/arm
+      - run: ./dev/lifecycle/package --target linux/amd64
+      - run: ./dev/lifecycle/package --target linux/arm
+      - run:
+          name: Package debian
+          command: |
+            if [ -z ${CIRCLE_TAG} ] ; then
+              tags=($(git tag --sort=-v:refname))
+              if [ ${#tags[@]} -eq 0 ] ; then
+                VERSION=v0.0.0
+              else
+                VERSION=${tags[0]}
+              fi
+              META=$(sed 's:.*/::' <<< ${CIRCLE_BRANCH})
+              VERSION=${VERSION}+${META}
+            else
+              VERSION=${CIRCLE_TAG}
+            fi
+
+            ./dev/lifecycle/debian -v ${VERSION} --arch amd64
+            ./dev/lifecycle/debian -v ${VERSION} --arch arm
       - save_cache:
           key: vault-binaries-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
           paths:
@@ -134,31 +153,34 @@ jobs:
       - restore_cache:
           keys:
             - vault-binaries-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
-      - run: if [ ! -f ./packaging/bin/linux-amd64 ] ; then exit 1 ; fi
-      - run: if [ ! -f ./packaging/bin/linux-arm ] ; then exit 1 ; fi
-      - run: docker build -t openbank/vault .
+      - run: docker build -t openbank/vault ./packaging
+      - run: docker build -t openbankdev/vault_candidate .
       - run: docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}
       - deploy:
           name: Push snapshot docker images to DockerHUB
           command: |
+            upload() {
+              if [ -z ${CIRCLE_TAG} ] ; then
+                VERSION=$(sed 's:.*/::' <<< ${CIRCLE_BRANCH})
+                echo "snapshot ${VERSION}"
 
-            if [ -z ${CIRCLE_TAG} ] ; then
-              VERSION=$(sed 's:.*/::' <<< ${CIRCLE_BRANCH})
-              echo "snapshot ${VERSION}"
+                docker tag ${1} ${1}:${VERSION}
+                docker push ${1}:${VERSION}
+              else
+                VERSION=${CIRCLE_TAG}
+                echo "release ${VERSION}"
 
-              docker tag openbank/vault openbank/vault:${VERSION}
-              docker push openbank/vault:${VERSION}
+                docker tag ${1} ${1}:${VERSION}
+                docker push ${1}:${VERSION}
 
-            else
-              VERSION=${CIRCLE_TAG}
-              echo "release ${VERSION}"
+                docker tag ${1} ${1}:latest
+                docker push ${1}:latest
+              fi
+            }
 
-              docker tag openbank/vault openbank/vault:${VERSION}
-              docker push openbank/vault:${VERSION}
-
-              docker tag openbank/vault openbank/vault:latest
-              docker push openbank/vault:latest
-            fi
+            upload openbank/vault &
+            upload openbankdev/vault_candidate &
+            wait
 
   # -------------------------------------------------------------------------- #
 
@@ -181,7 +203,7 @@ jobs:
               VERSION=${CIRCLE_TAG}
             fi
 
-            pull openbank/vault ${VERSION} & \
+            pull openbankdev/vault_candidate ${VERSION} & \
             pull openbankdev/vault_bbtest latest & \
             wait
 
@@ -206,7 +228,9 @@ jobs:
       - restore_cache:
           keys:
             - vault-binaries-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
+      - run: if [ ! -f ./packaging/bin/vault_${CIRCLE_TAG#v}_amd64.deb ] ; then exit 1 ; fi
       - run: if [ ! -f ./packaging/bin/linux-amd64 ] ; then exit 1 ; fi
+      - run: if [ ! -f ./packaging/bin/vault_${CIRCLE_TAG#v}_arm.deb ] ; then exit 1 ; fi
       - run: if [ ! -f ./packaging/bin/linux-arm ] ; then exit 1 ; fi
       - deploy:
           name: Release artifacts to github

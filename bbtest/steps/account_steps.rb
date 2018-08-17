@@ -1,11 +1,11 @@
 require_relative 'placeholders'
 require 'bigdecimal'
 
-step ":account should have data integrity" do |account|
+step ":account for tenant :tenant should have data integrity" do |account, tenant|
   @accounts ||= {}
 
-  snapshot = account_latest_snapshot($tenant_id, account)
-  meta = account_meta($tenant_id, account)
+  snapshot = account_latest_snapshot(tenant, account)
+  meta = account_meta(tenant, account)
 
   raise "persistence inconsistency snapshot: #{snapshot}, meta: #{meta}" if snapshot.nil? ^ meta.nil? ^ !@accounts.key?(account)
 
@@ -17,27 +17,32 @@ step ":account should have data integrity" do |account|
     expected_response = "#{account} #{req_id} SG #{meta[:currency]} #{snapshot[:activity] ? 't' : 'f'} #{snapshot[:balance]} #{snapshot[:balance]}"
   end
 
-  send_remote_message($tenant_id, "#{account} #{req_id} GS")
+  expected = LakeMock.parse_message(expected_response)
+  
+  send "tenant :tenant receives :data", tenant, "#{account} #{req_id} GS"
 
-  eventually(timeout: 3) {
-    expect(remote_mailbox()).to include(expected_response)
+  eventually(backoff: 0.2) {
+    found = LakeMock.pulled_message?(expected)
+    expect(found).to be(true), "message #{expected} was not found in #{LakeMock.mailbox()}"
   }
-  ack_remote_message(expected_response)
+  LakeMock.ack(expected)
 end
 
-step ":activity :currency account :account is created" do |activity, currency, account|
+step ":activity :currency account :account is created for tenant :tenant" do |activity, currency, account, tenant|
   @accounts ||= {}
   expect(@accounts).not_to have_key(account)
 
   req_id = (0...5).map { ('a'..'z').to_a[rand(26)] }.join
   expected_response = "#{account} #{req_id} AN"
 
-  send_remote_message($tenant_id, "#{account} #{req_id} NA #{currency} #{activity ? 't' : 'f'}")
-
-  eventually(timeout: 3) {
-    expect(remote_mailbox()).to include(expected_response)
+  expected = LakeMock.parse_message(expected_response)
+    
+  send "tenant :tenant receives :data", tenant, "#{account} #{req_id} NA #{currency} #{activity ? 't' : 'f'}"
+  eventually(backoff: 0.2) {
+    found = LakeMock.pulled_message?(expected)
+    expect(found).to be(true), "message #{expected} was not found in #{LakeMock.mailbox()}"
   }
-  ack_remote_message(expected_response)
+  LakeMock.ack(expected)
 
   @accounts[account] = {
     :currency => currency,
@@ -47,7 +52,7 @@ step ":activity :currency account :account is created" do |activity, currency, a
   }
 end
 
-step ":account should exist" do |account|
+step ":account for tenant :tenant should exist" do |account, tenant|
   @accounts ||= {}
   expect(@accounts).to have_key(account)
 
@@ -55,25 +60,29 @@ step ":account should exist" do |account|
   acc_local_data = @accounts[account]
   expected_response = "#{account} #{req_id} SG #{acc_local_data[:currency]} #{acc_local_data[:activity] ? 't' : 'f'} #{acc_local_data[:balance]} #{acc_local_data[:promised]}"
 
-  send_remote_message($tenant_id, "#{account} #{req_id} GS")
+  expected = LakeMock.parse_message(expected_response)
 
-  eventually(timeout: 3) {
-    expect(remote_mailbox()).to include(expected_response)
+  send "tenant :tenant receives :data", tenant, "#{account} #{req_id} GS"
+  eventually(backoff: 0.2) {
+    found = LakeMock.pulled_message?(expected)
+    expect(found).to be(true), "message #{expected} was not found in #{LakeMock.mailbox()}"
   }
-  ack_remote_message(expected_response)
+  LakeMock.ack(expected)
 end
 
-step ":account should not exist" do |account|
+step ":account for tenant :tenant should not exist" do |account, tenant|
   @accounts ||= {}
   expect(@accounts).not_to have_key(account)
 
   req_id = (0...5).map { ('a'..'z').to_a[rand(26)] }.join
   expected_response = "#{account} #{req_id} EE"
 
-  send_remote_message($tenant_id, "#{account} #{req_id} GS")
+  expected = LakeMock.parse_message(expected_response)
 
-  eventually(timeout: 3) {
-    expect(remote_mailbox()).to include(expected_response)
+  send "tenant :tenant receives :data", tenant, "#{account} #{req_id} GS"
+  eventually(backoff: 0.2) {
+    found = LakeMock.pulled_message?(expected)
+    expect(found).to be(true), "message #{expected} was not found in #{LakeMock.mailbox()}"
   }
-  ack_remote_message(expected_response)
+  LakeMock.ack(expected)
 end

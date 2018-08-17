@@ -83,6 +83,7 @@ func BenchmarkItoa(b *testing.B) {
 	}
 
 	b.ResetTimer()
+	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
 		testItoa(1)
 	}
@@ -94,41 +95,52 @@ func BenchmarkFmtPad(b *testing.B) {
 	}
 
 	b.ResetTimer()
+	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
 		testPad(1)
 	}
 }
 
 func BenchmarkSnapshotPath(b *testing.B) {
+	
 	b.ResetTimer()
+	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
 		SnapshotPath(pathsBenchmarkParams, "X", 0)
 	}
 }
 
 func BenchmarkSnapshotsPath(b *testing.B) {
+	
 	b.ResetTimer()
+	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
 		SnapshotsPath(pathsBenchmarkParams, "X")
 	}
 }
 
 func BenchmarkEventPath(b *testing.B) {
+	
 	b.ResetTimer()
+	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
 		EventPath(pathsBenchmarkParams, "X", 0)
 	}
 }
 
 func BenchmarkEventsPath(b *testing.B) {
+	
 	b.ResetTimer()
+	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
 		EventsPath(pathsBenchmarkParams, "X")
 	}
 }
 
 func BenchmarkMetadataPath(b *testing.B) {
+	
 	b.ResetTimer()
+	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
 		MetadataPath(pathsBenchmarkParams, "X")
 	}

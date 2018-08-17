@@ -1,13 +1,11 @@
 Feature: High level Lifecycle
 
   Scenario: create account
-    Given tenant is random
-
-    When vault is running
-    Then testAccount should not exist
-    And  pasive EUR account testAccount is created
-    And  testAccount should exist
+    Given vault is restarted
+    Then testAccount for tenant shared should not exist
+    And  pasive EUR account testAccount is created for tenant shared
+    And  testAccount for tenant shared should exist
 
     When vault is restarted
-    Then testAccount should exist
-    And  testAccount should have data integrity
+    Then testAccount for tenant shared should exist
+    And  testAccount for tenant shared should have data integrity

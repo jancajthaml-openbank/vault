@@ -18,7 +18,7 @@ import "time"
 
 // RunParams is a structure of all configurable application parameters
 type RunParams struct {
-	//Journal reprensents setup parameters
+	//Setup reprensents setup parameters
 	Setup SetupParams
 	//Journal reprensents journal parameters
 	Journal JournalParams
@@ -38,8 +38,6 @@ type SetupParams struct {
 	Log string
 	// LogLevel ignorecase log level
 	LogLevel string
-	// HTTPPort represents where http api is exposed
-	HTTPPort int
 }
 
 // MetricsParams is a structure of application metrics parameters

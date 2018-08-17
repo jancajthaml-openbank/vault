@@ -25,18 +25,20 @@ services:
 
   # -------------------------------------------------------------------------- #
 
-  service:
+  candidate:
     build:
       dockerfile: Dockerfile
       context: .
-    image: openbank/vault
+    image: openbankdev/vault_candidate
     restart: "no"
-    environment:
-      - VAULT_TENANT=test
-      - VAULT_LAKE_HOSTNAME=bbtest
-      - VAULT_LOG_LEVEL=debug
-      - VAULT_METRICS_REFRESHRATE=1s
-      - VAULT_METRICS_OUTPUT=/reports/vault_test.json
+
+  # -------------------------------------------------------------------------- #
+
+  artifacts:
+    build:
+      dockerfile: Dockerfile
+      context: ./packaging
+    image: openbank/vault
 
   # -------------------------------------------------------------------------- #
 
@@ -80,6 +82,18 @@ services:
 
   # -------------------------------------------------------------------------- #
 
+  release:
+    extends: go
+    entrypoint: ["/opt/lifecycle/release"]
+
+  # -------------------------------------------------------------------------- #
+
+  debian:
+    extends: go
+    entrypoint: ["/opt/lifecycle/debian"]
+
+  # -------------------------------------------------------------------------- #
+
   test:
     extends: go
     environment:
@@ -104,7 +118,7 @@ services:
     volumes:
       - ./reports:/reports
       - journal:/data
-      - metrics:/metrics
+      - metrics:/opt/vault/metrics
       - ./bbtest:/opt/bbtest
       - /var/run/docker.sock:/var/run/docker.sock
       - /var/lib/docker/containers:/var/lib/docker/containers
