@@ -1,129 +1,111 @@
 require_relative 'placeholders'
 
-step "tenant is :tenant" do |tenant|
-  if tenant == "random"
-    $vault_instance_counter += 1
-    tenant = "#{$vault_instance_counter}#{(0...8).map { ('A'..'Z').to_a[rand(26)] }.join}"
-  end
+$first_time_setup = true
 
-  $tenant_id = tenant
-end
-
-step "no :container :label is running" do |container, label|
-  containers = %x(docker ps -a -f name=#{label} | awk '$2 ~ "#{container}" {print $1}' 2>/dev/null)
-  expect($?).to be_success
-  ids = containers.split("\n").map(&:strip).reject(&:empty?)
-
-  return if ids.empty?
+step "vault is restarted" do ||
+  ids = Docker.get_vaults()
+  expect(ids).not_to be_empty
 
   ids.each { |id|
-    eventually(timeout: 5) {
-      puts "wanting to kill #{id}"
-      send ":container running state is :state", id, false
+    send ":container running state is :state", id, false
+    send ":container running state is :state", id, true
 
-      label = %x(docker inspect --format='{{.Name}}' #{id})
-      label = ($? == 0 ? label.strip : id)
+    units = %x(docker exec #{id} systemctl list-units --type=service | grep vault | awk '{ print $1 }')
+    units = units.split("\n").map(&:strip).reject(&:empty?)
 
-      %x(docker logs #{id} >/reports#{label}.log 2>&1)
-      %x(docker rm -f #{id} &>/dev/null || :)
+    units.each { |unit|
+      eventually(timeout: 2) {
+        expect(Docker.unit_running?(id, unit)).to eq(true)
+      }
+    }
+  }
+end
+
+step "tenant :tenant is offboarded" do |tenant|
+  ids = Docker.get_vaults()
+  expect(ids).not_to be_empty
+
+  ids.each { |id|
+    %x(docker exec #{id} systemctl daemon-reload)
+
+    eventually() {
+      Docker.save_journal(id, "vault@#{tenant}", "/reports/vault@#{tenant}.service.log")
+      Docker.unit_teardown(id, "vault@#{tenant}")
+      Docker.save_journal(id, "vault@#{tenant}", "/reports/vault@#{tenant}.service.log")
+
+      begin
+        FileUtils.cp "/opt/vault/metrics/metrics.json.#{tenant}", "/reports/metrics_vault@#{tenant}.json"
+      rescue Exception => _
+      end
+    }
+  }
+end
+
+step "tenant :tenant is onbdoarded" do |tenant|
+  ids = Docker.get_vaults()
+
+  if ids.empty?
+    version = ENV.fetch("VERSION", "latest")
+    prefix = ENV.fetch('COMPOSE_PROJECT_NAME', "")
+    my_id = %x(cat /etc/hostname).strip
+    args = [
+      "docker",
+      "run",
+      "-d",
+      "-h vault",
+      "-v /sys/fs/cgroup:/sys/fs/cgroup:ro",
+      "--tmpfs=/run",
+      "--tmpfs=/tmp",
+      "--stop-signal=SIGTERM",
+      "--security-opt=seccomp:unconfined",
+      "--net=#{prefix}_default",
+      "--volumes-from=#{my_id}",
+      "--log-driver=json-file",
+      "--net-alias=vault",
+      "--name=vault",
+      "--privileged",
+      "openbank/vault:#{version}",
+      "2>&1"
+    ]
+
+    out = %x(#{args.join(" ")})
+    expect($?).to be_success, out
+
+    send ":container running state is :state", out, true
+
+    my_id = %x(cat /etc/hostname).strip
+    params = [
+      "VAULT_STORAGE=/data",
+      "VAULT_LOG_LEVEL=DEBUG",
+      "VAULT_JOURNAL_SATURATION=100",
+      "VAULT_SNAPSHOT_SCANINTERVAL=1h",
+      "VAULT_METRICS_OUTPUT=/opt/vault/metrics/metrics.json",
+      "VAULT_LAKE_HOSTNAME=#{my_id}",
+      "VAULT_METRICS_REFRESHRATE=1h"
+    ].join("\n").inspect.delete('\"')
+
+    %x(docker exec #{out[0..11]} bash -c "echo -e '#{params}' > /etc/init/vault.conf" 2>&1)
+  end
+
+  ids = Docker.get_vaults()
+  expect(ids).not_to be_empty
+
+  ids.each { |id|
+    expect(Docker.unit_bootstrap(id, "vault@#{tenant}")).to be(true), "failed to start unit"
+
+    %x(docker exec #{id} systemctl daemon-reload)
+
+    eventually() {
+      expect(Docker.unit_running?(id, "vault@#{tenant}")).to eq(true)
     }
   }
 end
 
 step ":container running state is :state" do |container, state|
-  eventually(timeout: 10) {
-    %x(docker #{state ? "start" : "stop"} #{container} >/dev/null 2>&1)
-    container_state = %x(docker inspect -f {{.State.Running}} #{container} 2>/dev/null)
-    expect($?).to be_success, "failed to check running state of #{container}, err: #{container_state}"
-    expect(container_state.strip).to eq(state ? "true" : "false")
+  %x(docker #{state ? "start" : "stop"} #{container} >/dev/null 2>&1)
+  eventually() {
+    expect(Docker.running?(container)).to eq(state)
   }
 end
 
-step "single container :label is restarted" do |label|
-  containers = %x(docker ps -a --filter name=#{label} --filter status=running --format "{{.ID}}")
-  expect($?).to be_success
-  containers = containers.split("\n").map(&:strip).reject(&:empty?)
 
-  return if containers.empty?
-
-  id = containers[0]
-
-  send ":container running state is :state", id, false
-  send ":container running state is :state", id, true
-end
-
-step ":container :version is started with" do |container, version, label, params|
-  containers = %x(docker ps -a --filter name=#{label} --filter status=running --format "{{.ID}} {{.Image}}")
-  expect($?).to be_success
-  containers = containers.split("\n").map(&:strip).reject(&:empty?)
-
-  unless containers.empty?
-    id, image = containers[0].split(" ")
-    return if (image == "#{container}:#{version}")
-  end
-
-  send "no :container :label is running", container, label
-
-  prefix = ENV.fetch('COMPOSE_PROJECT_NAME', "")
-  my_id = %x(cat /etc/hostname).strip
-  args = [
-    "docker",
-    "run",
-    "-d",
-    "--net=#{prefix}_default",
-    "--volumes-from=#{my_id}",
-    "--log-driver=json-file",
-    "-h #{label}",
-    "--net-alias=#{label}",
-    "--name=#{label}"
-  ] << params << [
-    "#{container}:#{version}",
-    "2>&1"
-  ]
-
-  id = %x(#{args.join(" ")})
-  expect($?).to be_success, id
-
-  send ":container running state is :state", id, true
-end
-
-step "vault is restarted" do ||
-  send "single container :label is restarted", "vault_#{$tenant_id}"
-  remote_handshake($tenant_id)
-end
-
-step "vault is running" do ||
-  my_id = %x(cat /etc/hostname).strip
-  send ":container :version is started with", "openbank/vault", ENV.fetch("VERSION", "latest"), "vault_#{$tenant_id}", [
-    "-e VAULT_STORAGE=/data",
-    "-e VAULT_LOG_LEVEL=DEBUG",
-    "-e VAULT_HTTP_PORT=8080",
-    "-e VAULT_TENANT=#{$tenant_id}",
-    "-e VAULT_JOURNAL_SATURATION=100",
-    "-e VAULT_SNAPSHOT_SCANINTERVAL=120s",
-    "-e VAULT_LAKE_HOSTNAME=#{my_id}",
-    "-e VAULT_METRICS_REFRESHRATE=1s",
-    "-e VAULT_METRICS_OUTPUT=/metrics/vault_#{$tenant_id}_metrics.json",
-    "-v #{ENV["COMPOSE_PROJECT_NAME"]}_journal:/data",
-    "-v #{ENV["COMPOSE_PROJECT_NAME"]}_metrics:/metrics",
-    "-p 8080"
-  ]
-
-  eventually(timeout: 5) {
-    remote_handshake($tenant_id)
-  }
-
-  eventually(timeout: 5) {
-    send ":host is healthy", "vault"
-  }
-end
-
-step ":host is healthy" do |host|
-  case host
-  when "vault"
-    resp = $http_client.vault.health_check()
-    expect(resp.status).to eq(200)
-  else
-    raise "unknown host #{host}"
-  end
-end

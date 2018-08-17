@@ -1,11 +1,10 @@
 Feature: Persistent journal
 
   Scenario: create account
-    Given tenant is random
-    And vault is running
+    Given unit "vault@shared.service" is running
 
-    And pasive EUR account Euro is created
-    Then snapshot Euro version 0 should be
+    When pasive EUR account Euro is created for tenant shared
+    Then snapshot Euro of tenant shared version 0 should be
     """
         {
             "version": 0,
@@ -14,7 +13,7 @@ Feature: Persistent journal
             "promiseBuffer": []
         }
     """
-    And meta data of Euro should be
+    And meta data of Euro of tenant shared should be
     """
         {
             "accountName": "Euro",
@@ -23,8 +22,8 @@ Feature: Persistent journal
         }
     """
 
-    When active XRP account Ripple is created
-    Then snapshot Ripple version 0 should be
+    When active XRP account Ripple is created for tenant shared
+    Then snapshot Ripple of tenant shared version 0 should be
     """
         {
             "version": 0,
@@ -33,7 +32,7 @@ Feature: Persistent journal
             "promiseBuffer": []
         }
     """
-    And meta data of Ripple should be
+    And meta data of Ripple of tenant shared should be
     """
         {
             "accountName": "Ripple",

@@ -1,0 +1,19 @@
+vault (v1.0.2+debian-packaging) unstable; urgency=low
+
+  * includes packaging commits after v1.0.2+debian release
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Thu, 16 Aug 2018 11:03:07 +0200
+
+vault (1.0.2) unstable; urgency=low
+
+  
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Tue, 14 Aug 2018 17:52:48 +0200
+
+vault (1.0.1) unstable; urgency=low
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Tue, 31 Jul 2018 13:54:34 +0200
+
+vault (1.0.0) unstable; urgency=low
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Fri, 27 Jul 2018 18:33:21 +0200

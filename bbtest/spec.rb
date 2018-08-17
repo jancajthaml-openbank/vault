@@ -10,24 +10,18 @@ RSpec.configure do |config|
 
   Dir.glob("./helpers/*_helper.rb") { |f| load f }
   config.include EventuallyHelper, :type => :feature
-  config.include ZMQHelper, :type => :feature
   config.include JournalHelper, :type => :feature
   Dir.glob("./steps/*_steps.rb") { |f| load f, true }
 
   config.before(:suite) do |_|
     print "[ suite starting ]\n"
 
-    ZMQHelper.start()
+    LakeMock.start()
 
-    ["/data", "/metrics", "/reports"].each { |folder|
+    ["/data", "/opt/vault/metrics", "/reports"].each { |folder|
       FileUtils.mkdir_p folder
       %x(rm -rf #{folder}/*)
     }
-
-    $vault_instance_counter = 0
-    $tenant_id = nil
-
-    $http_client = HTTPClient.new()
 
     print "[ suite started  ]\n"
   end
@@ -44,22 +38,32 @@ RSpec.configure do |config|
       label = %x(docker inspect --format='{{.Name}}' #{container})
       label = ($? == 0 ? label.strip : container)
 
-      %x(docker exec #{container} systemctl stop lake.service 2>&1)
-      %x(docker logs #{container} >/reports/#{label}.log 2>&1)
+      units = %x(docker exec #{container} systemctl list-units --type=service | grep vault | awk '{ print $1 }')
+      units = units.split("\n").map(&:strip).reject(&:empty?)
+
+      units.each { |unit|
+        %x(docker exec #{container} journalctl -o short-precise -u #{unit} --no-pager >/reports/#{unit}.log 2>&1)
+        %x(docker exec #{container} systemctl stop #{unit} 2>&1)
+        %x(docker exec #{container} journalctl -o short-precise -u #{unit} --no-pager >/reports/#{unit}.log 2>&1)
+        %x(docker exec #{container} systemctl disable #{unit} 2>&1)
+      }
+
       %x(docker rm -f #{container} &>/dev/null || :)
     end
 
-    capture_logs = lambda do |container|
+    capture_journal = lambda do |container|
       label = %x(docker inspect --format='{{.Name}}' #{container})
       label = ($? == 0 ? label.strip : container)
 
-      %x(docker logs #{container} >/reports/#{label}.log 2>&1)
-    end
+      units = %x(docker exec #{container} systemctl list-units --type=service | grep vault | awk '{ print $1 }')
+      units = units.split("\n").map(&:strip).reject(&:empty?)
 
-    kill = lambda do |container|
-      label = %x(docker inspect --format='{{.Name}}' #{container})
-      return unless $? == 0
-      %x(docker rm -f #{container.strip} &>/dev/null || :)
+      units.each { |unit|
+        %x(docker exec #{container} journalctl -o short-precise -u #{unit} --no-pager >/reports/#{unit}.log 2>&1)
+        %x(docker exec #{container} systemctl stop #{unit} 2>&1)
+        %x(docker exec #{container} journalctl -o short-precise -u #{unit} --no-pager >/reports/#{unit}.log 2>&1)
+        %x(docker exec #{container} systemctl disable #{unit} 2>&1)
+      }
     end
 
     begin
@@ -70,18 +74,17 @@ RSpec.configure do |config|
       end
     rescue Timeout::Error => _
       get_containers.call("openbank/vault").each { |container|
-        capture_logs.call(container)
-        kill.call(container)
+        capture_journal.call(container)
+        %x(docker rm -f #{container} &>/dev/null || :)
       }
       print "[ suite ending   ] (was not able to teardown container in time)\n"
     end
 
-    ZMQHelper.stop()
+    LakeMock.stop()
 
     print "[ suite cleaning ]\n"
 
-    FileUtils.cp_r '/metrics/.', '/reports'
-    ["/data", "/metrics"].each { |folder|
+    ["/data", "/opt/vault/metrics"].each { |folder|
       %x(rm -rf #{folder}/*)
     }
 

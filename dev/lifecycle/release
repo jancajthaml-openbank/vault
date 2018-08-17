@@ -10,19 +10,23 @@ while [ $# -gt 0 ] ; do
 key="$1"
 
 case $key in
-    -v|--version)
+
+  -v|--version)
     VERSION="$2"
     shift
     shift
-    ;;
-    -t|--token)
+  ;;
+
+  -t|--token)
     ACCESS_TOKEN="$2"
     shift
     shift
-    ;;
-    *)
+  ;;
+
+  *)
     shift
-    ;;
+  ;;
+
 esac
 done
 

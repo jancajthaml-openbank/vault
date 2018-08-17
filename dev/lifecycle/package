@@ -52,21 +52,21 @@ key="$1"
 
 case $key in
 
-    --target)
-      targets=($(sed "s/,/ /g" <<< "$2"))
-      shift
-      shift
-    ;;
+  --target)
+    targets=($(sed "s/,/ /g" <<< "$2"))
+    shift
+    shift
+  ;;
 
-    -o|--output)
-      dist="$2"
-      shift
-      shift
-    ;;
+  -o|--output)
+    dist="$2"
+    shift
+    shift
+  ;;
 
-    *)
-      shift
-    ;;
+  *)
+    shift
+  ;;
 
 esac
 done

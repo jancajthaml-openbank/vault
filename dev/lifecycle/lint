@@ -35,10 +35,5 @@ scan() {
 
 sem_open $(getconf _NPROCESSORS_ONLN)
 
-scan commands
-scan utils
-scan model
-scan metrics
-scan cron
-scan actor
+scan pkg
 wait
