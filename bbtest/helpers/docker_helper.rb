@@ -22,7 +22,7 @@ module Docker
     version = ENV.fetch("VERSION", "latest")
     containers = %x(docker ps -a --filter name=vault --filter status=running --format "{{.ID}} {{.Image}}")
     return [] unless $? == 0
-    return containers.split("\n").map(&:strip).reject { |x| x.empty? or x.split(" ").last != "openbank/vault:#{version}" }.map { |x| x.split(" ").first }
+    return containers.split("\n").map(&:strip).reject { |x| x.empty? or x.split(" ").last != "openbankdev/vault_candidate:#{version}" }.map { |x| x.split(" ").first }
   end
 
   def self.unit_enabled?(id, unit)

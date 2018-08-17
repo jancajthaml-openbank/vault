@@ -64,7 +64,7 @@ step "tenant :tenant is onbdoarded" do |tenant|
       "--net-alias=vault",
       "--name=vault",
       "--privileged",
-      "openbank/vault:#{version}",
+      "openbankdev/vault_candidate:#{version}",
       "2>&1"
     ]
 

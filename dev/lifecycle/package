@@ -4,7 +4,7 @@ set -eu
 trap exit INT TERM
 
 dist="packaging/bin"
-targets=("linux/amd64")
+target="linux/amd64"
 
 package_service() {
   local arch=${2#*/}
@@ -53,7 +53,7 @@ key="$1"
 case $key in
 
   --target)
-    targets=($(sed "s/,/ /g" <<< "$2"))
+    target="$2"
     shift
     shift
   ;;
@@ -74,8 +74,6 @@ done
 echo "[info] cleaning"
 go clean
 
-for target in ${targets[@]} ; do
-  package_service ${dist} ${target}
-done
+package_service ${dist} ${target}
 
 echo "[info] done"

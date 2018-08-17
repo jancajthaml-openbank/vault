@@ -25,12 +25,20 @@ services:
 
   # -------------------------------------------------------------------------- #
 
-  service:
+  candidate:
     build:
       dockerfile: Dockerfile
       context: .
-    image: openbank/vault
+    image: openbankdev/vault_candidate
     restart: "no"
+
+  # -------------------------------------------------------------------------- #
+
+  artifacts:
+    build:
+      dockerfile: Dockerfile
+      context: ./packaging
+    image: openbank/vault
 
   # -------------------------------------------------------------------------- #
 

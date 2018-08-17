@@ -68,12 +68,12 @@ RSpec.configure do |config|
 
     begin
       Timeout.timeout(5) do
-        get_containers.call("openbank/vault").each { |container|
+        get_containers.call("openbankdev/vault_candidate").each { |container|
           teardown_container.call(container)
         }
       end
     rescue Timeout::Error => _
-      get_containers.call("openbank/vault").each { |container|
+      get_containers.call("openbankdev/vault_candidate").each { |container|
         capture_journal.call(container)
         %x(docker rm -f #{container} &>/dev/null || :)
       }
