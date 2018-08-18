@@ -62,6 +62,7 @@ func nonExistAccount(params utils.RunParams, m *metrics.Metrics, system *ActorSy
 
 			context.Receiver.Become(*snaphostResult, *metaResult, existAccount(params, m, system))
 			system.SendRemote(context.Sender.Region, model.AccountCreatedMessage(context.Receiver.Name, context.Sender.Name))
+			log.Info("New Account %s Created", meta.AccountName)
 			log.Debugf("%s ~ (NonExist CreateAccount) OK", meta.AccountName)
 			m.AccountCreated()
 
