@@ -25,46 +25,15 @@ var journalTestParams = utils.RunParams{
 	Metrics: utils.MetricsParams{},
 }
 
-func TestMetadataPersist(t *testing.T) {
-	name := "account_1"
+func TestSnapshotUpdate(t *testing.T) {
+	name := "account_2"
 	currency := "XRP"
 	isBalanceCheck := false
 
-	meta := CreateMetadata(journalTestParams, name, currency, isBalanceCheck)
-	require.NotNil(t, meta)
-
-	loaded := LoadMetadata(journalTestParams, name)
-	require.NotNil(t, loaded)
-
-	assert.Equal(t, meta.AccountName, loaded.AccountName)
-	assert.Equal(t, name, loaded.AccountName)
-	assert.Equal(t, meta.Currency, loaded.Currency)
-	assert.Equal(t, currency, loaded.Currency)
-	assert.Equal(t, meta.IsBalanceCheck, loaded.IsBalanceCheck)
-	assert.Equal(t, isBalanceCheck, loaded.IsBalanceCheck)
-}
-
-func TestSnapshotPersist(t *testing.T) {
-	name := "account_1"
-
-	snapshot := CreateSnapshot(journalTestParams, name)
-	require.NotNil(t, snapshot)
-
-	loaded := LoadSnapshot(journalTestParams, name)
-	require.NotNil(t, loaded)
-
-	assert.Equal(t, 0, loaded.Balance.Sign())
-	assert.Equal(t, 0, loaded.Promised.Sign())
-	assert.Equal(t, 0, loaded.Version)
-}
-
-func TestSnapshotUpdate(t *testing.T) {
-	name := "account_2"
-
-	snapshotInitial := CreateSnapshot(journalTestParams, name)
+	snapshotInitial := CreateAccount(journalTestParams, name, currency, isBalanceCheck)
 	require.NotNil(t, snapshotInitial)
 
-	loadedInitial := LoadSnapshot(journalTestParams, name)
+	loadedInitial := LoadAccount(journalTestParams, name)
 	require.NotNil(t, loadedInitial)
 
 	t.Log("Initial matches loaded")
@@ -75,10 +44,10 @@ func TestSnapshotUpdate(t *testing.T) {
 		assert.Equal(t, snapshotInitial.Version, loadedInitial.Version)
 	}
 
-	snapshotVersion1 := UpdateSnapshot(journalTestParams, name, snapshotInitial)
+	snapshotVersion1 := UpdateAccount(journalTestParams, name, snapshotInitial)
 	require.NotNil(t, snapshotVersion1)
 
-	loadedVersion1 := LoadSnapshot(journalTestParams, name)
+	loadedVersion1 := LoadAccount(journalTestParams, name)
 	require.NotNil(t, loadedVersion1)
 
 	t.Log("Updated matches loaded")
@@ -98,36 +67,46 @@ func TestSnapshotUpdate(t *testing.T) {
 
 func TestRefuseSnapshotOverflow(t *testing.T) {
 	name := "xxx"
+	currency := "XxX"
+	isBalanceCheck := true
 
-	snapshotLast := &model.Snapshot{
+	snapshotLast := &model.Account{
 		Balance:       new(money.Dec),
 		Promised:      new(money.Dec),
 		PromiseBuffer: model.NewTransactionSet(),
 		Version:       int(math.MaxInt32),
+		AccountName: name,
+		Currency: currency,
+		IsBalanceCheck: isBalanceCheck,
 	}
 
-	snapshotNext := UpdateSnapshot(journalTestParams, name, snapshotLast)
+	snapshotNext := UpdateAccount(journalTestParams, name, snapshotLast)
 
 	assert.Equal(t, snapshotLast.Version, snapshotNext.Version)
 }
 
 func TestSnapshotPromiseBuffer(t *testing.T) {
-	name := "account_3"
+	name := "yyy"
+	currency := "yYy"
+	isBalanceCheck := false
 
 	expectedPromises := []string{"A", "B", "C", "D"}
 
-	snapshot := &model.Snapshot{
+	snapshot := &model.Account{
 		Balance:       new(money.Dec),
 		Promised:      new(money.Dec),
 		PromiseBuffer: model.NewTransactionSet(),
 		Version:       0,
+		AccountName: name,
+		Currency: currency,
+		IsBalanceCheck: isBalanceCheck,
 	}
 
 	snapshot.PromiseBuffer.AddAll(expectedPromises)
 
-	StoreSnapshot(journalTestParams, name, snapshot)
+	PersistAccount(journalTestParams, name, snapshot)
 
-	loaded := LoadSnapshot(journalTestParams, name)
+	loaded := LoadAccount(journalTestParams, name)
 
 	if loaded == nil {
 		t.Errorf("Expected to load snapshot got nil instead")
@@ -137,6 +116,9 @@ func TestSnapshotPromiseBuffer(t *testing.T) {
 	assert.Equal(t, snapshot.Balance, loaded.Balance)
 	assert.Equal(t, snapshot.Promised, loaded.Promised)
 	assert.Equal(t, snapshot.Version, loaded.Version)
+	assert.Equal(t, snapshot.AccountName, loaded.AccountName)
+	assert.Equal(t, snapshot.Currency, loaded.Currency)
+	assert.Equal(t, snapshot.IsBalanceCheck, loaded.IsBalanceCheck)
 
 	require.Equal(t, len(expectedPromises), loaded.PromiseBuffer.Size())
 	for _, v := range expectedPromises {
@@ -144,7 +126,7 @@ func TestSnapshotPromiseBuffer(t *testing.T) {
 	}
 }
 
-func BenchmarkMetadataLoad(b *testing.B) {
+func BenchmarkAccountLoad(b *testing.B) {
 	tmpDir, err := ioutil.TempDir("", "test")
 	if err != nil {
 		b.Fatal(err.Error())
@@ -160,38 +142,12 @@ func BenchmarkMetadataLoad(b *testing.B) {
 		Metrics: utils.MetricsParams{},
 	}
 
-	meta := CreateMetadata(params, "bench", "cur", false)
-	require.NotNil(b, meta)
+	account := CreateAccount(params, "bench", "BNC", false)
+	require.NotNil(b, account)
 
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		LoadMetadata(params, "bench")
-	}
-}
-
-func BenchmarkSnapshotLoad(b *testing.B) {
-	tmpDir, err := ioutil.TempDir("", "test")
-	if err != nil {
-		b.Fatal(err.Error())
-	}
-	defer os.RemoveAll(tmpDir)
-
-	params := utils.RunParams{
-		Setup: utils.SetupParams{
-			Tenant:      "tenant",
-			RootStorage: tmpDir,
-		},
-		Journal: utils.JournalParams{},
-		Metrics: utils.MetricsParams{},
-	}
-
-	snapshot := CreateSnapshot(params, "bench")
-	require.NotNil(b, snapshot)
-
-	b.ReportAllocs()
-	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
-		LoadSnapshot(params, "bench")
+		LoadAccount(params, "bench")
 	}
 }

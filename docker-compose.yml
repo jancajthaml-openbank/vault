@@ -25,23 +25,6 @@ services:
 
   # -------------------------------------------------------------------------- #
 
-  candidate:
-    build:
-      dockerfile: Dockerfile
-      context: .
-    image: openbankdev/vault_candidate
-    restart: "no"
-
-  # -------------------------------------------------------------------------- #
-
-  artifacts:
-    build:
-      dockerfile: Dockerfile
-      context: ./packaging
-    image: openbank/vault
-
-  # -------------------------------------------------------------------------- #
-
   sync:
     extends: go
     entrypoint: ["dep"]
@@ -107,28 +90,13 @@ services:
       context: .
       dockerfile: bbtest/Dockerfile
     image: openbankdev/vault_bbtest
-    ports:
-      - "5562"
-      - "5561"
-    working_dir: /opt/bbtest
-    environment:
-      - PERSISTENCE_PATH=/data
-      - COMPOSE_PROJECT_NAME
-      - VERSION
-    volumes:
-      - ./reports:/reports
-      - journal:/data
-      - metrics:/opt/vault/metrics
-      - ./bbtest:/opt/bbtest
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /var/lib/docker/containers:/var/lib/docker/containers
 
-# ---------------------------------------------------------------------------- #
+  # -------------------------------------------------------------------------- #
 
-volumes:
-  journal:
-    driver: local
-  metrics:
-    driver: local
+  artifacts:
+    build:
+      dockerfile: Dockerfile
+      context: ./packaging
+    image: openbank/vault
 
 # ---------------------------------------------------------------------------- #

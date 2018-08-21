@@ -55,23 +55,23 @@ func init() {
 
 func TestUpdateSaturated(t *testing.T) {
 
-	require.NotNil(t, persistence.CreateMetadata(snapshotTestParams, "account_1", "EUR", true))
-	s := persistence.CreateSnapshot(snapshotTestParams, "account_1")
+	//require.NotNil(t, persistence.CreateAccount(snapshotTestParams, "account_1", "EUR", true))
+	s := persistence.CreateAccount(snapshotTestParams, "account_1", "EUR", true)
 	require.NotNil(t, s)
 	require.True(t, persistence.PersistPromise(snapshotTestParams, "account_1", 0, new(money.Dec), "transaction_1"))
-	s = persistence.UpdateSnapshot(snapshotTestParams, "account_1", s)
+	s = persistence.UpdateAccount(snapshotTestParams, "account_1", s)
 	require.True(t, persistence.PersistPromise(snapshotTestParams, "account_1", 1, new(money.Dec), "transaction_2"))
 	require.True(t, persistence.PersistCommit(snapshotTestParams, "account_1", 1, new(money.Dec), "transaction_2"))
 	require.NotNil(t, s)
-	require.NotNil(t, persistence.CreateMetadata(snapshotTestParams, "account_2", "EUR", true))
-	require.NotNil(t, persistence.CreateSnapshot(snapshotTestParams, "account_2"))
+	//require.NotNil(t, persistence.CreateMetadata(snapshotTestParams, "account_2", "EUR", true))
+	require.NotNil(t, persistence.CreateAccount(snapshotTestParams, "account_2", "EUR", true))
 
 	t.Log("return valid accounts")
 	{
 		assert.Equal(t, []string{"account_1", "account_2"}, getAccounts(snapshotTestParams))
 	}
 
-	t.Log("return valid versions")
+	t.Log("return valid version")
 	{
 		assert.Equal(t, 1, getVersion(snapshotTestParams, "account_1"))
 		assert.Equal(t, 0, getVersion(snapshotTestParams, "account_2"))

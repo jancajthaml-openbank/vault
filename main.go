@@ -16,7 +16,6 @@ package main
 
 import (
 	"bufio"
-	"net"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -32,13 +31,6 @@ import (
 	"github.com/jancajthaml-openbank/vault/pkg/cron"
 	"github.com/jancajthaml-openbank/vault/pkg/metrics"
 	"github.com/jancajthaml-openbank/vault/pkg/utils"
-
-	"github.com/gin-gonic/gin"
-)
-
-const (
-	SdNotifyReady    = "READY=1"
-	SdNotifyStopping = "STOPPING=1"
 )
 
 func init() {
@@ -94,24 +86,6 @@ func loadParams() utils.RunParams {
 	}
 }
 
-func systemNotify(state string) {
-	socketAddr := &net.UnixAddr{
-		Name: os.Getenv("NOTIFY_SOCKET"),
-		Net:  "unixgram",
-	}
-
-	if socketAddr.Name == "" {
-		return
-	}
-
-	conn, err := net.DialUnix(socketAddr.Net, nil, socketAddr)
-	if err != nil {
-		return
-	}
-	defer conn.Close()
-	conn.Write([]byte(state))
-}
-
 func main() {
 	log.Info(">>> Setup <<<")
 
@@ -143,17 +117,8 @@ func main() {
 	// FIXME separate into its own go routine to be stopable
 	m := metrics.NewMetrics()
 
-	gin.SetMode(gin.ReleaseMode)
-
 	system := new(actor.ActorSystem)
 	system.Start(params, m) // FIXME if there is no lake, application is stuck here
-
-	// FIXME check if nil if so then return
-	router := gin.New()
-
-	router.GET("/health", func(c *gin.Context) {
-		c.String(200, "")
-	})
 
 	exitSignal := make(chan os.Signal, 1)
 	signal.Notify(exitSignal, syscall.SIGINT, syscall.SIGTERM)
@@ -167,13 +132,13 @@ func main() {
 
 	log.Info(">>> Started <<<")
 
-	systemNotify(SdNotifyReady)
+	utils.NotifyServiceReady()
 
 	<-exitSignal
 
 	log.Info(">>> Terminating <<<")
 
-	systemNotify(SdNotifyStopping)
+	utils.NotifyServiceStopping()
 
 	system.Stop()
 	close(terminationChan)

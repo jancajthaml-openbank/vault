@@ -14,13 +14,9 @@
 
 package model
 
-import (
-	"bytes"
-)
-
 // TransactionSet is set datastructure for transaction Ids
 type TransactionSet struct {
-	items map[string]interface{}
+	Items map[string]interface{}
 }
 
 // NewTransactionSet returns empty set
@@ -30,42 +26,28 @@ func NewTransactionSet() TransactionSet {
 
 // Add adds element to set
 func (set *TransactionSet) Add(i string) {
-	set.items[i] = nil
+	set.Items[i] = nil
 }
 
 // AddAll adds all elements to set
 func (set *TransactionSet) AddAll(i []string) {
 	for _, b := range i {
-		set.items[b] = nil
+		set.Items[b] = nil
 	}
 }
 
 // Contains returns true if value is present in set
 func (set *TransactionSet) Contains(i string) bool {
-	_, found := set.items[i]
+	_, found := set.Items[i]
 	return found
 }
 
 // Remove removes element from set
 func (set *TransactionSet) Remove(i string) {
-	delete(set.items, i)
+	delete(set.Items, i)
 }
 
 // Size returns number of items in set
 func (set *TransactionSet) Size() int {
-	return len(set.items)
-}
-
-// WriteTo writes all imtes to buffer in format "\n" + item
-func (set *TransactionSet) WriteTo(buffer *bytes.Buffer) {
-	if set == nil {
-		return
-	}
-
-	for v := range set.items {
-		buffer.WriteString("\n")
-		buffer.WriteString(v)
-	}
-
-	return
+	return len(set.Items)
 }
