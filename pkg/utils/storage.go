@@ -31,18 +31,18 @@ func init() {
 	defaultBufferSize = 2 * os.Getpagesize()
 }
 
-func nameFromDirent(de *syscall.Dirent) []byte {
-	ml := int(uint64(de.Reclen) - uint64(unsafe.Offsetof(syscall.Dirent{}.Name)))
+func nameFromDirent(dirent *syscall.Dirent) []byte {
+	reg := int(uint64(dirent.Reclen) - uint64(unsafe.Offsetof(syscall.Dirent{}.Name)))
 
 	var name []byte
-	sh := (*reflect.SliceHeader)(unsafe.Pointer(&name))
-	sh.Cap = ml
-	sh.Len = ml
-	sh.Data = uintptr(unsafe.Pointer(&de.Name[0]))
+	header := (*reflect.SliceHeader)(unsafe.Pointer(&name))
+	header.Cap = reg
+	header.Len = reg
+	header.Data = uintptr(unsafe.Pointer(&dirent.Name[0]))
 
 	if index := bytes.IndexByte(name, 0); index >= 0 {
-		sh.Cap = index
-		sh.Len = index
+		header.Cap = index
+		header.Len = index
 	}
 
 	return name

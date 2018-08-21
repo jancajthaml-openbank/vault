@@ -4,37 +4,14 @@
 [[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
-  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
-  version = "v1.1.0"
+  revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
+  version = "v1.1.1"
 
 [[projects]]
   name = "github.com/fsnotify/fsnotify"
   packages = ["."]
   revision = "c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9"
   version = "v1.4.7"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/gin-contrib/sse"
-  packages = ["."]
-  revision = "22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae"
-
-[[projects]]
-  name = "github.com/gin-gonic/gin"
-  packages = [
-    ".",
-    "binding",
-    "json",
-    "render"
-  ]
-  revision = "b869fe1415e4b9eb52f247441830d502aece2d4d"
-  version = "v1.3.0"
-
-[[projects]]
-  name = "github.com/golang/protobuf"
-  packages = ["proto"]
-  revision = "b4deda0973fb4c70b50d226b1af49f3da59f5265"
-  version = "v1.1.0"
 
 [[projects]]
   branch = "master"
@@ -60,40 +37,16 @@
   revision = "f73cc4820f9d422d6e782866e90772dffe913b9f"
 
 [[projects]]
-  name = "github.com/json-iterator/go"
-  packages = ["."]
-  revision = "1624edc4454b8682399def8740d46db5e4362ba4"
-  version = "1.1.5"
-
-[[projects]]
   name = "github.com/magiconair/properties"
   packages = ["."]
   revision = "c2353362d570a7bfa228149c62842019201cfb71"
   version = "v1.8.0"
 
 [[projects]]
-  name = "github.com/mattn/go-isatty"
-  packages = ["."]
-  revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
-  version = "v0.0.3"
-
-[[projects]]
   branch = "master"
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
   revision = "f15292f7a699fcc1a38a80977f80a046874ba8ac"
-
-[[projects]]
-  name = "github.com/modern-go/concurrent"
-  packages = ["."]
-  revision = "bacd9c7ef1dd9b15be4a9909b8ac7a4e313eec94"
-  version = "1.0.3"
-
-[[projects]]
-  name = "github.com/modern-go/reflect2"
-  packages = ["."]
-  revision = "4b7aa43c6742a2c18fdef89dd197aaae7dac7ccd"
-  version = "1.0.1"
 
 [[projects]]
   name = "github.com/pebbe/zmq4"
@@ -168,16 +121,10 @@
   version = "v1.2.2"
 
 [[projects]]
-  name = "github.com/ugorji/go"
-  packages = ["codec"]
-  revision = "b4c50a2b199d93b13dc15e78929cfb23bfdf21ab"
-  version = "v1.1.1"
-
-[[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "de0752318171da717af4ce24d0a2e8626afaeb11"
+  revision = "614d502a4dac94afa3a6ce146bd1736da82514c6"
 
 [[projects]]
   branch = "master"
@@ -186,7 +133,7 @@
     "unix",
     "windows"
   ]
-  revision = "4e1fef5609515ec7a2cee7b5de30ba6d9b438cbf"
+  revision = "1a700e749ce29638d0bbcb531cce1094ea096bd3"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -200,12 +147,6 @@
   ]
   revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
   version = "v0.3.0"
-
-[[projects]]
-  name = "gopkg.in/go-playground/validator.v8"
-  packages = ["."]
-  revision = "5f1438d3fca68893a817e4a66806cea46a9e4ebf"
-  version = "v8.18.2"
 
 [[projects]]
   name = "gopkg.in/inf.v0"
@@ -222,6 +163,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a3b6b788eab12973c76c09a96d25fb0db58d2a1e60b894af1f63549c2daaf228"
+  inputs-digest = "69ecd99fdc78cb555eeb62e8e068fbf59ee59488b0c0db1c43b9b100ad551f7e"
   solver-name = "gps-cdcl"
   solver-version = 1

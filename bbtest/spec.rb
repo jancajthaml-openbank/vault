@@ -18,7 +18,7 @@ RSpec.configure do |config|
 
     LakeMock.start()
 
-    ["/data", "/opt/vault/metrics", "/reports"].each { |folder|
+    ["/data", "/reports"].each { |folder|
       FileUtils.mkdir_p folder
       %x(rm -rf #{folder}/*)
     }
@@ -34,61 +34,33 @@ RSpec.configure do |config|
       return ($? == 0 ? containers.split("\n") : [])
     end
 
-    teardown_container = lambda do |container|
-      label = %x(docker inspect --format='{{.Name}}' #{container})
-      label = ($? == 0 ? label.strip : container)
+    ids = %x(systemctl list-units | awk '{ print $1 }')
 
-      units = %x(docker exec #{container} systemctl list-units --type=service | grep vault | awk '{ print $1 }')
-      units = units.split("\n").map(&:strip).reject(&:empty?)
-
-      units.each { |unit|
-        %x(docker exec #{container} journalctl -o short-precise -u #{unit} --no-pager >/reports/#{unit}.log 2>&1)
-        %x(docker exec #{container} systemctl stop #{unit} 2>&1)
-        %x(docker exec #{container} journalctl -o short-precise -u #{unit} --no-pager >/reports/#{unit}.log 2>&1)
-        %x(docker exec #{container} systemctl disable #{unit} 2>&1)
-      }
-
-      %x(docker rm -f #{container} &>/dev/null || :)
+    if $?
+      ids = ids.split("\n").map(&:strip).reject { |x|
+        x.empty? || !(x.start_with?("vault") || x.start_with?("lake") || x.start_with?("wall"))
+      }.map { |x| x.chomp(".service") }
+    else
+      ids = []
     end
 
-    capture_journal = lambda do |container|
-      label = %x(docker inspect --format='{{.Name}}' #{container})
-      label = ($? == 0 ? label.strip : container)
-
-      units = %x(docker exec #{container} systemctl list-units --type=service | grep vault | awk '{ print $1 }')
-      units = units.split("\n").map(&:strip).reject(&:empty?)
-
-      units.each { |unit|
-        %x(docker exec #{container} journalctl -o short-precise -u #{unit} --no-pager >/reports/#{unit}.log 2>&1)
-        %x(docker exec #{container} systemctl stop #{unit} 2>&1)
-        %x(docker exec #{container} journalctl -o short-precise -u #{unit} --no-pager >/reports/#{unit}.log 2>&1)
-        %x(docker exec #{container} systemctl disable #{unit} 2>&1)
-      }
-    end
-
-    begin
-      Timeout.timeout(5) do
-        get_containers.call("openbankdev/vault_candidate").each { |container|
-          teardown_container.call(container)
-        }
-      end
-    rescue Timeout::Error => _
-      get_containers.call("openbankdev/vault_candidate").each { |container|
-        capture_journal.call(container)
-        %x(docker rm -f #{container} &>/dev/null || :)
-      }
-      print "[ suite ending   ] (was not able to teardown container in time)\n"
-    end
+    ids.each { |e|
+      %x(journalctl -o short-precise -u #{e} --no-pager > /reports/#{e}.log 2>&1)
+      %x(systemctl stop #{e} 2>&1)
+      %x(systemctl disable #{e} 2>&1)
+      %x(journalctl -o short-precise -u #{e} --no-pager > /reports/#{e}.log 2>&1)
+    } unless ids.empty?
 
     LakeMock.stop()
 
     print "[ suite cleaning ]\n"
 
-    ["/data", "/opt/vault/metrics"].each { |folder|
+    ["/data"].each { |folder|
       %x(rm -rf #{folder}/*)
     }
 
     print "[ suite ended    ]"
   end
+
 
 end

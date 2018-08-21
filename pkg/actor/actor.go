@@ -24,10 +24,9 @@ import (
 
 type actor struct {
 	Name     string
-	receive  func(model.Snapshot, model.Account, Context)
+	receive  func(model.Account, Context)
 	dataChan chan Context
-	Meta     model.Account
-	State    model.Snapshot
+	State    model.Account
 }
 
 // Coordinates represents actor namespace
@@ -41,8 +40,7 @@ func NewActor(name string) *actor {
 	ref := new(actor)
 	ref.Name = name
 	ref.dataChan = make(chan Context, 64) // FIXME make buffer from params
-	ref.State = model.NewSnapshot()
-	ref.Meta = model.NewAccount(name)
+	ref.State = model.NewAccount(name)
 	return ref
 }
 
@@ -58,13 +56,12 @@ func (ref *actor) Tell(data interface{}, sender Coordinates) error {
 }
 
 // Become transforms actor behaviour for next message
-func (ref *actor) Become(state model.Snapshot, meta model.Account, f func(model.Snapshot, model.Account, Context)) error {
+func (ref *actor) Become(state model.Account, f func(model.Account, Context)) error {
 	if ref == nil {
 		log.Warnf("actor reference %v not found", ref)
 		return fmt.Errorf("actor reference %v not found", ref)
 	}
 	ref.State = state
-	ref.Meta = meta
 	ref.react(f)
 	return nil
 }
@@ -73,9 +70,9 @@ func (ref *actor) String() string {
 	return ref.Name
 }
 
-func (ref *actor) react(f func(model.Snapshot, model.Account, Context)) *actor {
+func (ref *actor) react(f func(model.Account, Context)) {
 	ref.receive = f
-	return ref
+	return
 }
 
 // Receive dequeues message to actor
@@ -84,5 +81,5 @@ func (ref *actor) Receive(message Context) {
 		return
 	}
 
-	ref.receive(ref.State, ref.Meta, message)
+	ref.receive(ref.State, message)
 }

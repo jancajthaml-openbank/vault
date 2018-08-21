@@ -15,33 +15,28 @@
 package model
 
 import (
-	"bytes"
-	"encoding/binary"
-	"strings"
+  "bytes"
+  "strconv"
 
-	money "gopkg.in/inf.v0"
+  money "gopkg.in/inf.v0"
 )
 
 // Account represents metadata of account entity
 type Account struct {
-	AccountName    string `json:"accountNumber"`
-	Currency       string `json:"currency"`
-	IsBalanceCheck bool   `json:"isBalanceCheck"`
-}
-
-// Snapshot represents current state of account entity
-type Snapshot struct {
-	Balance       *money.Dec
-	Promised      *money.Dec
-	PromiseBuffer TransactionSet
-	Version       int
+  AccountName    string `json:"accountNumber"`
+  Currency       string `json:"currency"`
+  IsBalanceCheck bool   `json:"isBalanceCheck"`
+  Balance       *money.Dec
+  Promised      *money.Dec
+  PromiseBuffer TransactionSet
+  Version       int
 }
 
 // CreateAccount is inbound request for creation of new account
 type CreateAccount struct {
-	AccountName    string
-	Currency       string
-	IsBalanceCheck bool
+  AccountName    string
+  Currency       string
+  IsBalanceCheck bool
 }
 
 // GetAccountState is inbound request for balance of account
@@ -50,118 +45,137 @@ type GetAccountState struct {
 
 // Update is inbound request to update snapshot
 type Update struct {
-	Version int
+  Version int
 }
 
 // Promise is inbound request for transaction promise
 type Promise struct {
-	Transaction string
-	Amount      *money.Dec
-	Currency    string
+  Transaction string
+  Amount      *money.Dec
+  Currency    string
 }
 
 // FIXME commit and rollback online TransactionID save amount in PromiseSet
 
 // Commit is inbound request for transaction commit
 type Commit struct {
-	Transaction string
-	Amount      *money.Dec
-	Currency    string
+  Transaction string
+  Amount      *money.Dec
+  Currency    string
 }
 
 // FIXME commit and rollback online TransactionID save amount in PromiseSet
 
 // Rollback is inbound request for transaction rollback
 type Rollback struct {
-	Transaction string
-	Amount      *money.Dec
-	Currency    string
+  Transaction string
+  Amount      *money.Dec
+  Currency    string
 }
 
 // Committed is reply message that transaction is committed
 type Committed struct {
-	IDTransaction string
+  IDTransaction string
 }
 
 // Rollbacked is reply message that transaction is rollbacked
 type Rollbacked struct {
-	IDTransaction string
-}
-
-// NewSnapshot returns new Snapshot
-func NewSnapshot() Snapshot {
-	snapshot := Snapshot{}
-	snapshot.Balance = new(money.Dec)
-	snapshot.Promised = new(money.Dec)
-	snapshot.Version = 0
-
-	return snapshot
+  IDTransaction string
 }
 
 // NewAccount returns new Account
 func NewAccount(name string) Account {
-	account := Account{}
-	account.AccountName = name
-	account.Currency = "???"
-	account.IsBalanceCheck = true
-
-	return account
+  return Account{
+    AccountName: name,
+    Currency: "???",
+    IsBalanceCheck: true,
+    Balance: new(money.Dec),
+    Promised: new(money.Dec),
+    Version: 0,
+    PromiseBuffer: NewTransactionSet(),
+  }
 }
 
 // Copy returns value copy of Snapshot
-func (entity *Snapshot) Copy() *Snapshot {
-	clone := new(Snapshot)
-	*clone = *entity
-	return clone
+func (entity *Account) Copy() *Account {
+  clone := new(Account)
+  *clone = *entity
+  return clone
 }
 
-// SerializeForStorage returns data for Snapshot persistence
-func (entity *Snapshot) SerializeForStorage() []byte {
-	var buffer bytes.Buffer
+// Persist serializes Account entity to persistable data
+func (entity *Account) Persist() []byte {
+  var buffer bytes.Buffer
 
-	buf := make([]byte, 4)
-	binary.BigEndian.PutUint32(buf, uint32(entity.Version))
-	buffer.Write(buf)
+  if entity.IsBalanceCheck {
+    buffer.WriteString("T")
+  } else {
+    buffer.WriteString("F")
+  }
 
-	buffer.WriteString(entity.Balance.String())
-	buffer.WriteString("\n")
-	buffer.WriteString(entity.Promised.String())
+  buffer.WriteString(entity.Currency)
+  buffer.WriteString(entity.AccountName)
+  buffer.WriteString("\n")
+  buffer.WriteString(strconv.Itoa(entity.Version))
+  buffer.WriteString("\n")
+  buffer.WriteString(entity.Balance.String())
+  buffer.WriteString("\n")
+  buffer.WriteString(entity.Promised.String())
 
-	entity.PromiseBuffer.WriteTo(&buffer)
+  for v := range entity.PromiseBuffer.Items {
+    buffer.WriteString("\n")
+    buffer.WriteString(v)
+  }
 
-	return buffer.Bytes()
+  return buffer.Bytes()
 }
 
-// DeserializeFromStorage Snapshot instance from persisted data
-func (entity *Snapshot) DeserializeFromStorage(data []byte) {
-	// FIXME try to find way to save without newline
-	version := int(binary.BigEndian.Uint32(data[:4]))
-	entity.Version = version
+// Hydrate deserializes Account entity from persistent data
+func (entity *Account) Hydrate(data []byte) {
+  var (
+    j = 0
+    i = 4
+  )
 
-	lines := strings.Split(string(data[4:]), "\n")
+  entity.PromiseBuffer = NewTransactionSet()
+  entity.IsBalanceCheck = string(data[0]) != "F"
+  entity.Currency = string(data[1:4])
 
-	entity.Balance, _ = new(money.Dec).SetString(lines[0])
-	entity.Promised, _ = new(money.Dec).SetString(lines[1])
-	entity.PromiseBuffer = NewTransactionSet()
+  j = bytes.IndexByte(data[4:], '\n') + 4
+  entity.AccountName = string(data[4:j])
+  i = j + 1
 
-	entity.PromiseBuffer.AddAll(lines[2:])
+  j = bytes.IndexByte(data[i:], '\n')
+  j += i
+  entity.Version, _ = strconv.Atoi(string(data[i:j]))
+  i = j + 1
 
-	return
-}
+  j = bytes.IndexByte(data[i:], '\n')
+  j += i
+  entity.Balance, _ = new(money.Dec).SetString(string(data[i:j]))
+  i = j + 1
 
-// SerializeForStorage returns data for Account persistence
-func (entity *Account) SerializeForStorage() []byte {
-	if entity.IsBalanceCheck {
-		return []byte("t" + strings.ToUpper(entity.Currency) + entity.AccountName)
-	}
+  j = bytes.IndexByte(data[i:], '\n')
+  if j < 0 {
+    entity.Promised, _ = new(money.Dec).SetString(string(data[i:]))
+    return
+  }
 
-	return []byte("f" + strings.ToUpper(entity.Currency) + entity.AccountName)
-}
+  j += i
+  entity.Promised, _ = new(money.Dec).SetString(string(data[i:j]))
+  i = j + 1
 
-// DeserializeFromStorage return Account instance from persisted data
-func (entity *Account) DeserializeFromStorage(data []byte) {
-	entity.IsBalanceCheck = string(data[0]) != "f"
-	entity.Currency = string(data[1:4])
-	entity.AccountName = string(data[4:])
-	return
+scan:
+  j = bytes.IndexByte(data[i:], '\n')
+  if j < 0 {
+      if len(data) > 0 {
+        entity.PromiseBuffer.Add(string(data[i:]))
+      }
+      return
+  }
+  j += i
+  entity.PromiseBuffer.Add(string(data[i:j]))
+  i = j + 1
+  goto scan
+  return
 }

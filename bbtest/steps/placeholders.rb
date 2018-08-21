@@ -28,3 +28,9 @@ placeholder :path do
     path
   end
 end
+
+placeholder :account do
+  match(/[\S]+\/[\S]+/) do |account|
+    account
+  end
+end

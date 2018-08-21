@@ -3,8 +3,6 @@ package utils
 import (
 	"fmt"
 	"os"
-	"path/filepath"
-	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -86,56 +84,6 @@ func BenchmarkCountFiles(b *testing.B) {
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
 		CountFiles(tmpdir)
-	}
-}
-
-func BenchmarkVanillaListDirectory(b *testing.B) {
-	tmpdir := "/tmp/test_storage/"
-
-	listDirectory := func(absPath string, ascending bool) []string {
-		f, err := os.Open(absPath)
-		if err != nil {
-			return nil
-		}
-		defer f.Close()
-
-		list, err := f.Readdir(-1)
-		if err != nil {
-			return nil
-		}
-
-		v := make([]string, len(list))
-
-		for i, value := range list {
-			v[i] = filepath.Base(value.Name())
-		}
-
-		if ascending {
-			sort.Slice(v, func(i, j int) bool {
-				return v[i] < v[j]
-			})
-		} else {
-			sort.Slice(v, func(i, j int) bool {
-				return v[i] > v[j]
-			})
-		}
-
-		return v
-	}
-
-	os.MkdirAll(tmpdir, os.ModePerm)
-	defer os.RemoveAll(tmpdir)
-
-	for i := 0; i < 1000; i++ {
-		file, err := os.Create(fmt.Sprintf("%s%010d", tmpdir, i))
-		require.Nil(b, err)
-		file.Close()
-	}
-
-	b.ResetTimer()
-	b.ReportAllocs()
-	for n := 0; n < b.N; n++ {
-		listDirectory(tmpdir, true)
 	}
 }
 

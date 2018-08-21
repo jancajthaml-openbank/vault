@@ -3,7 +3,6 @@ package utils
 import (
 	"fmt"
 	"math"
-	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -77,32 +76,8 @@ func TestMetadataPath(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
-func BenchmarkItoa(b *testing.B) {
-	testItoa := func(input int) string {
-		return strconv.Itoa(input)
-	}
-
-	b.ResetTimer()
-	b.ReportAllocs()
-	for n := 0; n < b.N; n++ {
-		testItoa(1)
-	}
-}
-
-func BenchmarkFmtPad(b *testing.B) {
-	testPad := func(input int) string {
-		return fmt.Sprintf("%010d", input)
-	}
-
-	b.ResetTimer()
-	b.ReportAllocs()
-	for n := 0; n < b.N; n++ {
-		testPad(1)
-	}
-}
-
 func BenchmarkSnapshotPath(b *testing.B) {
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
@@ -111,7 +86,7 @@ func BenchmarkSnapshotPath(b *testing.B) {
 }
 
 func BenchmarkSnapshotsPath(b *testing.B) {
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
@@ -120,7 +95,7 @@ func BenchmarkSnapshotsPath(b *testing.B) {
 }
 
 func BenchmarkEventPath(b *testing.B) {
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
@@ -129,7 +104,7 @@ func BenchmarkEventPath(b *testing.B) {
 }
 
 func BenchmarkEventsPath(b *testing.B) {
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
@@ -138,7 +113,7 @@ func BenchmarkEventsPath(b *testing.B) {
 }
 
 func BenchmarkMetadataPath(b *testing.B) {
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {

@@ -1,11 +1,13 @@
 require_relative 'placeholders'
 require 'bigdecimal'
 
-step ":account for tenant :tenant should have data integrity" do |account, tenant|
+step ":account should have data integrity" do |account|
   @accounts ||= {}
 
+  (tenant, account) = account.split('/')
+
   snapshot = account_latest_snapshot(tenant, account)
-  meta = account_meta(tenant, account)
+  meta = account_latest_snapshot(tenant, account)
 
   raise "persistence inconsistency snapshot: #{snapshot}, meta: #{meta}" if snapshot.nil? ^ meta.nil? ^ !@accounts.key?(account)
 
@@ -18,7 +20,7 @@ step ":account for tenant :tenant should have data integrity" do |account, tenan
   end
 
   expected = LakeMock.parse_message(expected_response)
-  
+
   send "tenant :tenant receives :data", tenant, "#{account} #{req_id} GS"
 
   eventually(backoff: 0.2) {
@@ -28,15 +30,18 @@ step ":account for tenant :tenant should have data integrity" do |account, tenan
   LakeMock.ack(expected)
 end
 
-step ":activity :currency account :account is created for tenant :tenant" do |activity, currency, account, tenant|
+step ":activity :currency account :account is created" do |activity, currency, account|
   @accounts ||= {}
+
+  (tenant, account) = account.split('/')
+
   expect(@accounts).not_to have_key(account)
 
   req_id = (0...5).map { ('a'..'z').to_a[rand(26)] }.join
   expected_response = "#{account} #{req_id} AN"
 
   expected = LakeMock.parse_message(expected_response)
-    
+
   send "tenant :tenant receives :data", tenant, "#{account} #{req_id} NA #{currency} #{activity ? 't' : 'f'}"
   eventually(backoff: 0.2) {
     found = LakeMock.pulled_message?(expected)
@@ -52,8 +57,9 @@ step ":activity :currency account :account is created for tenant :tenant" do |ac
   }
 end
 
-step ":account for tenant :tenant should exist" do |account, tenant|
+step ":account should exist" do |account|
   @accounts ||= {}
+  (tenant, account) = account.split('/')
   expect(@accounts).to have_key(account)
 
   req_id = (0...5).map { ('a'..'z').to_a[rand(26)] }.join
@@ -70,8 +76,9 @@ step ":account for tenant :tenant should exist" do |account, tenant|
   LakeMock.ack(expected)
 end
 
-step ":account for tenant :tenant should not exist" do |account, tenant|
+step ":account should not exist" do |account|
   @accounts ||= {}
+  (tenant, account) = account.split('/')
   expect(@accounts).not_to have_key(account)
 
   req_id = (0...5).map { ('a'..'z').to_a[rand(26)] }.join

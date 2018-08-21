@@ -42,7 +42,7 @@ func (system *ActorSystem) Stop() {
 	return
 }
 
-func (system *ActorSystem) RegisterActor(ref *actor, initialState func(model.Snapshot, model.Account, Context)) error {
+func (system *ActorSystem) RegisterActor(ref *actor, initialState func(model.Account, Context)) error {
 	if system == nil {
 		log.Warn("Actor system not started")
 		return fmt.Errorf("actor System not started")

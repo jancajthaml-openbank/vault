@@ -24,24 +24,9 @@ import (
 	money "gopkg.in/inf.v0"
 )
 
-// LoadMetadata rehydrates account entity meta data from storage
-func LoadMetadata(params utils.RunParams, name string) *model.Account {
-	metaPath := utils.MetadataPath(params, name)
 
-	ok, data := utils.ReadFileFully(metaPath)
-
-	if !ok {
-		return nil
-	}
-
-	result := new(model.Account)
-	result.DeserializeFromStorage(data)
-
-	return result
-}
-
-// LoadSnapshot rehydrates account entity state from storage
-func LoadSnapshot(params utils.RunParams, name string) *model.Snapshot {
+// LoadAccount rehydrates account entity state from storage
+func LoadAccount(params utils.RunParams, name string) *model.Account {
 	allPath := utils.SnapshotsPath(params, name)
 	snapshots := utils.ListDirectory(allPath, false)
 
@@ -54,8 +39,8 @@ func LoadSnapshot(params utils.RunParams, name string) *model.Snapshot {
 		return nil
 	}
 
-	result := new(model.Snapshot)
-	result.DeserializeFromStorage(data)
+	result := new(model.Account)
+	result.Hydrate(data)
 
 	events := utils.ListDirectory(utils.EventPath(params, name, result.Version), false)
 	for _, event := range events {
@@ -86,55 +71,40 @@ func LoadSnapshot(params utils.RunParams, name string) *model.Snapshot {
 	return result
 }
 
-// CreateMetadata persist account entity meta data to storage
-func CreateMetadata(params utils.RunParams, name string, currency string, isBalanceCheck bool) *model.Account {
-	return StoreMetadata(params, &model.Account{
-		AccountName:    name,
-		Currency:       currency,
-		IsBalanceCheck: isBalanceCheck,
-	})
-}
-
-// CreateSnapshot persist account entity state to storage
-func CreateSnapshot(params utils.RunParams, name string) *model.Snapshot {
-	return StoreSnapshot(params, name, &model.Snapshot{
+// CreateAccount persist account entity state to storage
+func CreateAccount(params utils.RunParams, name, currency string, isBalanceCheck bool) *model.Account {
+	return PersistAccount(params, name, &model.Account{
 		Balance:       new(money.Dec),
 		Promised:      new(money.Dec),
 		PromiseBuffer: model.NewTransactionSet(),
 		Version:       0,
+		AccountName: name,
+		Currency: currency,
+		IsBalanceCheck: isBalanceCheck,
 	})
 }
 
-// UpdateSnapshot persist account entity state with incremented version
-func UpdateSnapshot(params utils.RunParams, name string, entity *model.Snapshot) *model.Snapshot {
+// UpdateAccount persist account entity state with incremented version
+func UpdateAccount(params utils.RunParams, name string, entity *model.Account) *model.Account {
 	if entity.Version == math.MaxInt32 {
 		return entity
 	}
 
-	return StoreSnapshot(params, name, &model.Snapshot{
+	return PersistAccount(params, name, &model.Account{
 		Balance:       entity.Balance,
 		Promised:      entity.Promised,
 		PromiseBuffer: entity.PromiseBuffer,
 		Version:       entity.Version + 1,
+		Currency:       entity.Currency,
+		AccountName:      entity.AccountName,
+		IsBalanceCheck:       entity.IsBalanceCheck,
 	})
 }
 
-// StoreSnapshot persist account entity state
-func StoreSnapshot(params utils.RunParams, name string, entity *model.Snapshot) *model.Snapshot {
-	data := entity.SerializeForStorage()
+// PersistAccount persist account entity state to storage
+func PersistAccount(params utils.RunParams, name string, entity *model.Account) *model.Account {
+	data := entity.Persist()
 	path := utils.SnapshotPath(params, name, entity.Version)
-
-	if !utils.WriteFile(path, data) {
-		return nil
-	}
-
-	return entity
-}
-
-// StoreMetadata persist account entity meta data
-func StoreMetadata(params utils.RunParams, entity *model.Account) *model.Account {
-	data := entity.SerializeForStorage()
-	path := utils.MetadataPath(params, entity.AccountName)
 
 	if !utils.WriteFile(path, data) {
 		return nil
