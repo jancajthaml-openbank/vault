@@ -26,7 +26,7 @@ import (
 )
 
 // Start starts `Vault/:tenant_id` actor system
-func (system *ActorSystem) Start(params utils.RunParams, m *metrics.Metrics) {
+func (system *System) Start(params utils.RunParams, m *metrics.Metrics) {
 	if len(system.Name) != 0 {
 		log.Warn("ActorSystem Already started")
 		return
@@ -46,7 +46,7 @@ func (system *ActorSystem) Start(params utils.RunParams, m *metrics.Metrics) {
 	return
 }
 
-func (system *ActorSystem) sourceRemoteMessages(params utils.RunParams, m *metrics.Metrics) {
+func (system *System) sourceRemoteMessages(params utils.RunParams, m *metrics.Metrics) {
 	for {
 		if system == nil {
 			return
@@ -55,7 +55,8 @@ func (system *ActorSystem) sourceRemoteMessages(params utils.RunParams, m *metri
 	}
 }
 
-func (system *ActorSystem) ProcessLocalMessage(params utils.RunParams, m *metrics.Metrics, msg interface{}, receiver string, sender Coordinates) {
+// ProcessLocalMessage send local message to actor by name
+func (system *System) ProcessLocalMessage(params utils.RunParams, m *metrics.Metrics, msg interface{}, receiver string, sender Coordinates) {
 	if system == nil {
 		return
 	}
@@ -73,7 +74,7 @@ func (system *ActorSystem) ProcessLocalMessage(params utils.RunParams, m *metric
 	ref.Tell(msg, sender)
 }
 
-func (system *ActorSystem) processRemoteMessage(params utils.RunParams, m *metrics.Metrics) {
+func (system *System) processRemoteMessage(params utils.RunParams, m *metrics.Metrics) {
 	if system == nil {
 		return
 	}
@@ -105,7 +106,7 @@ func (system *ActorSystem) processRemoteMessage(params utils.RunParams, m *metri
 		return
 	}
 
-	var message interface{} = nil
+	var message interface{}
 
 	switch payload {
 

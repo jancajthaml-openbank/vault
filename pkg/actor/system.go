@@ -24,13 +24,15 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type ActorSystem struct {
+// System represents actor system that holds reference to actors, lake client and its name
+type System struct {
 	Actors sync.Map
 	Client *lake.Client
 	Name   string
 }
 
-func (system *ActorSystem) Stop() {
+// Stop stops actor system
+func (system *System) Stop() {
 	if system == nil {
 		log.Warn("Actor system not started")
 		return
@@ -42,7 +44,8 @@ func (system *ActorSystem) Stop() {
 	return
 }
 
-func (system *ActorSystem) RegisterActor(ref *actor, initialState func(model.Account, Context)) error {
+// RegisterActor register new actor into actor system
+func (system *System) RegisterActor(ref *Actor, initialState func(model.Account, Context)) error {
 	if system == nil {
 		log.Warn("Actor system not started")
 		return fmt.Errorf("actor System not started")
@@ -61,7 +64,8 @@ func (system *ActorSystem) RegisterActor(ref *actor, initialState func(model.Acc
 	return nil
 }
 
-func (system *ActorSystem) SendRemote(destinationSystem, data string) {
+// SendRemote send message to remote region
+func (system *System) SendRemote(destinationSystem, data string) {
 	if system == nil {
 		log.Warn("Actor system not started")
 		return
@@ -75,7 +79,8 @@ func (system *ActorSystem) SendRemote(destinationSystem, data string) {
 	system.Client.Publish(destinationSystem, data)
 }
 
-func (system *ActorSystem) ActorOf(name string) (*actor, error) {
+// ActorOf return actor reference by name
+func (system *System) ActorOf(name string) (*Actor, error) {
 	if system == nil {
 		log.Warn("Actor system not started")
 		return nil, fmt.Errorf("actor System not started")
@@ -86,5 +91,5 @@ func (system *ActorSystem) ActorOf(name string) (*actor, error) {
 		return nil, fmt.Errorf("actor %v not registered", name)
 	}
 
-	return ref.(*actor), nil
+	return ref.(*Actor), nil
 }

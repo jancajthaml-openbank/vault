@@ -117,7 +117,7 @@ func main() {
 	// FIXME separate into its own go routine to be stopable
 	m := metrics.NewMetrics()
 
-	system := new(actor.ActorSystem)
+	system := new(actor.System)
 	system.Start(params, m) // FIXME if there is no lake, application is stuck here
 
 	exitSignal := make(chan os.Signal, 1)

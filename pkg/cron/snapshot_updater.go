@@ -36,7 +36,7 @@ func updateSaturated(params utils.RunParams, m *metrics.Metrics, callback satura
 
 func updateAccount(params utils.RunParams, m *metrics.Metrics, name string, fromVersion, toVersion int, callback saturationCallback) {
 	log.Debugf("Request %v to update snapshot version from %d to %d", name, fromVersion, toVersion)
-	callback(params, m, model.Update{Version: fromVersion}, name, actor.Coordinates{"snapshot_saturation_cron", ""})
+	callback(params, m, model.Update{Version: fromVersion}, name, actor.Coordinates{Name: "snapshot_saturation_cron"})
 }
 
 func getAccounts(params utils.RunParams) []string {

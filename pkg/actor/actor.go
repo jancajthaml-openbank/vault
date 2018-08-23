@@ -22,7 +22,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type actor struct {
+// Actor represents single actor
+type Actor struct {
 	Name     string
 	receive  func(model.Account, Context)
 	dataChan chan Context
@@ -36,8 +37,8 @@ type Coordinates struct {
 }
 
 // NewActor returns new actor instance
-func NewActor(name string) *actor {
-	ref := new(actor)
+func NewActor(name string) *Actor {
+	ref := new(Actor)
 	ref.Name = name
 	ref.dataChan = make(chan Context, 64) // FIXME make buffer from params
 	ref.State = model.NewAccount(name)
@@ -45,7 +46,7 @@ func NewActor(name string) *actor {
 }
 
 // Tell queues message to actor
-func (ref *actor) Tell(data interface{}, sender Coordinates) error {
+func (ref *Actor) Tell(data interface{}, sender Coordinates) error {
 	if ref == nil {
 		log.Warnf("actor reference %v not found", ref)
 		return fmt.Errorf("actor reference %v not found", ref)
@@ -56,7 +57,7 @@ func (ref *actor) Tell(data interface{}, sender Coordinates) error {
 }
 
 // Become transforms actor behaviour for next message
-func (ref *actor) Become(state model.Account, f func(model.Account, Context)) error {
+func (ref *Actor) Become(state model.Account, f func(model.Account, Context)) error {
 	if ref == nil {
 		log.Warnf("actor reference %v not found", ref)
 		return fmt.Errorf("actor reference %v not found", ref)
@@ -66,17 +67,17 @@ func (ref *actor) Become(state model.Account, f func(model.Account, Context)) er
 	return nil
 }
 
-func (ref *actor) String() string {
+func (ref *Actor) String() string {
 	return ref.Name
 }
 
-func (ref *actor) react(f func(model.Account, Context)) {
+func (ref *Actor) react(f func(model.Account, Context)) {
 	ref.receive = f
 	return
 }
 
 // Receive dequeues message to actor
-func (ref *actor) Receive(message Context) {
+func (ref *Actor) Receive(message Context) {
 	if ref.receive == nil {
 		return
 	}
