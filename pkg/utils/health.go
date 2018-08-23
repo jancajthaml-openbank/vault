@@ -15,32 +15,34 @@
 package utils
 
 import (
-  "net"
-  "os"
+	"net"
+	"os"
 )
 
 func systemNotify(state string) {
-  socketAddr := &net.UnixAddr{
-    Name: os.Getenv("NOTIFY_SOCKET"),
-    Net:  "unixgram",
-  }
+	socketAddr := &net.UnixAddr{
+		Name: os.Getenv("NOTIFY_SOCKET"),
+		Net:  "unixgram",
+	}
 
-  if socketAddr.Name == "" {
-    return
-  }
+	if socketAddr.Name == "" {
+		return
+	}
 
-  conn, err := net.DialUnix(socketAddr.Net, nil, socketAddr)
-  if err != nil {
-    return
-  }
-  defer conn.Close()
-  conn.Write([]byte(state))
+	conn, err := net.DialUnix(socketAddr.Net, nil, socketAddr)
+	if err != nil {
+		return
+	}
+	defer conn.Close()
+	conn.Write([]byte(state))
 }
 
+// NotifyServiceReady notify underlying os that service is ready
 func NotifyServiceReady() {
-  systemNotify("READY=1")
+	systemNotify("READY=1")
 }
 
+// NotifyServiceStopping notify underlying os that service is stopping
 func NotifyServiceStopping() {
-  systemNotify("STOPPING=1")
+	systemNotify("STOPPING=1")
 }

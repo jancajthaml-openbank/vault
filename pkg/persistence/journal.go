@@ -24,7 +24,6 @@ import (
 	money "gopkg.in/inf.v0"
 )
 
-
 // LoadAccount rehydrates account entity state from storage
 func LoadAccount(params utils.RunParams, name string) *model.Account {
 	allPath := utils.SnapshotsPath(params, name)
@@ -74,12 +73,12 @@ func LoadAccount(params utils.RunParams, name string) *model.Account {
 // CreateAccount persist account entity state to storage
 func CreateAccount(params utils.RunParams, name, currency string, isBalanceCheck bool) *model.Account {
 	return PersistAccount(params, name, &model.Account{
-		Balance:       new(money.Dec),
-		Promised:      new(money.Dec),
-		PromiseBuffer: model.NewTransactionSet(),
-		Version:       0,
-		AccountName: name,
-		Currency: currency,
+		Balance:        new(money.Dec),
+		Promised:       new(money.Dec),
+		PromiseBuffer:  model.NewTransactionSet(),
+		Version:        0,
+		AccountName:    name,
+		Currency:       currency,
 		IsBalanceCheck: isBalanceCheck,
 	})
 }
@@ -91,13 +90,13 @@ func UpdateAccount(params utils.RunParams, name string, entity *model.Account) *
 	}
 
 	return PersistAccount(params, name, &model.Account{
-		Balance:       entity.Balance,
-		Promised:      entity.Promised,
-		PromiseBuffer: entity.PromiseBuffer,
-		Version:       entity.Version + 1,
+		Balance:        entity.Balance,
+		Promised:       entity.Promised,
+		PromiseBuffer:  entity.PromiseBuffer,
+		Version:        entity.Version + 1,
 		Currency:       entity.Currency,
-		AccountName:      entity.AccountName,
-		IsBalanceCheck:       entity.IsBalanceCheck,
+		AccountName:    entity.AccountName,
+		IsBalanceCheck: entity.IsBalanceCheck,
 	})
 }
 

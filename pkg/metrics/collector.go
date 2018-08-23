@@ -12,8 +12,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Metrics holds metrics snapshot status
-type MetricsSnapshot struct {
+// Snapshot holds metrics snapshot status
+type Snapshot struct {
 	SnapshotCronLatency float64 `json:"snapshotCronLatency"`
 	UpdatedSnapshots    int64   `json:"updatedSnapshots"`
 	CreatedAccounts     int64   `json:"createdAccounts"`
@@ -44,13 +44,13 @@ func NewMetrics() *Metrics {
 	}
 }
 
-// MetricsSnapshot returns metrics snapshot
-func NewMetricsSnapshot(entity *Metrics) MetricsSnapshot {
+// NewSnapshot returns metrics snapshot
+func NewSnapshot(entity *Metrics) Snapshot {
 	if entity == nil {
-		return MetricsSnapshot{}
+		return Snapshot{}
 	}
 
-	return MetricsSnapshot{
+	return Snapshot{
 		SnapshotCronLatency: entity.snapshotCronLatency.Percentile(0.95),
 		UpdatedSnapshots:    entity.updatedSnapshots.Count(),
 		CreatedAccounts:     entity.createdAccounts.Count(),
@@ -85,7 +85,7 @@ func (entity *Metrics) CommitAccepted() {
 	entity.commitsAccepted.Inc(1)
 }
 
-// CommitAccepted increments accepted rollbacks by one
+// RollbackAccepted increments accepted rollbacks by one
 func (entity *Metrics) RollbackAccepted() {
 	entity.rollbacksAccepted.Inc(1)
 }
@@ -93,7 +93,7 @@ func (entity *Metrics) RollbackAccepted() {
 func (entity *Metrics) persist(filename string) {
 	tempFile := filename + "_temp"
 
-	data, err := json.Marshal(NewMetricsSnapshot(entity))
+	data, err := json.Marshal(NewSnapshot(entity))
 	if err != nil {
 		log.Warnf("unable to create serialize metrics with error: %v", err)
 		return

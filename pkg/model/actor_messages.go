@@ -15,18 +15,30 @@
 package model
 
 const (
-	ReqAccountState   = "GS"
-	RespAccountState  = "SG"
-	ReqCreateAccount  = "NA"
+	// ReqAccountState vault message request code for "Get Snapshot"
+	ReqAccountState = "GS"
+	// RespAccountState vault message response code for "Get Snapshot"
+	RespAccountState = "SG"
+	// ReqCreateAccount vault message request code for "New Account"
+	ReqCreateAccount = "NA"
+	// RespCreateAccount vault message response code for "New Account"
 	RespCreateAccount = "AN"
-	PromiseOrder      = (EventPromise + "X")
-	CommitOrder       = (EventCommit + "X")
-	RollbackOrder     = (EventRollback + "X")
-	PromiseAccepted   = ("X" + EventPromise)
-	CommitAccepted    = ("X" + EventCommit)
-	RollbackAccepted  = ("X" + EventRollback)
-	FatalError        = "EE"
-	UpdateSnapshot    = "US"
+	// PromiseOrder vault message request code for "Promise"
+	PromiseOrder = EventPromise + "X"
+	// CommitOrder vault message request code for "Commit"
+	CommitOrder = EventCommit + "X"
+	// RollbackOrder vault message request code for "Rollback"
+	RollbackOrder = EventRollback + "X"
+	// PromiseAccepted vault message response code for "Promise"
+	PromiseAccepted = "X" + EventPromise
+	// CommitAccepted vault message response code for "Commit"
+	CommitAccepted = "X" + EventCommit
+	// RollbackAccepted vault message response code for "Rollback"
+	RollbackAccepted = "X" + EventRollback
+	// FatalError vault message response code for "Error"
+	FatalError = "EE"
+	// UpdateSnapshot vault message request code for "Update Snapshot"
+	UpdateSnapshot = "US"
 )
 
 // FatalErrorMessage is reply message carrying failure

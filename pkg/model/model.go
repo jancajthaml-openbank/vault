@@ -15,28 +15,28 @@
 package model
 
 import (
-  "bytes"
-  "strconv"
+	"bytes"
+	"strconv"
 
-  money "gopkg.in/inf.v0"
+	money "gopkg.in/inf.v0"
 )
 
 // Account represents metadata of account entity
 type Account struct {
-  AccountName    string `json:"accountNumber"`
-  Currency       string `json:"currency"`
-  IsBalanceCheck bool   `json:"isBalanceCheck"`
-  Balance       *money.Dec
-  Promised      *money.Dec
-  PromiseBuffer TransactionSet
-  Version       int
+	AccountName    string `json:"accountNumber"`
+	Currency       string `json:"currency"`
+	IsBalanceCheck bool   `json:"isBalanceCheck"`
+	Balance        *money.Dec
+	Promised       *money.Dec
+	PromiseBuffer  TransactionSet
+	Version        int
 }
 
 // CreateAccount is inbound request for creation of new account
 type CreateAccount struct {
-  AccountName    string
-  Currency       string
-  IsBalanceCheck bool
+	AccountName    string
+	Currency       string
+	IsBalanceCheck bool
 }
 
 // GetAccountState is inbound request for balance of account
@@ -45,137 +45,136 @@ type GetAccountState struct {
 
 // Update is inbound request to update snapshot
 type Update struct {
-  Version int
+	Version int
 }
 
 // Promise is inbound request for transaction promise
 type Promise struct {
-  Transaction string
-  Amount      *money.Dec
-  Currency    string
+	Transaction string
+	Amount      *money.Dec
+	Currency    string
 }
 
 // FIXME commit and rollback online TransactionID save amount in PromiseSet
 
 // Commit is inbound request for transaction commit
 type Commit struct {
-  Transaction string
-  Amount      *money.Dec
-  Currency    string
+	Transaction string
+	Amount      *money.Dec
+	Currency    string
 }
 
 // FIXME commit and rollback online TransactionID save amount in PromiseSet
 
 // Rollback is inbound request for transaction rollback
 type Rollback struct {
-  Transaction string
-  Amount      *money.Dec
-  Currency    string
+	Transaction string
+	Amount      *money.Dec
+	Currency    string
 }
 
 // Committed is reply message that transaction is committed
 type Committed struct {
-  IDTransaction string
+	IDTransaction string
 }
 
 // Rollbacked is reply message that transaction is rollbacked
 type Rollbacked struct {
-  IDTransaction string
+	IDTransaction string
 }
 
 // NewAccount returns new Account
 func NewAccount(name string) Account {
-  return Account{
-    AccountName: name,
-    Currency: "???",
-    IsBalanceCheck: true,
-    Balance: new(money.Dec),
-    Promised: new(money.Dec),
-    Version: 0,
-    PromiseBuffer: NewTransactionSet(),
-  }
+	return Account{
+		AccountName:    name,
+		Currency:       "???",
+		IsBalanceCheck: true,
+		Balance:        new(money.Dec),
+		Promised:       new(money.Dec),
+		Version:        0,
+		PromiseBuffer:  NewTransactionSet(),
+	}
 }
 
 // Copy returns value copy of Snapshot
 func (entity *Account) Copy() *Account {
-  clone := new(Account)
-  *clone = *entity
-  return clone
+	clone := new(Account)
+	*clone = *entity
+	return clone
 }
 
 // Persist serializes Account entity to persistable data
 func (entity *Account) Persist() []byte {
-  var buffer bytes.Buffer
+	var buffer bytes.Buffer
 
-  if entity.IsBalanceCheck {
-    buffer.WriteString("T")
-  } else {
-    buffer.WriteString("F")
-  }
+	if entity.IsBalanceCheck {
+		buffer.WriteString("T")
+	} else {
+		buffer.WriteString("F")
+	}
 
-  buffer.WriteString(entity.Currency)
-  buffer.WriteString(entity.AccountName)
-  buffer.WriteString("\n")
-  buffer.WriteString(strconv.Itoa(entity.Version))
-  buffer.WriteString("\n")
-  buffer.WriteString(entity.Balance.String())
-  buffer.WriteString("\n")
-  buffer.WriteString(entity.Promised.String())
+	buffer.WriteString(entity.Currency)
+	buffer.WriteString(entity.AccountName)
+	buffer.WriteString("\n")
+	buffer.WriteString(strconv.Itoa(entity.Version))
+	buffer.WriteString("\n")
+	buffer.WriteString(entity.Balance.String())
+	buffer.WriteString("\n")
+	buffer.WriteString(entity.Promised.String())
 
-  for v := range entity.PromiseBuffer.Items {
-    buffer.WriteString("\n")
-    buffer.WriteString(v)
-  }
+	for v := range entity.PromiseBuffer.Items {
+		buffer.WriteString("\n")
+		buffer.WriteString(v)
+	}
 
-  return buffer.Bytes()
+	return buffer.Bytes()
 }
 
 // Hydrate deserializes Account entity from persistent data
 func (entity *Account) Hydrate(data []byte) {
-  var (
-    j = 0
-    i = 4
-  )
+	var (
+		j = 0
+		i = 4
+	)
 
-  entity.PromiseBuffer = NewTransactionSet()
-  entity.IsBalanceCheck = string(data[0]) != "F"
-  entity.Currency = string(data[1:4])
+	entity.PromiseBuffer = NewTransactionSet()
+	entity.IsBalanceCheck = string(data[0]) != "F"
+	entity.Currency = string(data[1:4])
 
-  j = bytes.IndexByte(data[4:], '\n') + 4
-  entity.AccountName = string(data[4:j])
-  i = j + 1
+	j = bytes.IndexByte(data[4:], '\n') + 4
+	entity.AccountName = string(data[4:j])
+	i = j + 1
 
-  j = bytes.IndexByte(data[i:], '\n')
-  j += i
-  entity.Version, _ = strconv.Atoi(string(data[i:j]))
-  i = j + 1
+	j = bytes.IndexByte(data[i:], '\n')
+	j += i
+	entity.Version, _ = strconv.Atoi(string(data[i:j]))
+	i = j + 1
 
-  j = bytes.IndexByte(data[i:], '\n')
-  j += i
-  entity.Balance, _ = new(money.Dec).SetString(string(data[i:j]))
-  i = j + 1
+	j = bytes.IndexByte(data[i:], '\n')
+	j += i
+	entity.Balance, _ = new(money.Dec).SetString(string(data[i:j]))
+	i = j + 1
 
-  j = bytes.IndexByte(data[i:], '\n')
-  if j < 0 {
-    entity.Promised, _ = new(money.Dec).SetString(string(data[i:]))
-    return
-  }
+	j = bytes.IndexByte(data[i:], '\n')
+	if j < 0 {
+		entity.Promised, _ = new(money.Dec).SetString(string(data[i:]))
+		return
+	}
 
-  j += i
-  entity.Promised, _ = new(money.Dec).SetString(string(data[i:j]))
-  i = j + 1
+	j += i
+	entity.Promised, _ = new(money.Dec).SetString(string(data[i:j]))
+	i = j + 1
 
 scan:
-  j = bytes.IndexByte(data[i:], '\n')
-  if j < 0 {
-      if len(data) > 0 {
-        entity.PromiseBuffer.Add(string(data[i:]))
-      }
-      return
-  }
-  j += i
-  entity.PromiseBuffer.Add(string(data[i:j]))
-  i = j + 1
-  goto scan
-  return
+	j = bytes.IndexByte(data[i:], '\n')
+	if j < 0 {
+		if len(data) > 0 {
+			entity.PromiseBuffer.Add(string(data[i:]))
+		}
+		return
+	}
+	j += i
+	entity.PromiseBuffer.Add(string(data[i:j]))
+	i = j + 1
+	goto scan
 }

@@ -1,3 +1,9 @@
+vault (v1.0.3+codacy-fixes-2) unstable; urgency=low
+
+  * includes fixes commits after v1.0.3+codacy release
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Tue, 21 Aug 2018 18:14:34 +0200
+
 vault (1.0.3) unstable; urgency=low
 
  -- Jan Cajthaml <jan.cajthaml@gmail.com>  Sat, 18 Aug 2018 18:09:11 +0200

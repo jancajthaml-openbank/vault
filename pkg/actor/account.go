@@ -26,7 +26,7 @@ import (
 	money "gopkg.in/inf.v0"
 )
 
-func nilAccount(params utils.RunParams, m *metrics.Metrics, system *ActorSystem) func(model.Account, Context) {
+func nilAccount(params utils.RunParams, m *metrics.Metrics, system *System) func(model.Account, Context) {
 	return func(state model.Account, context Context) {
 		snapshotHydration := persistence.LoadAccount(params, state.AccountName)
 
@@ -42,7 +42,7 @@ func nilAccount(params utils.RunParams, m *metrics.Metrics, system *ActorSystem)
 	}
 }
 
-func nonExistAccount(params utils.RunParams, m *metrics.Metrics, system *ActorSystem) func(model.Account, Context) {
+func nonExistAccount(params utils.RunParams, m *metrics.Metrics, system *System) func(model.Account, Context) {
 	return func(state model.Account, context Context) {
 		switch msg := context.Data.(type) {
 
@@ -78,7 +78,7 @@ func nonExistAccount(params utils.RunParams, m *metrics.Metrics, system *ActorSy
 	}
 }
 
-func existAccount(params utils.RunParams, m *metrics.Metrics, system *ActorSystem) func(model.Account, Context) {
+func existAccount(params utils.RunParams, m *metrics.Metrics, system *System) func(model.Account, Context) {
 	return func(state model.Account, context Context) {
 		switch msg := context.Data.(type) {
 
@@ -212,10 +212,11 @@ func existAccount(params utils.RunParams, m *metrics.Metrics, system *ActorSyste
 	}
 }
 
-// FIXME split to multiple functions
 // SpawnAccountActor returns new account actor instance registered into actor
 // system
-func (system *ActorSystem) SpawnAccountActor(params utils.RunParams, m *metrics.Metrics, path string) string {
+func (system *System) SpawnAccountActor(params utils.RunParams, m *metrics.Metrics, path string) string {
+	// FIXME split to multiple functions
+
 	if system == nil {
 		log.Warnf("%s ~ Spawning Actor Error no Actor System", path)
 		return ""
