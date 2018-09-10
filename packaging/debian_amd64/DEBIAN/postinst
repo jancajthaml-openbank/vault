@@ -6,8 +6,6 @@ case "$1" in
 
   configure)
     if [ -f "/etc/init/vault.conf" ] ; then
-      echo "Loading /etc/init/vault.conf"
-      . /etc/init/vault.conf
       systemctl unmask vault.service >/dev/null
     else
       (>&2 echo "/etc/init/vault.conf file not found")
