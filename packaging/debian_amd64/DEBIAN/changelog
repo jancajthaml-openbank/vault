@@ -1,8 +1,8 @@
-vault (v1.0.3+codacy-fixes-2) unstable; urgency=low
+vault (v1.0.3+bbtests-debian-improvements) unstable; urgency=low
 
-  * includes fixes commits after v1.0.3+codacy release
+  * includes debian commits after v1.0.3+bbtests release
 
- -- Jan Cajthaml <jan.cajthaml@gmail.com>  Tue, 21 Aug 2018 18:14:34 +0200
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Thu, 23 Aug 2018 08:26:53 +0200
 
 vault (1.0.3) unstable; urgency=low
 
