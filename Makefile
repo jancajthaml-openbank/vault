@@ -65,4 +65,3 @@ bbtest:
 		--pattern /opt/bbtest/features/*.feature
 	@echo "removing bbtest image"
 	@(docker rm -f $$(docker ps -a --filter="name=vault_bbtest" -q) &> /dev/null || :)
-

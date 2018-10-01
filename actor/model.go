@@ -14,37 +14,15 @@
 
 package actor
 
-import log "github.com/sirupsen/logrus"
+// Coordinates represents actor namespace
+type Coordinates struct {
+	Name   string
+	Region string
+}
 
 // Context represents actor message envelope
 type Context struct {
 	Data     interface{}
-	Receiver *Actor
+	Receiver *Envelope
 	Sender   Coordinates
-}
-
-func dispatch(channel chan Context, data interface{}, receiver *Actor, sender Coordinates) {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Errorf("Dispatch recovered in %v", r)
-		}
-	}()
-
-	channel <- Context{data, receiver, sender}
-}
-
-func receive(ref *Actor) {
-	defer func() {
-		if r := recover(); r != nil {
-			// FIXME reply error to sender
-			log.Errorf("Receive recovered in %v", r)
-		}
-	}()
-
-	for {
-		select {
-		case p := <-ref.dataChan:
-			ref.Receive(p)
-		}
-	}
 }

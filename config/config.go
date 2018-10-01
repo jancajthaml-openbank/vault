@@ -12,49 +12,50 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+package config
 
 import "time"
 
-// RunParams is a structure of all configurable application parameters
-type RunParams struct {
-	//Setup reprensents setup parameters
-	Setup SetupParams
-	//Journal reprensents journal parameters
-	Journal JournalParams
-	//Metrics reprensents metrics parameters
-	Metrics MetricsParams
-}
-
-// SetupParams is a structure of application setup parameters
-type SetupParams struct {
+// Configuration of application
+type Configuration struct {
 	// Tenant represent tenant of given vault
 	Tenant string
 	// LakeHostname represent hostname of openbank lake service
 	LakeHostname string
 	// RootStorage gives where to store journals
 	RootStorage string
-	// Log represents log output
-	Log string
+	// LogOutput represents log output
+	LogOutput string
 	// LogLevel ignorecase log level
 	LogLevel string
-}
-
-// MetricsParams is a structure of application metrics parameters
-type MetricsParams struct {
-	// RefreshRate represents interval in which in memory metrics should be
+	// MetricsRefreshRate represents interval in which in memory metrics should be
 	// persisted to disk
-	RefreshRate time.Duration
-	// Output represents output file for metrics persistence
-	Output string
-}
-
-// JournalParams is a structure of application journal parameters
-type JournalParams struct {
+	MetricsRefreshRate time.Duration
+	// MetricsOutput represents output file for metrics persistence
+	MetricsOutput string
 	// JournalSaturation represents number of events needed in account to consider
 	// account snapshot in given version to be saturated
 	JournalSaturation int
 	// SnapshotScanInterval represents backoff between scan for saturated
 	// snapshots
 	SnapshotScanInterval time.Duration
+}
+
+// Resolver loads config
+type Resolver interface {
+	GetConfig() Configuration
+}
+
+type configResolver struct {
+	cfg Configuration
+}
+
+// NewResolver provides config resolver
+func NewResolver() Resolver {
+	return configResolver{cfg: loadConfFromEnv()}
+}
+
+// GetConfig loads application configuration
+func (c configResolver) GetConfig() Configuration {
+	return c.cfg
 }

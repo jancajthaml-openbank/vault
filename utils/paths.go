@@ -14,36 +14,38 @@
 
 package utils
 
-import "strconv"
+import (
+	"strconv"
+)
 
 // AccountsPath returns filepath for accounts
-func AccountsPath(params RunParams) string {
-	return params.Setup.RootStorage + "/account"
+func AccountsPath(root string) string {
+	return root + "/account"
 }
 
 // EventsPath returns filepath for events
-func EventsPath(params RunParams, name string) string {
-	return params.Setup.RootStorage + "/account/" + name + "/events"
+func EventsPath(root, name string) string {
+	return root + "/account/" + name + "/events"
 }
 
 // SnapshotsPath returns filepath for snapshots
-func SnapshotsPath(params RunParams, name string) string {
-	return params.Setup.RootStorage + "/account/" + name + "/snapshot"
+func SnapshotsPath(root, name string) string {
+	return root + "/account/" + name + "/snapshot"
 }
 
 // EventPath returns filepath for given event
-func EventPath(params RunParams, name string, version int) string {
+func EventPath(root, name string, version int) string {
 	value := strconv.Itoa(version)
-	return params.Setup.RootStorage + "/account/" + name + "/events/" + "0000000000"[0:10-len(value)] + value
+	return root + "/account/" + name + "/events/" + "0000000000"[0:10-len(value)] + value
 }
 
 // SnapshotPath returns filepath for given snapshot
-func SnapshotPath(params RunParams, name string, version int) string {
+func SnapshotPath(root, name string, version int) string {
 	value := strconv.Itoa(version)
-	return params.Setup.RootStorage + "/account/" + name + "/snapshot/" + "0000000000"[0:10-len(value)] + value
+	return root + "/account/" + name + "/snapshot/" + "0000000000"[0:10-len(value)] + value
 }
 
 // MetadataPath returns filepath for given metadata
-func MetadataPath(params RunParams, name string) string {
-	return params.Setup.RootStorage + "/account/" + name + "/meta"
+func MetadataPath(root, name string) string {
+	return root + "/account/" + name + "/meta"
 }
