@@ -32,7 +32,7 @@ type SnapshotUpdater struct {
 	Support
 	callback            func(msg interface{}, receiver string, sender actor.Coordinates)
 	metrics             *Metrics
-	rootStorage         string
+	storage             string
 	scanInterval        time.Duration
 	saturationThreshold int
 }
@@ -43,7 +43,7 @@ func NewSnapshotUpdater(ctx context.Context, cfg config.Configuration, metrics *
 		Support:             NewDaemonSupport(ctx),
 		callback:            callback,
 		metrics:             metrics,
-		rootStorage:         cfg.RootStorage,
+		storage:             cfg.RootStorage,
 		scanInterval:        cfg.SnapshotScanInterval,
 		saturationThreshold: cfg.JournalSaturation,
 	}
@@ -51,36 +51,36 @@ func NewSnapshotUpdater(ctx context.Context, cfg config.Configuration, metrics *
 
 // FIXME unit test coverage
 // FIXME maximum events to params
-func (su SnapshotUpdater) updateSaturated() {
-	accounts := su.getAccounts()
+func (updater SnapshotUpdater) updateSaturated() {
+	accounts := updater.getAccounts()
 	var numberOfSnapshotsUpdated int64
 
 	for _, name := range accounts {
-		version := su.getVersion(name)
+		version := updater.getVersion(name)
 		if version == -1 {
 			continue
 		}
-		if su.getEvents(name, version) >= su.saturationThreshold {
-			su.updateAccount(name, version, version+1)
+		if updater.getEvents(name, version) >= updater.saturationThreshold {
+			updater.updateAccount(name, version, version+1)
 			numberOfSnapshotsUpdated++
 		}
 	}
-	su.metrics.SnapshotsUpdated(numberOfSnapshotsUpdated)
+	updater.metrics.SnapshotsUpdated(numberOfSnapshotsUpdated)
 }
 
-func (su SnapshotUpdater) updateAccount(name string, fromVersion, toVersion int) {
+func (updater SnapshotUpdater) updateAccount(name string, fromVersion, toVersion int) {
 	log.Debugf("Request %v to update snapshot version from %d to %d", name, fromVersion, toVersion)
 	msg := model.Update{Version: fromVersion}
 	coordinates := actor.Coordinates{Name: "snapshot_saturation_cron"}
-	su.callback(msg, name, coordinates)
+	updater.callback(msg, name, coordinates)
 }
 
-func (su SnapshotUpdater) getAccounts() []string {
-	return utils.ListDirectory(utils.AccountsPath(su.rootStorage), true)
+func (updater SnapshotUpdater) getAccounts() []string {
+	return utils.ListDirectory(utils.AccountsPath(updater.storage), true)
 }
 
-func (su SnapshotUpdater) getVersion(name string) int {
-	versions := utils.ListDirectory(utils.SnapshotsPath(su.rootStorage, name), false)
+func (updater SnapshotUpdater) getVersion(name string) int {
+	versions := utils.ListDirectory(utils.SnapshotsPath(updater.storage, name), false)
 	if len(versions) == 0 {
 		return -1
 	}
@@ -93,31 +93,31 @@ func (su SnapshotUpdater) getVersion(name string) int {
 	return version
 }
 
-func (su SnapshotUpdater) getEvents(name string, version int) int {
-	return utils.CountFiles(utils.EventPath(su.rootStorage, name, version))
+func (updater SnapshotUpdater) getEvents(name string, version int) int {
+	return utils.CountFiles(utils.EventPath(updater.storage, name, version))
 }
 
 // Start handles everything needed to start snapshot updater daemon it runs scan
 // of accounts snapshots and events and orders accounts to update their snapshot
 // if number of events in given version is larger than threshold
-func (su SnapshotUpdater) Start() {
-	defer su.MarkDone()
+func (updater SnapshotUpdater) Start() {
+	defer updater.MarkDone()
 
-	ticker := time.NewTicker(su.scanInterval)
+	ticker := time.NewTicker(updater.scanInterval)
 	defer ticker.Stop()
 
-	log.Infof("Start snapshot updater daemon, scan each %v and update journals with at least %d events", su.scanInterval, su.saturationThreshold)
+	log.Infof("Start snapshot updater daemon, scan each %v and update journals with at least %d events", updater.scanInterval, updater.saturationThreshold)
 
-	su.MarkReady()
+	updater.MarkReady()
 
 	for {
 		select {
-		case <-su.Done():
+		case <-updater.Done():
 			log.Info("Stop snapshot updater daemon")
 			return
 		case <-ticker.C:
-			su.metrics.TimeUpdateSaturatedSnapshots(func() {
-				su.updateSaturated()
+			updater.metrics.TimeUpdateSaturatedSnapshots(func() {
+				updater.updateSaturated()
 			})
 		}
 	}

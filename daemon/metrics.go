@@ -22,7 +22,7 @@ import (
 
 	"github.com/jancajthaml-openbank/vault/config"
 
-	gom "github.com/rcrowley/go-metrics"
+	metrics "github.com/rcrowley/go-metrics"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -42,12 +42,12 @@ type Metrics struct {
 	output              string
 	tenant              string
 	refreshRate         time.Duration
-	promisesAccepted    gom.Counter
-	commitsAccepted     gom.Counter
-	rollbacksAccepted   gom.Counter
-	createdAccounts     gom.Counter
-	updatedSnapshots    gom.Meter
-	snapshotCronLatency gom.Timer
+	promisesAccepted    metrics.Counter
+	commitsAccepted     metrics.Counter
+	rollbacksAccepted   metrics.Counter
+	createdAccounts     metrics.Counter
+	updatedSnapshots    metrics.Meter
+	snapshotCronLatency metrics.Timer
 }
 
 // NewMetrics returns metrics fascade
@@ -57,61 +57,61 @@ func NewMetrics(ctx context.Context, cfg config.Configuration) Metrics {
 		output:              cfg.MetricsOutput,
 		tenant:              cfg.Tenant,
 		refreshRate:         cfg.MetricsRefreshRate,
-		promisesAccepted:    gom.NewCounter(),
-		commitsAccepted:     gom.NewCounter(),
-		rollbacksAccepted:   gom.NewCounter(),
-		createdAccounts:     gom.NewCounter(),
-		updatedSnapshots:    gom.NewMeter(),
-		snapshotCronLatency: gom.NewTimer(),
+		promisesAccepted:    metrics.NewCounter(),
+		commitsAccepted:     metrics.NewCounter(),
+		rollbacksAccepted:   metrics.NewCounter(),
+		createdAccounts:     metrics.NewCounter(),
+		updatedSnapshots:    metrics.NewMeter(),
+		snapshotCronLatency: metrics.NewTimer(),
 	}
 }
 
 // NewSnapshot returns metrics snapshot
-func NewSnapshot(gom Metrics) Snapshot {
+func NewSnapshot(metrics Metrics) Snapshot {
 	return Snapshot{
-		SnapshotCronLatency: gom.snapshotCronLatency.Percentile(0.95),
-		UpdatedSnapshots:    gom.updatedSnapshots.Count(),
-		CreatedAccounts:     gom.createdAccounts.Count(),
-		PromisesAccepted:    gom.promisesAccepted.Count(),
-		CommitsAccepted:     gom.commitsAccepted.Count(),
-		RollbacksAccepted:   gom.rollbacksAccepted.Count(),
+		SnapshotCronLatency: metrics.snapshotCronLatency.Percentile(0.95),
+		UpdatedSnapshots:    metrics.updatedSnapshots.Count(),
+		CreatedAccounts:     metrics.createdAccounts.Count(),
+		PromisesAccepted:    metrics.promisesAccepted.Count(),
+		CommitsAccepted:     metrics.commitsAccepted.Count(),
+		RollbacksAccepted:   metrics.rollbacksAccepted.Count(),
 	}
 }
 
 // TimeUpdateSaturatedSnapshots measures time of SaturatedSnapshots function run
-func (gom Metrics) TimeUpdateSaturatedSnapshots(f func()) {
-	gom.snapshotCronLatency.Time(f)
+func (metrics Metrics) TimeUpdateSaturatedSnapshots(f func()) {
+	metrics.snapshotCronLatency.Time(f)
 }
 
 // SnapshotsUpdated increments updated snapshots by given count
-func (gom Metrics) SnapshotsUpdated(count int64) {
-	gom.updatedSnapshots.Mark(count)
+func (metrics Metrics) SnapshotsUpdated(count int64) {
+	metrics.updatedSnapshots.Mark(count)
 }
 
 // AccountCreated increments account created by one
-func (gom Metrics) AccountCreated() {
-	gom.createdAccounts.Inc(1)
+func (metrics Metrics) AccountCreated() {
+	metrics.createdAccounts.Inc(1)
 }
 
 // PromiseAccepted increments accepted promises by one
-func (gom Metrics) PromiseAccepted() {
-	gom.promisesAccepted.Inc(1)
+func (metrics Metrics) PromiseAccepted() {
+	metrics.promisesAccepted.Inc(1)
 }
 
 // CommitAccepted increments accepted commits by one
-func (gom Metrics) CommitAccepted() {
-	gom.commitsAccepted.Inc(1)
+func (metrics Metrics) CommitAccepted() {
+	metrics.commitsAccepted.Inc(1)
 }
 
 // RollbackAccepted increments accepted rollbacks by one
-func (gom Metrics) RollbackAccepted() {
-	gom.rollbacksAccepted.Inc(1)
+func (metrics Metrics) RollbackAccepted() {
+	metrics.rollbacksAccepted.Inc(1)
 }
 
-func (gom Metrics) persist(filename string) {
+func (metrics Metrics) persist(filename string) {
 	tempFile := filename + "_temp"
 
-	data, err := json.Marshal(NewSnapshot(gom))
+	data, err := json.Marshal(NewSnapshot(metrics))
 	if err != nil {
 		log.Warnf("unable to create serialize metrics with error: %v", err)
 		return
@@ -137,31 +137,32 @@ func (gom Metrics) persist(filename string) {
 }
 
 // Start handles everything needed to start metrics daemon
-func (gom Metrics) Start() {
-	defer gom.MarkDone()
+func (metrics Metrics) Start() {
+	defer metrics.MarkDone()
 
-	if gom.output == "" {
+	if metrics.output == "" {
 		log.Warnf("no metrics output defined, skipping metrics persistence")
-		gom.MarkReady()
+		metrics.MarkReady()
 		return
 	}
 
-	ticker := time.NewTicker(gom.refreshRate)
+	output := metrics.output + "/" + metrics.tenant
+	ticker := time.NewTicker(metrics.refreshRate)
 	defer ticker.Stop()
 
-	log.Infof("Start metrics daemon, update each %v into %v/%v", gom.refreshRate, gom.output, gom.tenant)
+	log.Infof("Start metrics daemon, update each %v into %v", metrics.refreshRate, output)
 
-	gom.MarkReady()
+	metrics.MarkReady()
 
 	for {
 		select {
-		case <-gom.Done():
+		case <-metrics.Done():
 			log.Info("Stopping metrics daemon")
-			gom.persist(gom.output + "/" + gom.tenant)
+			metrics.persist(output)
 			log.Info("Stop metrics daemon")
 			return
 		case <-ticker.C:
-			gom.persist(gom.output + "/" + gom.tenant)
+			metrics.persist(output)
 		}
 	}
 }
