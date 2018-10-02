@@ -1,15 +1,23 @@
-package metrics
+package daemon
 
 import (
+	"context"
 	"testing"
 	"time"
+
+	"github.com/jancajthaml-openbank/vault/config"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestMetricsPersist(t *testing.T) {
-	entity := NewMetrics()
+	cfg := config.Configuration{}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	entity := NewMetrics(ctx, cfg)
 	delay := 1e8
 	delta := 1e7
 

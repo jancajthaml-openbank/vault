@@ -10,30 +10,20 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/jancajthaml-openbank/vault/pkg/model"
-	"github.com/jancajthaml-openbank/vault/pkg/utils"
+	"github.com/jancajthaml-openbank/vault/model"
 
 	money "gopkg.in/inf.v0"
 )
-
-var journalTestParams = utils.RunParams{
-	Setup: utils.SetupParams{
-		Tenant:      "tenant",
-		RootStorage: "/tmp",
-	},
-	Journal: utils.JournalParams{},
-	Metrics: utils.MetricsParams{},
-}
 
 func TestSnapshotUpdate(t *testing.T) {
 	name := "account_2"
 	currency := "XRP"
 	isBalanceCheck := false
 
-	snapshotInitial := CreateAccount(journalTestParams, name, currency, isBalanceCheck)
+	snapshotInitial := CreateAccount("/tmp/tenant", name, currency, isBalanceCheck)
 	require.NotNil(t, snapshotInitial)
 
-	loadedInitial := LoadAccount(journalTestParams, name)
+	loadedInitial := LoadAccount("/tmp/tenant", name)
 	require.NotNil(t, loadedInitial)
 
 	t.Log("Initial matches loaded")
@@ -44,10 +34,10 @@ func TestSnapshotUpdate(t *testing.T) {
 		assert.Equal(t, snapshotInitial.Version, loadedInitial.Version)
 	}
 
-	snapshotVersion1 := UpdateAccount(journalTestParams, name, snapshotInitial)
+	snapshotVersion1 := UpdateAccount("/tmp/tenant", name, snapshotInitial)
 	require.NotNil(t, snapshotVersion1)
 
-	loadedVersion1 := LoadAccount(journalTestParams, name)
+	loadedVersion1 := LoadAccount("/tmp/tenant", name)
 	require.NotNil(t, loadedVersion1)
 
 	t.Log("Updated matches loaded")
@@ -80,7 +70,7 @@ func TestRefuseSnapshotOverflow(t *testing.T) {
 		IsBalanceCheck: isBalanceCheck,
 	}
 
-	snapshotNext := UpdateAccount(journalTestParams, name, snapshotLast)
+	snapshotNext := UpdateAccount("/tmp/tenant", name, snapshotLast)
 
 	assert.Equal(t, snapshotLast.Version, snapshotNext.Version)
 }
@@ -104,9 +94,9 @@ func TestSnapshotPromiseBuffer(t *testing.T) {
 
 	snapshot.PromiseBuffer.AddAll(expectedPromises)
 
-	PersistAccount(journalTestParams, name, snapshot)
+	PersistAccount("/tmp/tenant", name, snapshot)
 
-	loaded := LoadAccount(journalTestParams, name)
+	loaded := LoadAccount("/tmp/tenant", name)
 
 	if loaded == nil {
 		t.Errorf("Expected to load snapshot got nil instead")
@@ -133,21 +123,12 @@ func BenchmarkAccountLoad(b *testing.B) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	params := utils.RunParams{
-		Setup: utils.SetupParams{
-			Tenant:      "tenant",
-			RootStorage: tmpDir,
-		},
-		Journal: utils.JournalParams{},
-		Metrics: utils.MetricsParams{},
-	}
-
-	account := CreateAccount(params, "bench", "BNC", false)
+	account := CreateAccount(tmpDir+"/tenant", "bench", "BNC", false)
 	require.NotNil(b, account)
 
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		LoadAccount(params, "bench")
+		LoadAccount(tmpDir+"/tenant", "bench")
 	}
 }
