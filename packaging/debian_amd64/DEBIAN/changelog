@@ -1,8 +1,17 @@
-vault (v1.0.3+controlled-structure) unstable; urgency=low
+vault (v1.0.4+increased-test-coverage) unstable; urgency=low
 
-  * includes structure commits after v1.0.3+controlled release
+  * includes test commits after v1.0.4+increased release
 
- -- Jan Cajthaml <jan.cajthaml@gmail.com>  Tue, 2 Oct 2018 08:05:05 +0200
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Tue, 2 Oct 2018 08:24:00 +0200
+
+vault (1.0.4) unstable; urgency=low
+
+  
+  * flat and more controlled structure and lifecycle of sub routines
+  * use new lake-client
+  * snapshot updated test coverage
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Tue, 2 Oct 2018 08:24:00 +0200
 
 vault (1.0.3) unstable; urgency=low
 

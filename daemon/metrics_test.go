@@ -11,6 +11,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestGetFilename(t *testing.T) {
+	assert.Equal(t, "/a/b/c.d.e", getFilename("/a/b/c.e", "d"))
+	assert.Equal(t, "/a/b/c.d", getFilename("/a/b/c.d", ""))
+}
+
 func TestMetricsPersist(t *testing.T) {
 	cfg := config.Configuration{}
 

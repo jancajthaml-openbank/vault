@@ -1,5 +1,5 @@
 Package: vault
-Version: 1.0.3+controlled-structure
+Version: 1.0.4+increased-test-coverage
 Architecture: arm
 Maintainer: Jan Cajthaml <jan.cajthaml@gmail.com>
 Depends: init-system-helpers (>= 1.18~), libzmq5 (= 4.2.1-4)

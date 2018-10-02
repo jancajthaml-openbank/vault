@@ -61,18 +61,15 @@ func (updater SnapshotUpdater) updateSaturated() {
 			continue
 		}
 		if updater.getEvents(name, version) >= updater.saturationThreshold {
-			updater.updateAccount(name, version, version+1)
+			log.Debugf("Request %v to update snapshot version from %d to %d", name, version, version+1)
+			msg := model.Update{Version: version}
+			coordinates := actor.Coordinates{Name: "snapshot_saturation_cron"}
+			updater.callback(msg, name, coordinates)
+
 			numberOfSnapshotsUpdated++
 		}
 	}
 	updater.metrics.SnapshotsUpdated(numberOfSnapshotsUpdated)
-}
-
-func (updater SnapshotUpdater) updateAccount(name string, fromVersion, toVersion int) {
-	log.Debugf("Request %v to update snapshot version from %d to %d", name, fromVersion, toVersion)
-	msg := model.Update{Version: fromVersion}
-	coordinates := actor.Coordinates{Name: "snapshot_saturation_cron"}
-	updater.callback(msg, name, coordinates)
 }
 
 func (updater SnapshotUpdater) getAccounts() []string {

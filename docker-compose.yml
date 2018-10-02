@@ -1,4 +1,4 @@
-version: '2'
+version: '2.1'
 
 # ---------------------------------------------------------------------------- #
 
@@ -73,6 +73,8 @@ services:
 
   debian:
     extends: go
+    volumes:
+      - ./packaging:/go/src/github.com/jancajthaml-openbank/vault/packaging
     entrypoint: ["/opt/lifecycle/debian"]
 
   # -------------------------------------------------------------------------- #
