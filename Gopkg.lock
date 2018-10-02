@@ -11,7 +11,7 @@
   branch = "master"
   name = "github.com/jancajthaml-openbank/lake-client"
   packages = ["go"]
-  revision = "b70f595f370f9a325a8a53d9a8e760ee69a4801e"
+  revision = "cbdf18e1e46ecfcfecfc3e458e9ddc7564f26bb1"
 
 [[projects]]
   branch = "master"
@@ -56,7 +56,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "5295e8364332db77d75fce11f1d19c053919a9c9"
+  revision = "e3636079e1a4c1f337f212cc5cd2aca108f6c900"
 
 [[projects]]
   branch = "master"

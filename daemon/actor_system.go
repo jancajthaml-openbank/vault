@@ -45,15 +45,16 @@ type ActorSystem struct {
 }
 
 func NewActorSystem(ctx context.Context, cfg config.Configuration, metrics *Metrics) ActorSystem {
+	lakeClient, _ := lake.NewClient(ctx, "Vault/"+cfg.Tenant, cfg.LakeHostname)
+
 	return ActorSystem{
 		Support: NewDaemonSupport(ctx),
 		storage: cfg.RootStorage,
 		tenant:  cfg.Tenant,
 		metrics: metrics,
 		Actors:  new(ActorsMap),
-		// FIXME handshake as a method not implicit constructor
-		Client: lake.NewClient("Vault/"+cfg.Tenant, cfg.LakeHostname),
-		Name:   "Vault/" + cfg.Tenant,
+		Client:  lakeClient,
+		Name:    "Vault/" + cfg.Tenant,
 	}
 }
 
@@ -418,6 +419,8 @@ func (system ActorSystem) Start() {
 	defer system.MarkDone()
 
 	log.Info("Start actor system daemon")
+
+	system.Client.Start()
 
 	// FIXME not ideal fixme maybe inline lake client
 	go func() {
