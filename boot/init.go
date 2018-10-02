@@ -67,7 +67,7 @@ func Initialize() Application {
 
 	metrics := daemon.NewMetrics(ctx, cfg)
 	actorSystem := daemon.NewActorSystem(ctx, cfg, &metrics)
-	snapshotUpdater := daemon.NewSnapshotUpdater(ctx, cfg, &metrics, &actorSystem)
+	snapshotUpdater := daemon.NewSnapshotUpdater(ctx, cfg, &metrics, actorSystem.ProcessLocalMessage)
 
 	return Application{
 		cfg:             cfg,

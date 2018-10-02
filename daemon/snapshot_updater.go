@@ -29,17 +29,17 @@ import (
 
 type SnapshotUpdater struct {
 	Support
-	actorSystem         *ActorSystem
+	callback            func(msg interface{}, receiver string, sender actor.Coordinates)
 	metrics             *Metrics
 	rootStorage         string
 	scanInterval        time.Duration
 	saturationThreshold int
 }
 
-func NewSnapshotUpdater(ctx context.Context, cfg config.Configuration, metrics *Metrics, actorSystem *ActorSystem) SnapshotUpdater {
+func NewSnapshotUpdater(ctx context.Context, cfg config.Configuration, metrics *Metrics, callback func(msg interface{}, receiver string, sender actor.Coordinates)) SnapshotUpdater {
 	return SnapshotUpdater{
 		Support:             NewDaemonSupport(ctx),
-		actorSystem:         actorSystem,
+		callback:            callback,
 		metrics:             metrics,
 		rootStorage:         cfg.RootStorage,
 		scanInterval:        cfg.SnapshotScanInterval,
@@ -70,7 +70,7 @@ func (su SnapshotUpdater) updateAccount(name string, fromVersion, toVersion int)
 	log.Debugf("Request %v to update snapshot version from %d to %d", name, fromVersion, toVersion)
 	msg := model.Update{Version: fromVersion}
 	coordinates := actor.Coordinates{Name: "snapshot_saturation_cron"}
-	su.actorSystem.ProcessLocalMessage(msg, name, coordinates)
+	su.callback(msg, name, coordinates)
 }
 
 func (su SnapshotUpdater) getAccounts() []string {
