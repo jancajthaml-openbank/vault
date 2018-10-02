@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/jancajthaml-openbank/vault/config"
@@ -136,6 +137,19 @@ func (metrics Metrics) persist(filename string) {
 	return
 }
 
+func getFilename(path, tenant string) string {
+	if tenant == "" {
+		return path
+	}
+
+	dirname := filepath.Dir(path)
+	ext := filepath.Ext(path)
+	filename := filepath.Base(path)
+	filename = filename[:len(filename)-len(ext)]
+
+	return dirname + "/" + filename + "." + tenant + ext
+}
+
 // Start handles everything needed to start metrics daemon
 func (metrics Metrics) Start() {
 	defer metrics.MarkDone()
@@ -146,7 +160,7 @@ func (metrics Metrics) Start() {
 		return
 	}
 
-	output := metrics.output + "/" + metrics.tenant
+	output := getFilename(metrics.output, metrics.tenant)
 	ticker := time.NewTicker(metrics.refreshRate)
 	defer ticker.Stop()
 

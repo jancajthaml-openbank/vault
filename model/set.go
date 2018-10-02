@@ -25,26 +25,26 @@ func NewTransactionSet() TransactionSet {
 }
 
 // Add adds element to set
-func (set *TransactionSet) Add(i string) {
-	set.Items[i] = nil
+func (set *TransactionSet) Add(item string) {
+	set.Items[item] = nil
 }
 
 // AddAll adds all elements to set
-func (set *TransactionSet) AddAll(i []string) {
-	for _, b := range i {
-		set.Items[b] = nil
+func (set *TransactionSet) AddAll(items []string) {
+	for _, item := range items {
+		set.Items[item] = nil
 	}
 }
 
 // Contains returns true if value is present in set
-func (set *TransactionSet) Contains(i string) bool {
-	_, found := set.Items[i]
+func (set *TransactionSet) Contains(item string) bool {
+	_, found := set.Items[item]
 	return found
 }
 
 // Remove removes element from set
-func (set *TransactionSet) Remove(i string) {
-	delete(set.Items, i)
+func (set *TransactionSet) Remove(item string) {
+	delete(set.Items, item)
 }
 
 // Size returns number of items in set

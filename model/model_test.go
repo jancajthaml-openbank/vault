@@ -74,11 +74,11 @@ func BenchmarkAccountHydrate(b *testing.B) {
 	entity.Version = 0
 
 	data := entity.Persist()
+	hydrated := new(Account)
 
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		hydrated := new(Account)
 		hydrated.Hydrate(data)
 	}
 }

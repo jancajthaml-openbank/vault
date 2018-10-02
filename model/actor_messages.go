@@ -15,6 +15,15 @@
 package model
 
 const (
+	// EventPromise represents promise prefix
+	EventPromise = "0"
+	// EventCommit represents commit prefix
+	EventCommit = "1"
+	// EventRollback represents rollback prefix
+	EventRollback = "2"
+)
+
+const (
 	// ReqAccountState vault message request code for "Get Snapshot"
 	ReqAccountState = "GS"
 	// RespAccountState vault message response code for "Get Snapshot"

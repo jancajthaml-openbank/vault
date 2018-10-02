@@ -21,7 +21,7 @@ package:
 
 .PHONY: bootstrap
 bootstrap:
-	@docker-compose build go
+	@docker-compose build --force-rm go
 
 .PHONY: fetch
 fetch:
@@ -45,7 +45,7 @@ release:
 
 .PHONY: bbtest
 bbtest:
-	@docker-compose build bbtest
+	@docker-compose build --force-rm bbtest
 	@echo "removing older images if present"
 	@(docker rm -f $$(docker ps -a --filter="name=vault_bbtest" -q) &> /dev/null || :)
 	@echo "running bbtest image"
