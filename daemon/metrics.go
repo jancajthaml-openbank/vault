@@ -36,7 +36,7 @@ type Snapshot struct {
 	RollbacksAccepted   int64   `json:"rollbacksAccepted"`
 }
 
-// Metrics holds metrics counters
+// Metrics represents metrics subroutine
 type Metrics struct {
 	Support
 	output              string
@@ -50,7 +50,7 @@ type Metrics struct {
 	snapshotCronLatency gom.Timer
 }
 
-// NewMetrics returns blank metrics holder
+// NewMetrics returns metrics fascade
 func NewMetrics(ctx context.Context, cfg config.Configuration) Metrics {
 	return Metrics{
 		Support:             NewDaemonSupport(ctx),

@@ -27,6 +27,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// SnapshotUpdater represents journal saturation update subroutine
 type SnapshotUpdater struct {
 	Support
 	callback            func(msg interface{}, receiver string, sender actor.Coordinates)
@@ -36,6 +37,7 @@ type SnapshotUpdater struct {
 	saturationThreshold int
 }
 
+// NewSnapshotUpdater returns snapshot updater fascade
 func NewSnapshotUpdater(ctx context.Context, cfg config.Configuration, metrics *Metrics, callback func(msg interface{}, receiver string, sender actor.Coordinates)) SnapshotUpdater {
 	return SnapshotUpdater{
 		Support:             NewDaemonSupport(ctx),

@@ -30,20 +30,22 @@ import (
 	money "gopkg.in/inf.v0"
 )
 
-type ActorsMap struct {
+type actorsMap struct {
 	All sync.Map
 }
 
+// ActorSystem represents actor system subroutine
 type ActorSystem struct {
 	Support
 	tenant  string
 	storage string
 	metrics *Metrics
-	Actors  *ActorsMap
+	Actors  *actorsMap
 	Client  *lake.Client
 	Name    string
 }
 
+// NewActorSystem returns actor system fascade
 func NewActorSystem(ctx context.Context, cfg config.Configuration, metrics *Metrics) ActorSystem {
 	lakeClient, _ := lake.NewClient(ctx, "Vault/"+cfg.Tenant, cfg.LakeHostname)
 
@@ -52,7 +54,7 @@ func NewActorSystem(ctx context.Context, cfg config.Configuration, metrics *Metr
 		storage: cfg.RootStorage,
 		tenant:  cfg.Tenant,
 		metrics: metrics,
-		Actors:  new(ActorsMap),
+		Actors:  new(actorsMap),
 		Client:  lakeClient,
 		Name:    "Vault/" + cfg.Tenant,
 	}
@@ -150,10 +152,14 @@ func (system ActorSystem) processRemoteMessage() {
 		return
 	}
 
-	ref.Tell(message, actor.Coordinates{sender, region})
+	ref.Tell(message, actor.Coordinates{
+		Name:   sender,
+		Region: region,
+	})
 	return
 }
 
+// NilAccount represents account that is neither existing neither non existing
 func NilAccount(system ActorSystem) func(model.Account, actor.Context) {
 	return func(state model.Account, context actor.Context) {
 		snapshotHydration := persistence.LoadAccount(system.storage, state.AccountName)
@@ -170,6 +176,7 @@ func NilAccount(system ActorSystem) func(model.Account, actor.Context) {
 	}
 }
 
+// NonExistAccount represents account that does not exist
 func NonExistAccount(system ActorSystem) func(model.Account, actor.Context) {
 	return func(state model.Account, context actor.Context) {
 		switch msg := context.Data.(type) {
@@ -205,6 +212,7 @@ func NonExistAccount(system ActorSystem) func(model.Account, actor.Context) {
 	}
 }
 
+// ExistAccount represents account that does exist
 func ExistAccount(system ActorSystem) func(model.Account, actor.Context) {
 	return func(state model.Account, context actor.Context) {
 		switch msg := context.Data.(type) {

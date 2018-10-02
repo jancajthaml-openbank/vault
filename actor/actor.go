@@ -82,6 +82,7 @@ func (ref *Envelope) String() string {
 	return ref.Name
 }
 
+// React change become function
 func (ref *Envelope) React(f func(model.Account, Context)) {
 	if ref == nil {
 		return
