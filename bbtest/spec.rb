@@ -29,6 +29,7 @@ RSpec.configure do |config|
   config.after(:suite) do |_|
     print "\n[ suite ending   ]\n"
 
+    # fixme delete
     get_containers = lambda do |image|
       containers = %x(docker ps -aqf "ancestor=#{image}" 2>/dev/null)
       return ($? == 0 ? containers.split("\n") : [])
