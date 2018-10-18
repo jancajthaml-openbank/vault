@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -eu
 trap exit INT TERM
@@ -11,21 +11,21 @@ key="$1"
 
 case $key in
 
-  --arch)
-    TARGET_ARCHITECTURE="$2"
-    shift
-    shift
-  ;;
+    --arch)
+      TARGET_ARCHITECTURE="$2"
+      shift
+      shift
+    ;;
 
-  -v|--version)
-    VERSION="$2"
-    shift
-    shift
-  ;;
+    -v|--version)
+      VERSION="$2"
+      shift
+      shift
+    ;;
 
-  *)
-    shift
-  ;;
+    *)
+      shift
+    ;;
 
 esac
 done
@@ -40,23 +40,6 @@ if [ ! "${TARGET_ARCHITECTURE}" ] ; then
   exit 1
 fi
 
-append_to_changelog() {
-  local desc="$*"
-
-  DATE=$(git log -1 --format=%cD ${tag})
-
-  if [ ${FIRST} -eq 0 ] ; then echo >> ${CHANGELOG} ; fi
-  FIRST=0
-
-  echo "vault (${VER}) ${DIST}; urgency=low" >> ${CHANGELOG}
-  echo >> ${CHANGELOG}
-  if [ "${desc}" ] ; then
-    echo "${desc}" >> ${CHANGELOG}
-    echo >> ${CHANGELOG}
-  fi
-  echo " -- Jan Cajthaml <jan.cajthaml@gmail.com>  ${DATE}" >> ${CHANGELOG}
-}
-
 generate_changelog() {
   VER="${VERSION}"
   tag=HEAD
@@ -64,18 +47,45 @@ generate_changelog() {
   if [ -f ${CHANGELOG} ] ; then
     rm -f ${CHANGELOG}
   fi
-  if [ -n "${ADDS}" ] ; then
-    append_to_changelog "  * includes ${ADDS} commits after $(echo ${VER} | cut -d- -f1) release"
+
+  touch ${CHANGELOG}
+
+  if [[ -n "${ADDS// }" ]] ; then
+    DATE=$(git log -1 --format=%cD ${tag})
+    echo "vault (${VER}) ${DIST}; urgency=low" >> ${CHANGELOG}
+    echo "" >> ${CHANGELOG}
+    echo "  * includes non-released commits" >> ${CHANGELOG}
+    echo "" >> ${CHANGELOG}
+    echo " -- Jan Cajthaml <jan.cajthaml@gmail.com>  ${DATE}" >> ${CHANGELOG}
+    echo "" >> ${CHANGELOG}
   fi
 
-  for tag in $(git tag --sort=-v:refname); do
-    VER=${tag#v}
-    append_to_changelog "$(git tag -l -n20 ${tag} | tail -n+2 | sed -e 's/^ */  /')"
+  PAIRS=()
+  prev_tag=HEAD
+  for tag in $(git tag --sort=-v:refname | awk '{arr[i++]=$0} END {while (i>0) print arr[--i] }') ; do
+    PAIRS+=("${prev_tag} ${tag}")
+    prev_tag=${tag}
   done
 
-  if [ ! -f ${CHANGELOG} ] ; then
-    append_to_changelog
-  fi
+  idx=( ${!PAIRS[@]} )
+  for ((i=${#idx[@]} - 1; i >= 0; i--)) ; do
+    tag_from=${PAIRS[idx[i]]%% *}
+    tag_to=${PAIRS[idx[i]]#* }
+
+    DATE=$(git log -1 --format=%cD ${tag_to})
+
+    echo "vault (${tag_to#v}) ${DIST}; urgency=low" >> ${CHANGELOG}
+    echo "" >> ${CHANGELOG}
+
+    echo "$(git log --pretty=oneline --pretty=format:%s ^${tag_from} ${tag_to})" | \
+    while read note ; do
+      echo "  * ${note}" >> ${CHANGELOG}
+    done
+
+    echo "" >> ${CHANGELOG}
+    echo " -- Jan Cajthaml <jan.cajthaml@gmail.com>  ${DATE}" >> ${CHANGELOG}
+    echo "" >> ${CHANGELOG}
+  done
 }
 
 ################################################################################
@@ -101,13 +111,17 @@ fi
 
 mkdir -p ${DEB_SOURCES}/openbank/services/vault
 
+if [ -f "${DEB_SOURCES}/openbank/services/vault/vault" ] ; then
+  rm -f ${DEB_SOURCES}/openbank/services/vault/vault
+fi
+
 du -hs "${BIN_SOURCES}/linux-${TARGET_ARCHITECTURE}"
 
 cp \
   "${BIN_SOURCES}/linux-${TARGET_ARCHITECTURE}" \
   "${DEB_SOURCES}/openbank/services/vault/vault"
 
-du -hs "${DEB_SOURCES}/openbank/services/vault/vault"
+file "${DEB_SOURCES}/openbank/services/vault/vault"
 
 generate_changelog
 sed -i 's/Version.*/Version: '${VERSION#v}'/' ${CONTROL}

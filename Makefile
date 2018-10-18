@@ -15,8 +15,8 @@ package:
 	@(rm -rf packaging/bin/* &> /dev/null || :)
 	docker-compose run --rm package --target linux/amd64
 	docker-compose run --rm debian -v $(VERSION)+$(META) --arch amd64
-	docker-compose run --rm package --target linux/arm
-	docker-compose run --rm debian -v $(VERSION)+$(META) --arch arm
+	docker-compose run --rm package --target linux/armhf
+	docker-compose run --rm debian -v $(VERSION)+$(META) --arch armhf
 	docker-compose build artifacts
 
 .PHONY: bootstrap

@@ -1,6 +1,6 @@
 Package: vault
-Version: 1.0.4+increased-test-coverage
-Architecture: arm
+Version: 1.0.5+more-bbtests
+Architecture: armhf
 Maintainer: Jan Cajthaml <jan.cajthaml@gmail.com>
 Depends: init-system-helpers (>= 1.18~), libzmq5 (= 4.2.1-4)
 Section: openbank
