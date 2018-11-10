@@ -1,8 +1,14 @@
-vault (v1.0.5+more-bbtests) unstable; urgency=low
+vault (v1.1.0+use-jq-image) unstable; urgency=low
 
   * includes non-released commits
 
- -- Jan Cajthaml <jan.cajthaml@gmail.com>  Thu, 18 Oct 2018 11:18:09 +0200
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Thu, 18 Oct 2018 12:17:25 +0200
+
+vault (1.1.0) unstable; urgency=low
+
+  * changed debian arm target to armhf, better changelog, notifying account activity in broadcast (#46)
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Thu, 18 Oct 2018 12:17:25 +0200
 
 vault (1.0.5) unstable; urgency=low
 
