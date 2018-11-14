@@ -2,7 +2,7 @@ vault (v1.1.0+faster-json-marshaller) unstable; urgency=low
 
   * includes non-released commits
 
- -- Jan Cajthaml <jan.cajthaml@gmail.com>  Sat, 10 Nov 2018 17:41:11 +0100
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Wed, 14 Nov 2018 08:40:46 +0100
 
 vault (1.1.0) unstable; urgency=low
 
