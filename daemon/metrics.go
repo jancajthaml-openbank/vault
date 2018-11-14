@@ -16,12 +16,12 @@ package daemon
 
 import (
 	"context"
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/jancajthaml-openbank/vault/config"
+	"github.com/jancajthaml-openbank/vault/utils"
 
 	metrics "github.com/rcrowley/go-metrics"
 	log "github.com/sirupsen/logrus"
@@ -112,7 +112,7 @@ func (metrics Metrics) RollbackAccepted() {
 func (metrics Metrics) persist(filename string) {
 	tempFile := filename + "_temp"
 
-	data, err := json.Marshal(NewSnapshot(metrics))
+	data, err := utils.JSON.Marshal(NewSnapshot(metrics))
 	if err != nil {
 		log.Warnf("unable to create serialize metrics with error: %v", err)
 		return
