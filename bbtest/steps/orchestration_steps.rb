@@ -7,7 +7,7 @@ step "vault is restarted" do ||
   expect($?).to be_success, ids
 
   ids = ids.split("\n").map(&:strip).reject { |x|
-    x.empty? || !(x.start_with?("vault") || x.start_with?("lake") || x.start_with?("wall"))
+    x.empty? || !x.start_with?("vault")
   }.map { |x| x.chomp(".service") }
 
   expect(ids).not_to be_empty
