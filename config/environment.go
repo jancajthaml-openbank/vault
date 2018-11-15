@@ -24,26 +24,16 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const logEnv = "VAULT_LOG"
-const logLevelEnv = "VAULT_LOG_LEVEL"
-const storageEnv = "VAULT_STORAGE"
-const tenantEnv = "VAULT_TENANT"
-const lakeHostnameEnv = "VAULT_LAKE_HOSTNAME"
-const snapshotScanIntervalEnv = "VAULT_SNAPSHOT_SCANINTERVAL"
-const journalSaturationEnv = "VAULT_JOURNAL_SATURATION"
-const metricsRefreshRateEnv = "VAULT_METRICS_REFRESHRATE"
-const metricsOutputEnv = "VAULT_METRICS_OUTPUT"
-
 func loadConfFromEnv() Configuration {
-	logOutput := getEnvString(logEnv, "")
-	logLevel := strings.ToUpper(getEnvString(logLevelEnv, "DEBUG"))
-	storage := getEnvString(storageEnv, "/data")
-	tenant := getEnvString(tenantEnv, "")
-	lakeHostname := getEnvString(lakeHostnameEnv, "")
-	snapshotScanInterval := getEnvDuration(snapshotScanIntervalEnv, time.Minute)
-	journalSaturation := getEnvInteger(journalSaturationEnv, 100)
-	metricsOutput := getEnvString(metricsOutputEnv, "")
-	metricsRefreshRate := getEnvDuration(metricsRefreshRateEnv, time.Second)
+	logOutput := getEnvString("VAULT_LOG", "")
+	logLevel := strings.ToUpper(getEnvString("VAULT_LOG_LEVEL", "DEBUG"))
+	storage := getEnvString("VAULT_STORAGE", "/data")
+	tenant := getEnvString("VAULT_TENANT", "")
+	lakeHostname := getEnvString("VAULT_LAKE_HOSTNAME", "")
+	snapshotScanInterval := getEnvDuration("VAULT_SNAPSHOT_SCANINTERVAL", time.Minute)
+	journalSaturation := getEnvInteger("VAULT_JOURNAL_SATURATION", 100)
+	metricsOutput := getEnvString("VAULT_METRICS_OUTPUT", "")
+	metricsRefreshRate := getEnvDuration("VAULT_METRICS_REFRESHRATE", time.Second)
 
 	if tenant == "" || lakeHostname == "" || storage == "" {
 		log.Fatal("missing required parameter to run")
