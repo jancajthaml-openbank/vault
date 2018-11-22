@@ -110,6 +110,7 @@ func (updater SnapshotUpdater) Start() {
 	for {
 		select {
 		case <-updater.Done():
+			log.Info("Stopping snapshot updater daemon")
 			log.Info("Stop snapshot updater daemon")
 			return
 		case <-ticker.C:

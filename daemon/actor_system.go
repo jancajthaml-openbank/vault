@@ -254,6 +254,7 @@ func ExistAccount(system ActorSystem) func(model.Account, actor.Context) {
 				context.Receiver.Become(*next, ExistAccount(system))
 
 				system.SendRemote(context.Sender.Region, model.PromiseAcceptedMessage(context.Receiver.Name, context.Sender.Name))
+				log.Infof("Account %s Promised %s %s", state.AccountName, msg.Amount.String(), state.Currency)
 				log.Debugf("%s ~ (Exist Promise) OK", state.AccountName)
 				system.metrics.PromiseAccepted()
 				return
@@ -313,6 +314,7 @@ func ExistAccount(system ActorSystem) func(model.Account, actor.Context) {
 			context.Receiver.Become(*next, ExistAccount(system))
 
 			system.SendRemote(context.Sender.Region, model.RollbackAcceptedMessage(context.Receiver.Name, context.Sender.Name))
+			log.Infof("Account %s Rejected %s %s", state.AccountName, msg.Amount.String(), state.Currency)
 			log.Debugf("%s ~ (Exist Rollback) OK", state.AccountName)
 			system.metrics.RollbackAccepted()
 
@@ -335,6 +337,7 @@ func ExistAccount(system ActorSystem) func(model.Account, actor.Context) {
 			}
 
 			context.Receiver.Become(*next, ExistAccount(system))
+			log.Infof("Account %s Updated Snapshot to %d", state.AccountName, next.Version)
 			log.Debugf("%s ~ (Exist Update) OK", state.AccountName)
 
 		default:
@@ -391,8 +394,6 @@ func (system ActorSystem) SendRemote(destinationSystem, data string) {
 		return
 	}
 
-	//client.push <- (destination + " " + client.region + " " + message)
-	log.Infof("sending remote message [%v Vault/%v %v]", destinationSystem, system.tenant, data)
 	system.Client.Publish(destinationSystem, data)
 }
 

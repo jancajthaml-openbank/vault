@@ -1,4 +1,4 @@
-vault (v1.1.0+use-shared-images) unstable; urgency=low
+vault (v1.1.0+daemon-lifecycle-logging-consistency) unstable; urgency=low
 
   * includes non-released commits
 
