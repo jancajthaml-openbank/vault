@@ -73,7 +73,7 @@ func (updater SnapshotUpdater) updateSaturated() {
 }
 
 func (updater SnapshotUpdater) getAccounts() []string {
-	return utils.ListDirectory(utils.AccountsPath(updater.storage), true)
+	return utils.ListDirectory(utils.RootPath(updater.storage), true)
 }
 
 func (updater SnapshotUpdater) getVersion(name string) int {

@@ -75,14 +75,7 @@ func (system ActorSystem) ProcessLocalMessage(msg interface{}, receiver string, 
 	ref.Tell(msg, sender)
 }
 
-func (system ActorSystem) processRemoteMessage() {
-	parts := system.Client.Receive()
-
-	if len(parts) < 4 {
-		log.Warn("invalid message received")
-		return
-	}
-
+func (system ActorSystem) processRemoteMessage(parts []string) {
 	region, receiver, sender, payload := parts[0], parts[1], parts[2], parts[3]
 
 	defer func() {
@@ -389,12 +382,7 @@ func (system ActorSystem) RegisterActor(ref *actor.Envelope, initialState func(m
 
 // SendRemote send message to remote region
 func (system ActorSystem) SendRemote(destinationSystem, data string) {
-	if destinationSystem == "" {
-		log.Warn("No target region specified")
-		return
-	}
-
-	system.Client.Publish(destinationSystem, data)
+	system.Client.Publish <- []string{destinationSystem, data}
 }
 
 // SpawnAccountActor returns new account actor instance registered into actor
@@ -431,18 +419,16 @@ func (system ActorSystem) Start() {
 
 	system.Client.Start()
 
-	// FIXME not ideal fixme maybe inline lake client
-	go func() {
-		for {
-			system.processRemoteMessage()
-		}
-	}()
-
-	// FIXME handshake of lake should be here, after succesfull handskahe its ready
 	system.MarkReady()
 
 	for {
 		select {
+		case message := <-system.Client.Receive:
+			if len(message) < 4 {
+				log.Warn("invalid message received")
+				continue
+			}
+			system.processRemoteMessage(message)
 		case <-system.Done():
 			log.Info("Stopping actor system daemon")
 			system.Client.Stop()

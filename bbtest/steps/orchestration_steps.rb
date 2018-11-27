@@ -37,7 +37,7 @@ step "tenant :tenant is onbdoarded" do |tenant|
   params = [
     "VAULT_STORAGE=/data",
     "VAULT_LOG_LEVEL=DEBUG",
-    "VAULT_JOURNAL_SATURATION=100",
+    "VAULT_JOURNAL_SATURATION=200",
     "VAULT_SNAPSHOT_SCANINTERVAL=1h",
     "VAULT_METRICS_OUTPUT=/reports/metrics.json",
     "VAULT_LAKE_HOSTNAME=localhost",

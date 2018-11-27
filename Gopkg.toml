@@ -15,5 +15,5 @@ required = [
   version = "1.0.4"
 
 [[constraint]]
-  branch = "master"
+  branch = "feature/receive-as-channel"
   name = "github.com/jancajthaml-openbank/lake-client"
