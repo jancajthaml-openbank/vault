@@ -2,7 +2,7 @@ vault (v1.1.0+channel-lake-client) unstable; urgency=low
 
   * includes non-released commits
 
- -- Jan Cajthaml <jan.cajthaml@gmail.com>  Thu, 22 Nov 2018 22:22:13 +0100
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Tue, 27 Nov 2018 06:52:42 +0100
 
 vault (1.1.0) unstable; urgency=low
 

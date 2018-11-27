@@ -8,10 +8,10 @@
   version = "v1.1.1"
 
 [[projects]]
-  branch = "feature/receive-as-channel"
+  branch = "master"
   name = "github.com/jancajthaml-openbank/lake-client"
   packages = ["go"]
-  revision = "e3db83628c30176acf42f06aadee3af9230696f6"
+  revision = "2898a6572215a5a912dc975b26588d31bb0aa695"
 
 [[projects]]
   name = "github.com/json-iterator/go"
@@ -94,6 +94,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e252bfb6ce85d0418d6e89e19263ccc1693b2c9bd19020ecd545076e09faed34"
+  inputs-digest = "1e2e14dd961d235e2ebd2f8cd161349bc2ec3b5dec07eaabe9938e8759b189ed"
   solver-name = "gps-cdcl"
   solver-version = 1
