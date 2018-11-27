@@ -1,8 +1,8 @@
-vault (v1.1.0+daemon-lifecycle-logging-consistency) unstable; urgency=low
+vault (v1.1.0+channel-lake-client) unstable; urgency=low
 
   * includes non-released commits
 
- -- Jan Cajthaml <jan.cajthaml@gmail.com>  Thu, 15 Nov 2018 20:44:46 +0100
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Tue, 27 Nov 2018 06:52:42 +0100
 
 vault (1.1.0) unstable; urgency=low
 

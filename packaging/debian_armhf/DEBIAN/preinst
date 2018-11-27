@@ -11,7 +11,7 @@ case "$1" in
 
       echo "VAULT_STORAGE=/data" > /etc/init/vault.conf
       echo "VAULT_LOG_LEVEL=INFO" >> /etc/init/vault.conf
-      echo "VAULT_JOURNAL_SATURATION=100" >> /etc/init/vault.conf
+      echo "VAULT_JOURNAL_SATURATION=200" >> /etc/init/vault.conf
       echo "VAULT_SNAPSHOT_SCANINTERVAL=120s" >> /etc/init/vault.conf
       echo "VAULT_METRICS_REFRESHRATE=1s" >> /etc/init/vault.conf
       echo "VAULT_METRICS_OUTPUT=/opt/vault/metrics/metrics.json" >> /etc/init/vault.conf

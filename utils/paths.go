@@ -18,8 +18,8 @@ import (
 	"strconv"
 )
 
-// AccountsPath returns filepath for accounts
-func AccountsPath(root string) string {
+// RootPath returns filepath for accounts
+func RootPath(root string) string {
 	return root + "/account"
 }
 
