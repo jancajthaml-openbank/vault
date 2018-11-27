@@ -31,7 +31,27 @@ import (
 )
 
 type actorsMap struct {
-	All sync.Map
+	sync.RWMutex
+	underlying map[string]*actor.Envelope
+}
+
+func (rm *actorsMap) Load(key string) (value *actor.Envelope, ok bool) {
+	rm.RLock()
+	defer rm.RUnlock()
+	result, ok := rm.underlying[key]
+	return result, ok
+}
+
+func (rm *actorsMap) Delete(key string) {
+	rm.Lock()
+	defer rm.Unlock()
+	delete(rm.underlying, key)
+}
+
+func (rm *actorsMap) Store(key string, value *actor.Envelope) {
+	rm.Lock()
+	defer rm.Unlock()
+	rm.underlying[key] = value
 }
 
 // ActorSystem represents actor system subroutine
@@ -54,9 +74,11 @@ func NewActorSystem(ctx context.Context, cfg config.Configuration, metrics *Metr
 		storage: cfg.RootStorage,
 		tenant:  cfg.Tenant,
 		metrics: metrics,
-		Actors:  new(actorsMap),
-		Client:  lakeClient,
-		Name:    "Vault/" + cfg.Tenant,
+		Actors: &actorsMap{
+			underlying: make(map[string]*actor.Envelope),
+		},
+		Client: lakeClient,
+		Name:   "Vault/" + cfg.Tenant,
 	}
 }
 
@@ -345,13 +367,13 @@ func ExistAccount(system ActorSystem) func(model.Account, actor.Context) {
 
 // RegisterActor register new actor into actor system
 func (system ActorSystem) RegisterActor(ref *actor.Envelope, initialState func(model.Account, actor.Context)) (err error) {
-	_, exists := system.Actors.All.Load(ref.Name)
+	_, exists := system.Actors.Load(ref.Name)
 	if exists {
 		return
 	}
 
 	ref.React(initialState)
-	system.Actors.All.Store(ref.Name, ref)
+	system.Actors.Store(ref.Name, ref)
 
 	go func() {
 		defer func() {
@@ -373,11 +395,31 @@ func (system ActorSystem) RegisterActor(ref *actor.Envelope, initialState func(m
 				return
 			case p := <-ref.Backlog:
 				ref.Receive(p)
+			case <-ref.Exit:
+				// FIXME check if not already closed
+				close(ref.Backlog)
+				close(ref.Exit)
+				return
 			}
 		}
 	}()
 
 	return
+}
+
+// UnregisterActor stops actor and removes it from actor system
+func (system ActorSystem) UnregisterActor(name string) {
+	ref, err := system.ActorOf(name)
+	if err != nil {
+		log.Warnf("Unable to unregister actor %v", name)
+		return
+	}
+
+	if ref.Exit != nil {
+		ref.Exit <- nil
+	}
+
+	system.Actors.Delete(name)
 }
 
 // SendRemote send message to remote region
@@ -403,12 +445,21 @@ func (system ActorSystem) SpawnAccountActor(path string) string {
 
 // ActorOf return actor reference by name
 func (system ActorSystem) ActorOf(name string) (*actor.Envelope, error) {
-	ref, exists := system.Actors.All.Load(name)
+	ref, exists := system.Actors.Load(name)
 	if !exists {
 		return nil, fmt.Errorf("actor %v not registered", name)
 	}
 
-	return ref.(*actor.Envelope), nil
+	return ref, nil
+}
+
+// Stop actor system and flush all actors
+func (system ActorSystem) Stop() {
+	for actorName := range system.Actors.underlying {
+		system.UnregisterActor(actorName)
+	}
+	system.cancel()
+	<-system.exitSignal
 }
 
 // Start handles everything needed to start metrics daemon
