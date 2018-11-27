@@ -25,6 +25,7 @@ type Envelope struct {
 	Name    string
 	receive func(model.Account, Context)
 	Backlog chan Context
+	Exit    chan interface{}
 	State   model.Account
 }
 
@@ -33,6 +34,7 @@ func NewEnvelope(name string) *Envelope {
 	return &Envelope{
 		Name:    name,
 		Backlog: make(chan Context, 64),
+		Exit:    make(chan interface{}),
 		State:   model.NewAccount(name),
 	}
 }
