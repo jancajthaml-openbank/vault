@@ -11,13 +11,13 @@
   branch = "master"
   name = "github.com/jancajthaml-openbank/actor-system"
   packages = ["."]
-  revision = "727403e27559a518f80572b9bd628c809b39d13d"
+  revision = "ff3df8fbc5599a0c1a85636e44a09bb3890e8e1c"
 
 [[projects]]
   branch = "master"
   name = "github.com/jancajthaml-openbank/lake-client"
   packages = ["go"]
-  revision = "2898a6572215a5a912dc975b26588d31bb0aa695"
+  revision = "e2d4da331f215ef86f454e362846f90dc98922c3"
 
 [[projects]]
   name = "github.com/json-iterator/go"

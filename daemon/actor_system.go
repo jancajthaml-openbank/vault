@@ -29,7 +29,7 @@ import (
 
 // ActorSystem represents actor system subroutine
 type ActorSystem struct {
-	system.ActorSystemSupport
+	system.Support
 	tenant  string
 	storage string
 	metrics *Metrics
@@ -38,18 +38,18 @@ type ActorSystem struct {
 // NewActorSystem returns actor system fascade
 func NewActorSystem(ctx context.Context, cfg config.Configuration, metrics *Metrics) ActorSystem {
 	actorSystem := ActorSystem{
-		ActorSystemSupport: system.NewActorSystemSupport(ctx, "Vault/"+cfg.Tenant, cfg.LakeHostname),
-		storage:            cfg.RootStorage,
-		tenant:             cfg.Tenant,
-		metrics:            metrics,
+		Support: system.NewSupport(ctx, "Vault/"+cfg.Tenant, cfg.LakeHostname),
+		storage: cfg.RootStorage,
+		tenant:  cfg.Tenant,
+		metrics: metrics,
 	}
-	actorSystem.ActorSystemSupport.RegisterOnLocalMessage(actorSystem.ProcessLocalMessage)
-	actorSystem.ActorSystemSupport.RegisterOnRemoteMessage(actorSystem.ProcessRemoteMessage)
+	actorSystem.Support.RegisterOnLocalMessage(actorSystem.ProcessLocalMessage)
+	actorSystem.Support.RegisterOnRemoteMessage(actorSystem.ProcessRemoteMessage)
 	return actorSystem
 }
 
+// ProcessLocalMessage processing of local message to this vault
 func (s *ActorSystem) ProcessLocalMessage(msg interface{}, receiver string, sender system.Coordinates) {
-	log.Info("A-1")
 	ref, err := s.ActorOf(receiver)
 	if err != nil {
 		ref, err = s.ActorOf(s.SpawnAccountActor(receiver))
@@ -59,10 +59,10 @@ func (s *ActorSystem) ProcessLocalMessage(msg interface{}, receiver string, send
 		log.Warnf("Actor not found [%s local]", receiver)
 		return
 	}
-	log.Info("A-2")
 	ref.Tell(msg, sender)
 }
 
+// ProcessRemoteMessage processing of remote message to this vault
 func (s *ActorSystem) ProcessRemoteMessage(parts []string) {
 	if len(parts) < 4 {
 		log.Warnf("invalid message received %+v", parts)

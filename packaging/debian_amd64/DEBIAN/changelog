@@ -2,7 +2,7 @@ vault (v1.1.0+use-provided-actor-system) unstable; urgency=low
 
   * includes non-released commits
 
- -- Jan Cajthaml <jan.cajthaml@gmail.com>  Tue, 27 Nov 2018 09:57:48 +0100
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Fri, 30 Nov 2018 16:38:02 +0100
 
 vault (1.1.0) unstable; urgency=low
 
