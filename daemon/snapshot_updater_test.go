@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jancajthaml-openbank/vault/actor"
 	"github.com/jancajthaml-openbank/vault/config"
 	"github.com/jancajthaml-openbank/vault/model"
 	"github.com/jancajthaml-openbank/vault/persistence"
 
+	system "github.com/jancajthaml-openbank/actor-system"
 	money "gopkg.in/inf.v0"
 
 	"github.com/stretchr/testify/assert"
@@ -56,7 +56,7 @@ func TestSnapshotUpdater(t *testing.T) {
 	callbackCalled := 0
 	callbackBacklog := make([]CallbackMessage, 0)
 
-	callback := func(msg interface{}, account string, sender actor.Coordinates) {
+	callback := func(msg interface{}, account string, sender system.Coordinates) {
 		callbackBacklog = append(callbackBacklog, CallbackMessage{
 			msg:     msg,
 			account: account,

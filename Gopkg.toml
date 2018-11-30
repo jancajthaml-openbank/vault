@@ -16,4 +16,4 @@ required = [
 
 [[constraint]]
   branch = "master"
-  name = "github.com/jancajthaml-openbank/lake-client"
+  name = "github.com/jancajthaml-openbank/actor-system"
