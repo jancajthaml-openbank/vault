@@ -9,6 +9,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/jancajthaml-openbank/actor-system"
+  packages = ["."]
+  revision = "727403e27559a518f80572b9bd628c809b39d13d"
+
+[[projects]]
+  branch = "master"
   name = "github.com/jancajthaml-openbank/lake-client"
   packages = ["go"]
   revision = "2898a6572215a5a912dc975b26588d31bb0aa695"
@@ -20,10 +26,10 @@
   version = "v1.1.5"
 
 [[projects]]
-  branch = "master"
   name = "github.com/konsorten/go-windows-terminal-sequences"
   packages = ["."]
-  revision = "b729f2633dfe35f4d1d8a32385f6685610ce1cb5"
+  revision = "5c8c8bd35d3832f5d134ae1e1e375b69a4d25242"
+  version = "v1.0.1"
 
 [[projects]]
   name = "github.com/modern-go/concurrent"
@@ -41,7 +47,7 @@
   branch = "master"
   name = "github.com/pebbe/zmq4"
   packages = ["."]
-  revision = "3515f4e6f439e167f92f2b99a9497cf5ea8e3cea"
+  revision = "e5666f371e863ac73d8fa7c15bef9c9ba0359b82"
 
 [[projects]]
   name = "github.com/pmezard/go-difflib"
@@ -53,13 +59,13 @@
   branch = "master"
   name = "github.com/rcrowley/go-metrics"
   packages = ["."]
-  revision = "e2704e165165ec55d062f5919b4b29494e9fa790"
+  revision = "3113b8401b8a98917cde58f8bbd42a1b1c03b1fd"
 
 [[projects]]
   name = "github.com/sirupsen/logrus"
   packages = ["."]
-  revision = "a67f783a3814b8729bd2dac5780b5f78f8dbd64d"
-  version = "v1.1.0"
+  revision = "bcd833dfe83d3cebad139e4a29ed79cb2318bf95"
+  version = "v1.2.0"
 
 [[projects]]
   name = "github.com/stretchr/testify"
@@ -74,7 +80,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "e3636079e1a4c1f337f212cc5cd2aca108f6c900"
+  revision = "eb0de9b17e854e9b1ccd9963efafc79862359959"
 
 [[projects]]
   branch = "master"
@@ -83,7 +89,7 @@
     "unix",
     "windows"
   ]
-  revision = "e4b3c5e9061176387e7cea65e4dc5853801f3fb7"
+  revision = "4ed8d59d0b35e1e29334a206d1b3f38b1e5dfb31"
 
 [[projects]]
   name = "gopkg.in/inf.v0"
@@ -94,6 +100,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1e2e14dd961d235e2ebd2f8cd161349bc2ec3b5dec07eaabe9938e8759b189ed"
+  inputs-digest = "fb631edb0737a08601c6f55c7881478532d41f385b0d26698acf16854bbc2f0b"
   solver-name = "gps-cdcl"
   solver-version = 1

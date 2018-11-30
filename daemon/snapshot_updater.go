@@ -19,18 +19,18 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jancajthaml-openbank/vault/actor"
 	"github.com/jancajthaml-openbank/vault/config"
 	"github.com/jancajthaml-openbank/vault/model"
 	"github.com/jancajthaml-openbank/vault/utils"
 
+	system "github.com/jancajthaml-openbank/actor-system"
 	log "github.com/sirupsen/logrus"
 )
 
 // SnapshotUpdater represents journal saturation update subroutine
 type SnapshotUpdater struct {
 	Support
-	callback            func(msg interface{}, receiver string, sender actor.Coordinates)
+	callback            func(msg interface{}, receiver string, sender system.Coordinates)
 	metrics             *Metrics
 	storage             string
 	scanInterval        time.Duration
@@ -38,7 +38,7 @@ type SnapshotUpdater struct {
 }
 
 // NewSnapshotUpdater returns snapshot updater fascade
-func NewSnapshotUpdater(ctx context.Context, cfg config.Configuration, metrics *Metrics, callback func(msg interface{}, receiver string, sender actor.Coordinates)) SnapshotUpdater {
+func NewSnapshotUpdater(ctx context.Context, cfg config.Configuration, metrics *Metrics, callback func(msg interface{}, receiver string, sender system.Coordinates)) SnapshotUpdater {
 	return SnapshotUpdater{
 		Support:             NewDaemonSupport(ctx),
 		callback:            callback,
@@ -63,7 +63,7 @@ func (updater SnapshotUpdater) updateSaturated() {
 		if updater.getEvents(name, version) >= updater.saturationThreshold {
 			log.Debugf("Request %v to update snapshot version from %d to %d", name, version, version+1)
 			msg := model.Update{Version: version}
-			coordinates := actor.Coordinates{Name: "snapshot_saturation_cron"}
+			coordinates := system.Coordinates{Name: "snapshot_saturation_cron"}
 			updater.callback(msg, name, coordinates)
 
 			numberOfSnapshotsUpdated++

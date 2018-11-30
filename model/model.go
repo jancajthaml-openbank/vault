@@ -32,6 +32,19 @@ type Account struct {
 	Version        int
 }
 
+// Copy returns copy of Account
+func (s Account) Copy() Account {
+	return Account{
+		AccountName:    s.AccountName,
+		Currency:       s.Currency,
+		IsBalanceCheck: s.IsBalanceCheck,
+		Balance:        new(money.Dec).Set(s.Balance),
+		Promised:       new(money.Dec).Set(s.Promised),
+		PromiseBuffer:  s.PromiseBuffer, //.Copy(), // FIXME implement
+		Version:        s.Version,
+	}
+}
+
 // CreateAccount is inbound request for creation of new account
 type CreateAccount struct {
 	AccountName    string
@@ -94,13 +107,6 @@ func NewAccount(name string) Account {
 		Version:        0,
 		PromiseBuffer:  NewTransactionSet(),
 	}
-}
-
-// Copy returns value copy of Snapshot
-func (entity *Account) Copy() *Account {
-	clone := new(Account)
-	*clone = *entity
-	return clone
 }
 
 // Persist serializes Account entity to persistable data
