@@ -15,5 +15,5 @@ required = [
   version = "1.0.4"
 
 [[constraint]]
-  branch = "feature/consistent-reciever-sender-envelopes"
+  branch = "master"
   name = "github.com/jancajthaml-openbank/actor-system"
