@@ -22,6 +22,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/jancajthaml-openbank/vault/actor"
 	"github.com/jancajthaml-openbank/vault/config"
 	"github.com/jancajthaml-openbank/vault/daemon"
 	"github.com/jancajthaml-openbank/vault/utils"
@@ -66,8 +67,12 @@ func Initialize() Application {
 	}
 
 	metrics := daemon.NewMetrics(ctx, cfg)
+
 	actorSystem := daemon.NewActorSystem(ctx, cfg, &metrics)
-	snapshotUpdater := daemon.NewSnapshotUpdater(ctx, cfg, &metrics, actorSystem.ProcessLocalMessage)
+	actorSystem.Support.RegisterOnLocalMessage(actor.ProcessLocalMessage(&actorSystem))
+	actorSystem.Support.RegisterOnRemoteMessage(actor.ProcessRemoteMessage(&actorSystem))
+
+	snapshotUpdater := daemon.NewSnapshotUpdater(ctx, cfg, &metrics, actor.ProcessLocalMessage(&actorSystem))
 
 	return Application{
 		cfg:             cfg,

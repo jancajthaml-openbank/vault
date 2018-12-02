@@ -56,10 +56,10 @@ func TestSnapshotUpdater(t *testing.T) {
 	callbackCalled := 0
 	callbackBacklog := make([]CallbackMessage, 0)
 
-	callback := func(msg interface{}, account string, sender system.Coordinates) {
+	callback := func(msg interface{}, account system.Coordinates, sender system.Coordinates) {
 		callbackBacklog = append(callbackBacklog, CallbackMessage{
 			msg:     msg,
-			account: account,
+			account: account.Name,
 		})
 		callbackCalled++
 	}

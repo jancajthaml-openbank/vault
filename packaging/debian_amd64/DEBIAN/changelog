@@ -1,8 +1,29 @@
-vault (v1.1.0+use-provided-actor-system) unstable; urgency=low
+vault (v1.1.2+better-structures-actor-system) unstable; urgency=low
 
   * includes non-released commits
 
- -- Jan Cajthaml <jan.cajthaml@gmail.com>  Fri, 30 Nov 2018 16:38:02 +0100
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Fri, 30 Nov 2018 17:55:53 +0100
+
+vault (1.1.2) unstable; urgency=low
+
+  * 
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Fri, 30 Nov 2018 17:55:53 +0100
+
+vault (1.1.1) unstable; urgency=low
+
+  * using dedicated actor system library to dedup code from services (#59)
+  * switched from volatile sync.Map to clasic map with RW mutex (#58)
+  * increased journal saturation to 200 events, switched to new LakeClien… (#57)
+  * updated logging (#53)
+  * gosec included and more linting rules (#56)
+  * updated README.md about contributing and security disclosure (#52)
+  * inlined env constants (#51)
+  * gosec included and more linting rules (#50)
+  * using faster json marshaller for metrics (#48)
+  * using jq image (#47)
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Fri, 30 Nov 2018 17:55:53 +0100
 
 vault (1.1.0) unstable; urgency=low
 
