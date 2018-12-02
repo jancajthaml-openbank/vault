@@ -8,10 +8,10 @@
   version = "v1.1.1"
 
 [[projects]]
-  branch = "master"
+  branch = "feature/consistent-reciever-sender-envelopes"
   name = "github.com/jancajthaml-openbank/actor-system"
   packages = ["."]
-  revision = "ff3df8fbc5599a0c1a85636e44a09bb3890e8e1c"
+  revision = "dcf36108b6ae1ac1eabc427f9e5c81420dceb1b7"
 
 [[projects]]
   branch = "master"
@@ -100,6 +100,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "fb631edb0737a08601c6f55c7881478532d41f385b0d26698acf16854bbc2f0b"
+  inputs-digest = "079c7a7f168c5be2f1e4a0a31f6f51ecb3723cd52edbe2efa53f4cc68b22475d"
   solver-name = "gps-cdcl"
   solver-version = 1

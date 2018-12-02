@@ -30,7 +30,7 @@ import (
 // SnapshotUpdater represents journal saturation update subroutine
 type SnapshotUpdater struct {
 	Support
-	callback            func(msg interface{}, receiver string, sender system.Coordinates)
+	callback            func(msg interface{}, to system.Coordinates, from system.Coordinates)
 	metrics             *Metrics
 	storage             string
 	scanInterval        time.Duration
@@ -38,7 +38,7 @@ type SnapshotUpdater struct {
 }
 
 // NewSnapshotUpdater returns snapshot updater fascade
-func NewSnapshotUpdater(ctx context.Context, cfg config.Configuration, metrics *Metrics, callback func(msg interface{}, receiver string, sender system.Coordinates)) SnapshotUpdater {
+func NewSnapshotUpdater(ctx context.Context, cfg config.Configuration, metrics *Metrics, callback func(msg interface{}, to system.Coordinates, from system.Coordinates)) SnapshotUpdater {
 	return SnapshotUpdater{
 		Support:             NewDaemonSupport(ctx),
 		callback:            callback,
@@ -63,8 +63,9 @@ func (updater SnapshotUpdater) updateSaturated() {
 		if updater.getEvents(name, version) >= updater.saturationThreshold {
 			log.Debugf("Request %v to update snapshot version from %d to %d", name, version, version+1)
 			msg := model.Update{Version: version}
-			coordinates := system.Coordinates{Name: "snapshot_saturation_cron"}
-			updater.callback(msg, name, coordinates)
+			to := system.Coordinates{Name: name}
+			from := system.Coordinates{Name: "snapshot_saturation_cron"}
+			updater.callback(msg, to, from)
 
 			numberOfSnapshotsUpdated++
 		}
