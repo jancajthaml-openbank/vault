@@ -1,9 +1,3 @@
-vault (v1.1.2+better-structures-actor-system) unstable; urgency=low
-
-  * includes non-released commits
-
- -- Jan Cajthaml <jan.cajthaml@gmail.com>  Fri, 30 Nov 2018 17:55:53 +0100
-
 vault (1.1.2) unstable; urgency=low
 
   * 

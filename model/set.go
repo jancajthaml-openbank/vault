@@ -14,40 +14,91 @@
 
 package model
 
+import "bytes"
+
 // TransactionSet is set datastructure for transaction Ids
 type TransactionSet struct {
-	Items map[string]interface{}
+	keys   []int
+	values map[int]string
+	index  map[string]int
+	tail   int
 }
 
 // NewTransactionSet returns empty set
 func NewTransactionSet() TransactionSet {
-	return TransactionSet{make(map[string]interface{})}
-}
-
-// Add adds element to set
-func (set *TransactionSet) Add(item string) {
-	set.Items[item] = nil
-}
-
-// AddAll adds all elements to set
-func (set *TransactionSet) AddAll(items []string) {
-	for _, item := range items {
-		set.Items[item] = nil
+	return TransactionSet{
+		index:  make(map[string]int),
+		keys:   make([]int, 0),
+		values: make(map[int]string),
 	}
 }
 
-// Contains returns true if value is present in set
-func (set *TransactionSet) Contains(item string) bool {
-	_, found := set.Items[item]
-	return found
+// Add adds items to set if not already present
+func (s *TransactionSet) Add(items ...string) {
+	for _, item := range items {
+		if _, found := s.index[item]; found {
+			continue
+		}
+		s.keys = append(s.keys, s.tail)
+		s.values[s.tail] = item
+		s.index[item] = s.tail
+		s.tail++
+	}
 }
 
-// Remove removes element from set
-func (set *TransactionSet) Remove(item string) {
-	delete(set.Items, item)
+// Contains returns true if all items are present in set
+func (s *TransactionSet) Contains(items ...string) bool {
+	for _, item := range items {
+		if _, found := s.index[item]; !found {
+			return false
+		}
+	}
+	return true
+}
+
+// Remove removes items from set
+func (s *TransactionSet) Remove(items ...string) {
+	for _, item := range items {
+		idx, found := s.index[item]
+		if !found {
+			continue
+		}
+
+		delete(s.index, item)
+		delete(s.values, idx)
+
+		for i := range s.keys {
+			if s.keys[i] == idx {
+				s.keys = append(s.keys[:i], s.keys[i+1:]...)
+				break
+			}
+		}
+	}
+}
+
+// Values returns slice of items in order or insertion
+func (s *TransactionSet) Values() []string {
+	values := make([]string, len(s.values))
+	for i, k := range s.keys {
+		values[i] = s.values[k]
+	}
+	return values
 }
 
 // Size returns number of items in set
-func (set *TransactionSet) Size() int {
-	return len(set.Items)
+func (s *TransactionSet) Size() int {
+	return len(s.values)
+}
+
+func (s *TransactionSet) String() string {
+	var buffer bytes.Buffer
+
+	buffer.WriteString("[")
+	for _, k := range s.keys {
+		buffer.WriteString(s.values[k])
+		buffer.WriteString(",")
+	}
+	buffer.WriteString("]")
+
+	return buffer.String()
 }

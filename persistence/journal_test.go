@@ -15,7 +15,7 @@ import (
 	money "gopkg.in/inf.v0"
 )
 
-func TestSnapshotUpdate(t *testing.T) {
+func TestSnapshot_Update(t *testing.T) {
 	name := "account_2"
 	currency := "XRP"
 	isBalanceCheck := false
@@ -55,7 +55,7 @@ func TestSnapshotUpdate(t *testing.T) {
 	}
 }
 
-func TestRefuseSnapshotOverflow(t *testing.T) {
+func TestSnapshot_RefuseOverflow(t *testing.T) {
 	name := "xxx"
 	currency := "XxX"
 	isBalanceCheck := true
@@ -75,7 +75,7 @@ func TestRefuseSnapshotOverflow(t *testing.T) {
 	assert.Equal(t, snapshotLast.Version, snapshotNext.Version)
 }
 
-func TestSnapshotPromiseBuffer(t *testing.T) {
+func TestSnapshot_PromiseBuffer(t *testing.T) {
 	name := "yyy"
 	currency := "yYy"
 	isBalanceCheck := false
@@ -92,7 +92,7 @@ func TestSnapshotPromiseBuffer(t *testing.T) {
 		IsBalanceCheck: isBalanceCheck,
 	}
 
-	snapshot.PromiseBuffer.AddAll(expectedPromises)
+	snapshot.PromiseBuffer.Add(expectedPromises...)
 
 	PersistAccount("/tmp/tenant", name, snapshot)
 

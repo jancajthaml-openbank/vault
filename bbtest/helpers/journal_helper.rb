@@ -23,11 +23,11 @@ module JournalHelper
       {
         :balance_check => lines[0][0] != 'F',
         :currency => lines[0][1..3],
-        :account_name => lines[0][4..-1],
-        :version => lines[1].to_i,
-        :balance => '%g' % BigDecimal.new(lines[2]).to_s('F'),
-        :promised => '%g' % BigDecimal.new(lines[3]).to_s('F'),
-        :promise_buffer => lines[4..-2]
+        :account_name => account,
+        :version => version.to_i,
+        :balance => '%g' % BigDecimal.new(lines[1]).to_s('F'),
+        :promised => '%g' % BigDecimal.new(lines[2]).to_s('F'),
+        :promise_buffer => lines[3..-2]
       }
     }
   end
@@ -50,11 +50,11 @@ module JournalHelper
       {
         :balance_check => lines[0][0] != 'F',
         :currency => lines[0][1..3],
-        :account_name => lines[0][4..-1],
-        :version => lines[1].to_i,
-        :balance => '%g' % BigDecimal.new(lines[2]).to_s('F'),
-        :promised => '%g' % BigDecimal.new(lines[3]).to_s('F'),
-        :promise_buffer => lines[4..-2]
+        :account_name => account,
+        :version => snapshots[0].to_i,
+        :balance => '%g' % BigDecimal.new(lines[1]).to_s('F'),
+        :promised => '%g' % BigDecimal.new(lines[2]).to_s('F'),
+        :promise_buffer => lines[3..-2]
       }
     }
   end
