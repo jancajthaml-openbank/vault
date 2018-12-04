@@ -16,6 +16,7 @@ package persistence
 
 import (
 	"math"
+	"strconv"
 	"strings"
 
 	"github.com/jancajthaml-openbank/vault/model"
@@ -39,7 +40,15 @@ func LoadAccount(root, name string) *model.Account {
 	}
 
 	result := new(model.Account)
-	result.Hydrate(data)
+
+	version, err := strconv.Atoi(snapshots[0])
+	if err != nil {
+		return nil
+	}
+
+	result.Version = version
+	result.AccountName = name
+	result.Deserialise(data)
 
 	events := utils.ListDirectory(utils.EventPath(root, name, result.Version), false)
 	for _, event := range events {
@@ -102,7 +111,7 @@ func UpdateAccount(root, name string, entity *model.Account) *model.Account {
 
 // PersistAccount persist account entity state to storage
 func PersistAccount(root, name string, entity *model.Account) *model.Account {
-	data := entity.Persist()
+	data := entity.Serialise()
 	path := utils.SnapshotPath(root, name, entity.Version)
 
 	if !utils.WriteFile(path, data) {

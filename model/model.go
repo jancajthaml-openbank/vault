@@ -16,7 +16,6 @@ package model
 
 import (
 	"bytes"
-	"strconv"
 
 	money "gopkg.in/inf.v0"
 )
@@ -109,8 +108,12 @@ func NewAccount(name string) Account {
 	}
 }
 
-// Persist serializes Account entity to persistable data
-func (entity *Account) Persist() []byte {
+// Serialise Account entity to persistable data
+func (entity *Account) Serialise() []byte {
+	if entity == nil {
+		return nil
+	}
+
 	var buffer bytes.Buffer
 
 	if entity.IsBalanceCheck {
@@ -119,16 +122,24 @@ func (entity *Account) Persist() []byte {
 		buffer.WriteString("F")
 	}
 
+	buffer.WriteString("???"[0 : 3-len(entity.Currency)])
 	buffer.WriteString(entity.Currency)
-	buffer.WriteString(entity.AccountName)
 	buffer.WriteString("\n")
-	buffer.WriteString(strconv.Itoa(entity.Version))
-	buffer.WriteString("\n")
-	buffer.WriteString(entity.Balance.String())
-	buffer.WriteString("\n")
-	buffer.WriteString(entity.Promised.String())
 
-	for v := range entity.PromiseBuffer.Items {
+	if entity.Balance == nil {
+		buffer.WriteString("0.0\n")
+	} else {
+		buffer.WriteString(entity.Balance.String())
+		buffer.WriteString("\n")
+	}
+
+	if entity.Promised == nil {
+		buffer.WriteString("0.0")
+	} else {
+		buffer.WriteString(entity.Promised.String())
+	}
+
+	for _, v := range entity.PromiseBuffer.Values() {
 		buffer.WriteString("\n")
 		buffer.WriteString(v)
 	}
@@ -137,36 +148,30 @@ func (entity *Account) Persist() []byte {
 }
 
 // Hydrate deserializes Account entity from persistent data
-func (entity *Account) Hydrate(data []byte) {
-	var (
-		j = 0
-		i = 4
-	)
+func (entity *Account) Deserialise(data []byte) {
+	if entity == nil {
+		return
+	}
 
 	entity.PromiseBuffer = NewTransactionSet()
 	entity.IsBalanceCheck = string(data[0]) != "F"
 	entity.Currency = string(data[1:4])
 
-	j = bytes.IndexByte(data[4:], '\n') + 4
-	entity.AccountName = string(data[4:j])
-	i = j + 1
+	var (
+		i = 5
+		j = bytes.IndexByte(data[5:], '\n') + 5
+	)
 
-	j = bytes.IndexByte(data[i:], '\n')
-	j += i
-	entity.Version, _ = strconv.Atoi(string(data[i:j]))
-	i = j + 1
-
-	j = bytes.IndexByte(data[i:], '\n')
-	j += i
 	entity.Balance, _ = new(money.Dec).SetString(string(data[i:j]))
-	i = j + 1
 
+	i = j + 1
 	j = bytes.IndexByte(data[i:], '\n')
 	if j < 0 {
-		entity.Promised, _ = new(money.Dec).SetString(string(data[i:]))
+		if len(data) > 0 {
+			entity.Promised, _ = new(money.Dec).SetString(string(data[i:]))
+		}
 		return
 	}
-
 	j += i
 	entity.Promised, _ = new(money.Dec).SetString(string(data[i:j]))
 	i = j + 1
