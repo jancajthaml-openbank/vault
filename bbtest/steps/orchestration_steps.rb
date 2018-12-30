@@ -37,7 +37,7 @@ step "tenant :tenant is onbdoarded" do |tenant|
   params = [
     "VAULT_STORAGE=/data",
     "VAULT_LOG_LEVEL=DEBUG",
-    "VAULT_JOURNAL_SATURATION=200",
+    "VAULT_JOURNAL_SATURATION=10000",
     "VAULT_SNAPSHOT_SCANINTERVAL=1h",
     "VAULT_METRICS_OUTPUT=/reports/metrics.json",
     "VAULT_LAKE_HOSTNAME=localhost",
@@ -57,10 +57,22 @@ step "tenant :tenant is onbdoarded" do |tenant|
 end
 
 step "vault is reconfigured with" do |configuration|
-  params = configuration.split("\n").map(&:strip).reject(&:empty?).join("\n").inspect.delete('\"')
+  params = Hash[configuration.split("\n").map(&:strip).reject(&:empty?).map {|el| el.split '='}]
+  defaults = {
+    "VAULT_STORAGE" => "/data",
+    "VAULT_LOG_LEVEL" => "DEBUG",
+    "VAULT_JOURNAL_SATURATION" => "10000",
+    "VAULT_SNAPSHOT_SCANINTERVAL" => "1h",
+    "VAULT_METRICS_REFRESHRATE" => "1h",
+    "VAULT_METRICS_OUTPUT" => "/opt/vault/metrics/metrics.json",
+    "VAULT_LAKE_HOSTNAME" => "localhost",
+  }
+
+  config = Array[defaults.merge(params).map {|k,v| "#{k}=#{v}"}]
+  config = config.join("\n").inspect.delete('\"')
 
   %x(mkdir -p /etc/init)
-  %x(echo '#{params}' > /etc/init/vault.conf)
+  %x(echo '#{config}' > /etc/init/vault.conf)
 
   ids = %x(systemctl list-units | awk '{ print $1 }')
   expect($?).to be_success, ids

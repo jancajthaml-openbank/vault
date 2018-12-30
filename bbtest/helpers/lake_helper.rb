@@ -96,7 +96,7 @@ module LakeMock
       return LakeMessageError.new(account)
 
     else
-      puts "lake unknown event #{msg}"
+      raise "lake unknown event #{msg}"
     end
   end
 

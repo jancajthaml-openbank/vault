@@ -12,36 +12,44 @@ all: bootstrap sync test package bbtest
 
 .PHONY: package
 package:
-	@(rm -rf packaging/bin/* &> /dev/null || :)
-	docker-compose run --rm package --target linux/amd64
-	docker-compose run --rm debian -v $(VERSION)+$(META) --arch amd64
-	docker-compose run --rm package --target linux/armhf
-	docker-compose run --rm debian -v $(VERSION)+$(META) --arch armhf
-	docker-compose build artifacts
+	@$(MAKE) bundle-binaries
+	@$(MAKE) bundle-debian
+
+.PHONY: bundle-binaries
+bundle-binaries:
+	@echo "[info] packaging binaries for linux/amd64"
+	@docker-compose run --rm package --arch linux/amd64 --pkg vault
+
+.PHONY: bundle-debian
+bundle-debian:
+	@echo "[info] packaging for debian"
+	@docker-compose run --rm debian -v $(VERSION)+$(META) --arch amd64
 
 .PHONY: bootstrap
 bootstrap:
 	@docker-compose build --force-rm go
 
-.PHONY: fetch
-fetch:
-	@docker-compose run fetch
-
 .PHONY: lint
 lint:
-	@docker-compose run --rm lint || :
+	@docker-compose run --rm lint --pkg vault || :
 
 .PHONY: sec
 sec:
-	@docker-compose run --rm sec || :
+	@docker-compose run --rm sec --pkg vault || :
 
 .PHONY: sync
 sync:
-	@docker-compose run --rm sync
+	@echo "[info] sync vault"
+	@docker-compose run --rm sync --pkg vault
+
+.PHONY: update
+update:
+	@docker-compose run --rm update --pkg vault
 
 .PHONY: test
 test:
-	@docker-compose run --rm test
+	@echo "[info] test vault"
+	@docker-compose run --rm test --pkg vault
 
 .PHONY: release
 release:
@@ -49,13 +57,13 @@ release:
 
 .PHONY: bbtest
 bbtest:
-	@docker-compose build --force-rm bbtest
+	@docker-compose build bbtest
 	@echo "removing older images if present"
 	@(docker rm -f $$(docker ps -a --filter="name=vault_bbtest" -q) &> /dev/null || :)
 	@echo "running bbtest image"
 	@docker exec -it $$(\
 		docker run -d -ti \
-		  --name=vault_bbtest \
+			--name=vault_bbtest \
 			-v /sys/fs/cgroup:/sys/fs/cgroup:ro \
 			-v $$(pwd)/bbtest:/opt/bbtest \
 			-v $$(pwd)/reports:/reports \

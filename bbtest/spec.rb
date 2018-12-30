@@ -26,14 +26,26 @@ RSpec.configure do |config|
     print "[ suite started  ]\n"
   end
 
+  config.after(:type => :feature) do
+    ids = %x(systemctl -a -t service --no-legend | awk '{ print $1 }')
+
+    if $?
+      ids = ids.split("\n").map(&:strip).reject { |x|
+        x.empty? || !x.start_with?("vault")
+      }.map { |x| x.chomp(".service") }
+    else
+      ids = []
+    end
+
+    ids.each { |e|
+      %x(journalctl -o short-precise -u #{e} --no-pager > /reports/#{e}.log 2>&1)
+      %x(systemctl stop #{e} 2>&1)
+      %x(journalctl -o short-precise -u #{e} --no-pager > /reports/#{e}.log 2>&1)
+    } unless ids.empty?
+  end
+
   config.after(:suite) do |_|
     print "\n[ suite ending   ]\n"
-
-    # fixme delete
-    get_containers = lambda do |image|
-      containers = %x(docker ps -aqf "ancestor=#{image}" 2>/dev/null)
-      return ($? == 0 ? containers.split("\n") : [])
-    end
 
     ids = %x(systemctl -a -t service --no-legend | awk '{ print $1 }')
 
