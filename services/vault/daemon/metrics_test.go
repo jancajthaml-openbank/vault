@@ -24,7 +24,7 @@ func TestMetricsPersist(t *testing.T) {
 
 	entity := NewMetrics(ctx, cfg)
 	delay := 1e8
-	delta := 1e7
+	delta := 1e8
 
 	t.Log("TimeUpdateSaturatedSnapshots properly times run of UpdateSaturatedSnapshots function")
 	{

@@ -67,7 +67,7 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 		defer func() {
 			if r := recover(); r != nil {
 				log.Errorf("procesRemoteMessage recovered in [remote %v -> local %v] : %+v", from, to, r)
-				s.SendRemote(region, model.FatalErrorMessage(to.Name, from.Name))
+				s.SendRemote(region, FatalErrorMessage(to.Name, from.Name))
 			}
 		}()
 
@@ -78,48 +78,56 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 
 		if err != nil {
 			log.Warnf("Actor not found [remote %v -> local %v]", from, to)
-			s.SendRemote(region, model.FatalErrorMessage(to.Name, from.Name))
+			s.SendRemote(region, FatalErrorMessage(to.Name, from.Name))
 			return
 		}
 
-		var message interface{}
+		var message interface{} = nil
 
 		switch payload {
 
-		case model.ReqAccountState:
+		case ReqAccountState:
 			message = model.GetAccountState{}
 
-		case model.ReqCreateAccount:
-			message = model.CreateAccount{
-				AccountName:    to.Name,
-				Currency:       parts[4],
-				IsBalanceCheck: parts[5] != "f",
-			}
-
-		case model.PromiseOrder:
-			if amount, ok := new(money.Dec).SetString(parts[5]); ok {
-				message = model.Promise{
-					Transaction: parts[4],
-					Amount:      amount,
-					Currency:    parts[6],
+		case ReqCreateAccount:
+			if len(parts) == 6 {
+				message = model.CreateAccount{
+					AccountName:    to.Name,
+					Currency:       parts[4],
+					IsBalanceCheck: parts[5] != "f",
 				}
 			}
 
-		case model.CommitOrder:
-			if amount, ok := new(money.Dec).SetString(parts[5]); ok {
-				message = model.Commit{
-					Transaction: parts[4],
-					Amount:      amount,
-					Currency:    parts[6],
+		case PromiseOrder:
+			if len(parts) == 7 {
+				if amount, ok := new(money.Dec).SetString(parts[5]); ok {
+					message = model.Promise{
+						Transaction: parts[4],
+						Amount:      amount,
+						Currency:    parts[6],
+					}
 				}
 			}
 
-		case model.RollbackOrder:
-			if amount, ok := new(money.Dec).SetString(parts[5]); ok {
-				message = model.Rollback{
-					Transaction: parts[4],
-					Amount:      amount,
-					Currency:    parts[6],
+		case CommitOrder:
+			if len(parts) == 7 {
+				if amount, ok := new(money.Dec).SetString(parts[5]); ok {
+					message = model.Commit{
+						Transaction: parts[4],
+						Amount:      amount,
+						Currency:    parts[6],
+					}
+				}
+			}
+
+		case RollbackOrder:
+			if len(parts) == 7 {
+				if amount, ok := new(money.Dec).SetString(parts[5]); ok {
+					message = model.Rollback{
+						Transaction: parts[4],
+						Amount:      amount,
+						Currency:    parts[6],
+					}
 				}
 			}
 
@@ -127,7 +135,7 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 
 		if message == nil {
 			log.Warnf("Deserialization of unsuported message [remote %v -> local %v] : %+v", from, to, parts)
-			s.SendRemote(region, model.FatalErrorMessage(to.Name, from.Name))
+			s.SendRemote(region, FatalErrorMessage(to.Name, from.Name))
 			return
 		}
 

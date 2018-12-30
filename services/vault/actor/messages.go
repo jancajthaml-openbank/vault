@@ -12,15 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package model
+package actor
 
-const (
-	// EventPromise represents promise prefix
-	EventPromise = "0"
-	// EventCommit represents commit prefix
-	EventCommit = "1"
-	// EventRollback represents rollback prefix
-	EventRollback = "2"
+import (
+	"github.com/jancajthaml-openbank/vault/model"
 )
 
 const (
@@ -33,17 +28,17 @@ const (
 	// RespCreateAccount vault message response code for "New Account"
 	RespCreateAccount = "AN"
 	// PromiseOrder vault message request code for "Promise"
-	PromiseOrder = EventPromise + "X"
+	PromiseOrder = model.EventPromise + "X"
 	// CommitOrder vault message request code for "Commit"
-	CommitOrder = EventCommit + "X"
+	CommitOrder = model.EventCommit + "X"
 	// RollbackOrder vault message request code for "Rollback"
-	RollbackOrder = EventRollback + "X"
+	RollbackOrder = model.EventRollback + "X"
 	// PromiseAccepted vault message response code for "Promise"
-	PromiseAccepted = "X" + EventPromise
+	PromiseAccepted = "X" + model.EventPromise
 	// CommitAccepted vault message response code for "Commit"
-	CommitAccepted = "X" + EventCommit
+	CommitAccepted = "X" + model.EventCommit
 	// RollbackAccepted vault message response code for "Rollback"
-	RollbackAccepted = "X" + EventRollback
+	RollbackAccepted = "X" + model.EventRollback
 	// FatalError vault message response code for "Error"
 	FatalError = "EE"
 	// UpdateSnapshot vault message request code for "Update Snapshot"

@@ -59,23 +59,23 @@ func NonExistAccount(s *daemon.ActorSystem) func(interface{}, system.Context) {
 			snaphostResult := persistence.CreateAccount(s.Storage, state.AccountName, currency, isBalanceCheck)
 
 			if snaphostResult == nil {
-				s.SendRemote(context.Sender.Region, model.FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
+				s.SendRemote(context.Sender.Region, FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
 				log.Debugf("%s ~ (NonExist CreateAccount) Error", state.AccountName)
 				return
 			}
 
 			context.Receiver.Become(*snaphostResult, ExistAccount(s))
-			s.SendRemote(context.Sender.Region, model.AccountCreatedMessage(context.Receiver.Name, context.Sender.Name))
+			s.SendRemote(context.Sender.Region, AccountCreatedMessage(context.Receiver.Name, context.Sender.Name))
 			log.Infof("New Account %s Created", state.AccountName)
 			log.Debugf("%s ~ (NonExist CreateAccount) OK", state.AccountName)
 			s.Metrics.AccountCreated()
 
 		case model.Rollback:
-			s.SendRemote(context.Sender.Region, model.RollbackAcceptedMessage(context.Receiver.Name, context.Sender.Name))
+			s.SendRemote(context.Sender.Region, RollbackAcceptedMessage(context.Receiver.Name, context.Sender.Name))
 			log.Debugf("%s ~ (NonExist Rollback) OK", state.AccountName)
 
 		default:
-			s.SendRemote(context.Sender.Region, model.FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
+			s.SendRemote(context.Sender.Region, FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
 			log.Debugf("%s ~ (NonExist Unknown Message) Error", state.AccountName)
 		}
 
@@ -91,22 +91,22 @@ func ExistAccount(s *daemon.ActorSystem) func(interface{}, system.Context) {
 		switch msg := context.Data.(type) {
 
 		case model.GetAccountState:
-			s.SendRemote(context.Sender.Region, model.AccountStateMessage(context.Receiver.Name, context.Sender.Name, state.Currency, state.Balance.String(), state.Promised.String(), state.IsBalanceCheck))
+			s.SendRemote(context.Sender.Region, AccountStateMessage(context.Receiver.Name, context.Sender.Name, state.Currency, state.Balance.String(), state.Promised.String(), state.IsBalanceCheck))
 			log.Debugf("%s ~ (Exist GetAccountState) OK", state.AccountName)
 
 		case model.CreateAccount:
-			s.SendRemote(context.Sender.Region, model.FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
+			s.SendRemote(context.Sender.Region, FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
 			log.Debugf("%s ~ (Exist CreateAccount) Error", state.AccountName)
 
 		case model.Promise:
 			if state.PromiseBuffer.Contains(msg.Transaction) {
-				s.SendRemote(context.Sender.Region, model.PromiseAcceptedMessage(context.Receiver.Name, context.Sender.Name))
+				s.SendRemote(context.Sender.Region, PromiseAcceptedMessage(context.Receiver.Name, context.Sender.Name))
 				log.Debugf("%s ~ (Exist Promise) OK Already Accepted", state.AccountName)
 				return
 			}
 
 			if state.Currency != msg.Currency {
-				s.SendRemote(context.Sender.Region, model.FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
+				s.SendRemote(context.Sender.Region, FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
 				log.Warnf("%s ~ (Exist Promise) Error Currency Mismatch", state.AccountName)
 				return
 			}
@@ -115,7 +115,7 @@ func ExistAccount(s *daemon.ActorSystem) func(interface{}, system.Context) {
 
 			if !state.IsBalanceCheck || new(money.Dec).Add(state.Balance, nextPromised).Sign() >= 0 {
 				if !persistence.PersistPromise(s.Storage, state.AccountName, state.Version, msg.Amount, msg.Transaction) {
-					s.SendRemote(context.Sender.Region, model.FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
+					s.SendRemote(context.Sender.Region, FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
 					log.Warnf("%s ~ (Exist Promise) Error Could not Persist", state.AccountName)
 					return
 				}
@@ -126,7 +126,7 @@ func ExistAccount(s *daemon.ActorSystem) func(interface{}, system.Context) {
 
 				context.Receiver.Become(next, ExistAccount(s))
 
-				s.SendRemote(context.Sender.Region, model.PromiseAcceptedMessage(context.Receiver.Name, context.Sender.Name))
+				s.SendRemote(context.Sender.Region, PromiseAcceptedMessage(context.Receiver.Name, context.Sender.Name))
 				log.Infof("Account %s Promised %s %s", state.AccountName, msg.Amount.String(), state.Currency)
 				log.Debugf("%s ~ (Exist Promise) OK", state.AccountName)
 				s.Metrics.PromiseAccepted()
@@ -134,24 +134,24 @@ func ExistAccount(s *daemon.ActorSystem) func(interface{}, system.Context) {
 			}
 
 			if new(money.Dec).Sub(state.Balance, msg.Amount).Sign() < 0 {
-				s.SendRemote(context.Sender.Region, model.FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
+				s.SendRemote(context.Sender.Region, FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
 				log.Debugf("%s ~ (Exist Promise) Error Insufficient Funds", state.AccountName)
 				return
 			}
 
 			// FIXME boucing not handled
-			s.SendRemote(context.Sender.Region, model.FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
+			s.SendRemote(context.Sender.Region, FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
 			log.Warnf("%s ~ (Exist Promise) Error ... (Bounce?)", state.AccountName)
 
 		case model.Commit:
 			if !state.PromiseBuffer.Contains(msg.Transaction) {
-				s.SendRemote(context.Sender.Region, model.CommitAcceptedMessage(context.Receiver.Name, context.Sender.Name))
+				s.SendRemote(context.Sender.Region, CommitAcceptedMessage(context.Receiver.Name, context.Sender.Name))
 				log.Debugf("%s ~ (Exist Commit) OK Already Accepted", state.AccountName)
 				return
 			}
 
 			if !persistence.PersistCommit(s.Storage, state.AccountName, state.Version, msg.Amount, msg.Transaction) {
-				s.SendRemote(context.Sender.Region, model.FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
+				s.SendRemote(context.Sender.Region, FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
 				log.Warnf("%s ~ (Exist Commit) Error Could not Persist", state.AccountName)
 				return
 			}
@@ -163,19 +163,19 @@ func ExistAccount(s *daemon.ActorSystem) func(interface{}, system.Context) {
 
 			context.Receiver.Become(next, ExistAccount(s))
 
-			s.SendRemote(context.Sender.Region, model.CommitAcceptedMessage(context.Receiver.Name, context.Sender.Name))
+			s.SendRemote(context.Sender.Region, CommitAcceptedMessage(context.Receiver.Name, context.Sender.Name))
 			log.Debugf("%s ~ (Exist Commit) OK", state.AccountName)
 			s.Metrics.CommitAccepted()
 
 		case model.Rollback:
 			if !state.PromiseBuffer.Contains(msg.Transaction) {
-				s.SendRemote(context.Sender.Region, model.RollbackAcceptedMessage(context.Receiver.Name, context.Sender.Name))
+				s.SendRemote(context.Sender.Region, RollbackAcceptedMessage(context.Receiver.Name, context.Sender.Name))
 				log.Debugf("%s ~ (Exist Rollback) OK Already Accepted", state.AccountName)
 				return
 			}
 
 			if !persistence.PersistRollback(s.Storage, state.AccountName, state.Version, msg.Amount, msg.Transaction) {
-				s.SendRemote(context.Sender.Region, model.FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
+				s.SendRemote(context.Sender.Region, FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
 				log.Warnf("%s ~ (Exist Rollback) Error Could not Persist", state.AccountName)
 				return
 			}
@@ -186,7 +186,7 @@ func ExistAccount(s *daemon.ActorSystem) func(interface{}, system.Context) {
 
 			context.Receiver.Become(next, ExistAccount(s))
 
-			s.SendRemote(context.Sender.Region, model.RollbackAcceptedMessage(context.Receiver.Name, context.Sender.Name))
+			s.SendRemote(context.Sender.Region, RollbackAcceptedMessage(context.Receiver.Name, context.Sender.Name))
 			log.Infof("Account %s Rejected %s %s", state.AccountName, msg.Amount.String(), state.Currency)
 			log.Debugf("%s ~ (Exist Rollback) OK", state.AccountName)
 			s.Metrics.RollbackAccepted()
@@ -214,7 +214,7 @@ func ExistAccount(s *daemon.ActorSystem) func(interface{}, system.Context) {
 			log.Debugf("%s ~ (Exist Update) OK", state.AccountName)
 
 		default:
-			s.SendRemote(context.Sender.Region, model.FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
+			s.SendRemote(context.Sender.Region, FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
 			log.Warnf("%s ~ (Exist Unknown Message) Error", state.AccountName)
 
 		}

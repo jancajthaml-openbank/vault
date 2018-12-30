@@ -47,7 +47,7 @@
   branch = "master"
   name = "github.com/pebbe/zmq4"
   packages = ["."]
-  revision = "e5666f371e863ac73d8fa7c15bef9c9ba0359b82"
+  revision = "956ee4ed393e28e547b9767b3a261582c3d30eec"
 
 [[projects]]
   name = "github.com/pmezard/go-difflib"
@@ -80,7 +80,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "eb0de9b17e854e9b1ccd9963efafc79862359959"
+  revision = "505ab145d0a99da450461ae2c1a9f6cd10d1f447"
 
 [[projects]]
   branch = "master"
@@ -89,7 +89,7 @@
     "unix",
     "windows"
   ]
-  revision = "4ed8d59d0b35e1e29334a206d1b3f38b1e5dfb31"
+  revision = "9a3f9b0469bbc6b8802087ae5c0af9f61502de01"
 
 [[projects]]
   name = "gopkg.in/inf.v0"
@@ -100,6 +100,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "fb631edb0737a08601c6f55c7881478532d41f385b0d26698acf16854bbc2f0b"
+  inputs-digest = "c0f76151b04e68586d4d160d2624e5903b77231c88e1df23c37756409b5d5259"
   solver-name = "gps-cdcl"
   solver-version = 1
