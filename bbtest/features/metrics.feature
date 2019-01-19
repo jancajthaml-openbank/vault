@@ -4,7 +4,7 @@ Feature: Metrics test
     Given tenant METRICS is onbdoarded
     And vault is reconfigured with
     """
-      VAULT_METRICS_REFRESHRATE=1s
+      METRICS_REFRESHRATE=1s
     """
 
     When active EUR account METRICS/ReplayCredit is created

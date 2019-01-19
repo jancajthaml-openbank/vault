@@ -59,16 +59,16 @@ end
 step "vault is reconfigured with" do |configuration|
   params = Hash[configuration.split("\n").map(&:strip).reject(&:empty?).map {|el| el.split '='}]
   defaults = {
-    "VAULT_STORAGE" => "/data",
-    "VAULT_LOG_LEVEL" => "DEBUG",
-    "VAULT_JOURNAL_SATURATION" => "10000",
-    "VAULT_SNAPSHOT_SCANINTERVAL" => "1h",
-    "VAULT_METRICS_REFRESHRATE" => "1h",
-    "VAULT_METRICS_OUTPUT" => "/opt/vault/metrics/metrics.json",
-    "VAULT_LAKE_HOSTNAME" => "localhost",
+    "STORAGE" => "/data",
+    "LOG_LEVEL" => "DEBUG",
+    "JOURNAL_SATURATION" => "10000",
+    "SNAPSHOT_SCANINTERVAL" => "1h",
+    "METRICS_REFRESHRATE" => "1h",
+    "METRICS_OUTPUT" => "/opt/vault/metrics/metrics.json",
+    "LAKE_HOSTNAME" => "localhost",
   }
 
-  config = Array[defaults.merge(params).map {|k,v| "#{k}=#{v}"}]
+  config = Array[defaults.merge(params).map {|k,v| "VAULT_#{k}=#{v}"}]
   config = config.join("\n").inspect.delete('\"')
 
   %x(mkdir -p /etc/init)
