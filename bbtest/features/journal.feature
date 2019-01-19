@@ -4,8 +4,8 @@ Feature: Persistent journal
     Given tenant JOURNAL is onbdoarded
     And vault is reconfigured with
     """
-      VAULT_JOURNAL_SATURATION=2
-      VAULT_SNAPSHOT_SCANINTERVAL=1s
+      JOURNAL_SATURATION=2
+      SNAPSHOT_SCANINTERVAL=1s
     """
 
     When pasive EUR account JOURNAL/Euro is created
