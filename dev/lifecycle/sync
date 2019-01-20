@@ -31,4 +31,3 @@ fi
 cd /go/src/github.com/jancajthaml-openbank/${TARGET_PACKAGE}
 
 dep ensure -v
-
