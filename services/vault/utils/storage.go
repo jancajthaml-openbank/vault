@@ -50,15 +50,20 @@ func nameFromDirent(dirent *syscall.Dirent) []byte {
 
 // ListDirectory returns sorted slice of item names in given absolute path
 // default sorting is ascending
-func ListDirectory(absPath string, ascending bool) []string {
-	v := make([]string, 0)
+func ListDirectory(absPath string, ascending bool) (result []string) {
+	defer func() {
+		if recover() != nil {
+			result = nil
+		}
+	}()
 
-	dh, err := os.Open(absPath)
+	dh, err := os.Open(filepath.Clean(absPath))
 	if err != nil {
-		return nil
+		return
 	}
 
 	fd := int(dh.Fd())
+	result = make([]string, 0)
 
 	scratchBuffer := make([]byte, defaultBufferSize)
 
@@ -67,8 +72,9 @@ func ListDirectory(absPath string, ascending bool) []string {
 	for {
 		n, err := syscall.ReadDirent(fd, scratchBuffer)
 		if err != nil {
-			_ = dh.Close()
-			return nil
+			err = dh.Close()
+			result = nil
+			return
 		}
 		if n <= 0 {
 			break
@@ -87,35 +93,42 @@ func ListDirectory(absPath string, ascending bool) []string {
 			if (namlen == 0) || (namlen == 1 && nameSlice[0] == '.') || (namlen == 2 && nameSlice[0] == '.' && nameSlice[1] == '.') {
 				continue
 			}
-			v = append(v, string(nameSlice))
+			result = append(result, string(nameSlice))
 		}
 	}
 
-	if err = dh.Close(); err != nil {
-		return nil
+	if dh.Close() != nil {
+		result = nil
+		return
 	}
 
 	if ascending {
-		sort.Slice(v, func(i, j int) bool {
-			return v[i] < v[j]
+		sort.Slice(result, func(i, j int) bool {
+			return result[i] < result[j]
 		})
 	} else {
-		sort.Slice(v, func(i, j int) bool {
-			return v[i] > v[j]
+		sort.Slice(result, func(i, j int) bool {
+			return result[i] > result[j]
 		})
 	}
 
-	return v
+	return
 }
 
 // CountFiles returns number of items in directory
-func CountFiles(absPath string) int {
-	dh, err := os.Open(absPath)
+func CountFiles(absPath string) (result int) {
+	defer func() {
+		if recover() != nil {
+			result = -1
+		}
+	}()
+
+	dh, err := os.Open(filepath.Clean(absPath))
 	if err != nil {
-		return -1
+		result = -1
+		return
 	}
 
-	nodes := 0
 	fd := int(dh.Fd())
 
 	scratchBuffer := make([]byte, defaultBufferSize)
@@ -125,8 +138,9 @@ func CountFiles(absPath string) int {
 	for {
 		n, err := syscall.ReadDirent(fd, scratchBuffer)
 		if err != nil {
-			_ = dh.Close()
-			return -1
+			err = dh.Close()
+			result = -1
+			return
 		}
 		if n <= 0 {
 			break
@@ -140,11 +154,16 @@ func CountFiles(absPath string) int {
 				continue
 			}
 
-			nodes++
+			result++
 		}
 	}
 
-	return nodes
+	if err = dh.Close(); err != nil {
+		result = -1
+		return
+	}
+
+	return
 }
 
 // Exists returns true if absolute path exists
