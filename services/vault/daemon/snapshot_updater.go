@@ -24,6 +24,7 @@ import (
 	"github.com/jancajthaml-openbank/vault/utils"
 
 	system "github.com/jancajthaml-openbank/actor-system"
+	storage "github.com/jancajthaml-openbank/local-fs"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -74,16 +75,20 @@ func (updater SnapshotUpdater) updateSaturated() {
 }
 
 func (updater SnapshotUpdater) getAccounts() []string {
-	return utils.ListDirectory(utils.RootPath(updater.storage), true)
+	result, err := storage.ListDirectory(utils.RootPath(updater.storage), true)
+	if err != nil {
+		return nil
+	}
+	return result
 }
 
 func (updater SnapshotUpdater) getVersion(name string) int {
-	versions := utils.ListDirectory(utils.SnapshotsPath(updater.storage, name), false)
-	if len(versions) == 0 {
+	result, err := storage.ListDirectory(utils.SnapshotsPath(updater.storage, name), false)
+	if err != nil || len(result) == 0 {
 		return -1
 	}
 
-	version, err := strconv.Atoi(versions[0])
+	version, err := strconv.Atoi(result[0])
 	if err != nil {
 		return -1
 	}
@@ -92,7 +97,11 @@ func (updater SnapshotUpdater) getVersion(name string) int {
 }
 
 func (updater SnapshotUpdater) getEvents(name string, version int) int {
-	return utils.CountFiles(utils.EventPath(updater.storage, name, version))
+	result, err := storage.CountFiles(utils.EventPath(updater.storage, name, version))
+	if err != nil {
+		return -1
+	}
+	return result
 }
 
 // Start handles everything needed to start snapshot updater daemon it runs scan

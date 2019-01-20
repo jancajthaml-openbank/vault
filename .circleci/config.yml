@@ -94,11 +94,15 @@ jobs:
           name: ensure services namespace
           command: |
             mkdir -p /go/src/github.com/jancajthaml-openbank
-            ln -s /home/circleci/project/services/vault /go/src/github.com/jancajthaml-openbank/vault
+            cp -r /home/circleci/project/services/vault /go/src/github.com/jancajthaml-openbank/vault
       - run:
           name: sync dependencies
           command: |
             ./dev/lifecycle/sync --pkg vault
+      - run:
+          name: move vendor folder to project
+          command: |
+            cp -r /go/src/github.com/jancajthaml-openbank/vault/vendor /home/circleci/project/services/vault/vendor
       - run:
           name: unit test
           command: |
@@ -118,11 +122,15 @@ jobs:
           name: ensure services namespace
           command: |
             mkdir -p /go/src/github.com/jancajthaml-openbank
-            ln -s /home/circleci/project/services/vault /go/src/github.com/jancajthaml-openbank/vault
+            cp -r /home/circleci/project/services/vault /go/src/github.com/jancajthaml-openbank/vault
       - run:
           name: sync dependencies
           command: |
             ./dev/lifecycle/sync --pkg vault
+      - run:
+          name: move vendor folder to project
+          command: |
+            cp -r /go/src/github.com/jancajthaml-openbank/vault/vendor /home/circleci/project/services/vault/vendor
       - run:
           name: package binary
           command: |

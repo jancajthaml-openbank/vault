@@ -15,6 +15,7 @@
 package persistence
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -22,20 +23,24 @@ import (
 	"github.com/jancajthaml-openbank/vault/model"
 	"github.com/jancajthaml-openbank/vault/utils"
 
+	storage "github.com/jancajthaml-openbank/local-fs"
+
 	money "gopkg.in/inf.v0"
 )
 
 // LoadAccount rehydrates account entity state from storage
 func LoadAccount(root, name string) *model.Account {
 	allPath := utils.SnapshotsPath(root, name)
-	snapshots := utils.ListDirectory(allPath, false)
 
-	if len(snapshots) == 0 {
+	snapshots, err := storage.ListDirectory(allPath, false)
+	if err != nil || len(snapshots) == 0 {
+		fmt.Printf("fail-1 %+v", err)
 		return nil
 	}
 
-	ok, data := utils.ReadFileFully(allPath + "/" + snapshots[0])
-	if !ok {
+	data, err := storage.ReadFileFully(allPath + "/" + snapshots[0])
+	if err != nil {
+		fmt.Printf("fail-2 %+v", err)
 		return nil
 	}
 
@@ -50,29 +55,30 @@ func LoadAccount(root, name string) *model.Account {
 	result.AccountName = name
 	result.Deserialise(data)
 
-	events := utils.ListDirectory(utils.EventPath(root, name, result.Version), false)
-	for _, event := range events {
+	events, err := storage.ListDirectory(utils.EventPath(root, name, result.Version), false)
+	if err == nil {
+		for _, event := range events {
+			s := strings.SplitN(event, "_", 3)
+			kind, amountString, transaction := s[0], s[1], s[2]
 
-		s := strings.SplitN(event, "_", 3)
-		kind, amountString, transaction := s[0], s[1], s[2]
+			amount, _ := new(money.Dec).SetString(amountString)
 
-		amount, _ := new(money.Dec).SetString(amountString)
+			switch kind {
 
-		switch kind {
+			case model.EventPromise:
+				result.PromiseBuffer.Add(transaction)
+				result.Promised = new(money.Dec).Add(result.Promised, amount)
 
-		case model.EventPromise:
-			result.PromiseBuffer.Add(transaction)
-			result.Promised = new(money.Dec).Add(result.Promised, amount)
+			case model.EventCommit:
+				result.PromiseBuffer.Remove(transaction)
+				result.Promised = new(money.Dec).Sub(result.Promised, amount)
+				result.Balance = new(money.Dec).Add(result.Balance, amount)
 
-		case model.EventCommit:
-			result.PromiseBuffer.Remove(transaction)
-			result.Promised = new(money.Dec).Sub(result.Promised, amount)
-			result.Balance = new(money.Dec).Add(result.Balance, amount)
+			case model.EventRollback:
+				result.PromiseBuffer.Remove(transaction)
+				result.Promised = new(money.Dec).Sub(result.Promised, amount)
 
-		case model.EventRollback:
-			result.PromiseBuffer.Remove(transaction)
-			result.Promised = new(money.Dec).Sub(result.Promised, amount)
-
+			}
 		}
 	}
 
@@ -114,7 +120,7 @@ func PersistAccount(root, name string, entity *model.Account) *model.Account {
 	data := entity.Serialise()
 	path := utils.SnapshotPath(root, name, entity.Version)
 
-	if !utils.WriteFile(path, data) {
+	if storage.WriteFile(path, data) != nil {
 		return nil
 	}
 
@@ -125,19 +131,19 @@ func PersistAccount(root, name string, entity *model.Account) *model.Account {
 func PersistPromise(root, name string, version int, amount *money.Dec, transaction string) bool {
 	event := model.EventPromise + "_" + amount.String() + "_" + transaction
 	fullPath := utils.EventPath(root, name, version) + "/" + event
-	return utils.TouchFile(fullPath)
+	return storage.TouchFile(fullPath) == nil
 }
 
 // PersistCommit persists commit event
 func PersistCommit(root, name string, version int, amount *money.Dec, transaction string) bool {
 	event := model.EventCommit + "_" + amount.String() + "_" + transaction
 	fullPath := utils.EventPath(root, name, version) + "/" + event
-	return utils.TouchFile(fullPath)
+	return storage.TouchFile(fullPath) == nil
 }
 
 // PersistRollback persists rollback event
 func PersistRollback(root, name string, version int, amount *money.Dec, transaction string) bool {
 	event := model.EventRollback + "_" + amount.String() + "_" + transaction
 	fullPath := utils.EventPath(root, name, version) + "/" + event
-	return utils.TouchFile(fullPath)
+	return storage.TouchFile(fullPath) == nil
 }
