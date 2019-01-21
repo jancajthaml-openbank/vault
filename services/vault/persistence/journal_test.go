@@ -10,20 +10,27 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/jancajthaml-openbank/vault/model"
-
+	localfs "github.com/jancajthaml-openbank/local-fs"
 	money "gopkg.in/inf.v0"
+
+	"github.com/jancajthaml-openbank/vault/model"
 )
 
 func TestSnapshot_Update(t *testing.T) {
+	tmpdir, err := ioutil.TempDir(os.TempDir(), "test_storage")
+	require.Nil(t, err)
+	defer os.RemoveAll(tmpdir)
+
+	storage := localfs.NewStorage(tmpdir)
+
 	name := "account_2"
 	currency := "XRP"
 	isBalanceCheck := false
 
-	snapshotInitial := CreateAccount("/tmp/tenant", name, currency, isBalanceCheck)
+	snapshotInitial := CreateAccount(&storage, name, currency, isBalanceCheck)
 	require.NotNil(t, snapshotInitial)
 
-	loadedInitial := LoadAccount("/tmp/tenant", name)
+	loadedInitial := LoadAccount(&storage, name)
 	require.NotNil(t, loadedInitial)
 
 	t.Log("Initial matches loaded")
@@ -34,10 +41,10 @@ func TestSnapshot_Update(t *testing.T) {
 		assert.Equal(t, snapshotInitial.Version, loadedInitial.Version)
 	}
 
-	snapshotVersion1 := UpdateAccount("/tmp/tenant", name, snapshotInitial)
+	snapshotVersion1 := UpdateAccount(&storage, name, snapshotInitial)
 	require.NotNil(t, snapshotVersion1)
 
-	loadedVersion1 := LoadAccount("/tmp/tenant", name)
+	loadedVersion1 := LoadAccount(&storage, name)
 	require.NotNil(t, loadedVersion1)
 
 	t.Log("Updated matches loaded")
@@ -56,6 +63,12 @@ func TestSnapshot_Update(t *testing.T) {
 }
 
 func TestSnapshot_RefuseOverflow(t *testing.T) {
+	tmpdir, err := ioutil.TempDir(os.TempDir(), "test_storage")
+	require.Nil(t, err)
+	defer os.RemoveAll(tmpdir)
+
+	storage := localfs.NewStorage(tmpdir)
+
 	name := "xxx"
 	currency := "XxX"
 	isBalanceCheck := true
@@ -70,12 +83,18 @@ func TestSnapshot_RefuseOverflow(t *testing.T) {
 		IsBalanceCheck: isBalanceCheck,
 	}
 
-	snapshotNext := UpdateAccount("/tmp/tenant", name, snapshotLast)
+	snapshotNext := UpdateAccount(&storage, name, snapshotLast)
 
 	assert.Equal(t, snapshotLast.Version, snapshotNext.Version)
 }
 
 func TestSnapshot_PromiseBuffer(t *testing.T) {
+	tmpdir, err := ioutil.TempDir(os.TempDir(), "test_storage")
+	require.Nil(t, err)
+	defer os.RemoveAll(tmpdir)
+
+	storage := localfs.NewStorage(tmpdir)
+
 	name := "yyy"
 	currency := "yYy"
 	isBalanceCheck := false
@@ -94,9 +113,9 @@ func TestSnapshot_PromiseBuffer(t *testing.T) {
 
 	snapshot.PromiseBuffer.Add(expectedPromises...)
 
-	PersistAccount("/tmp/tenant", name, snapshot)
+	PersistAccount(&storage, name, snapshot)
 
-	loaded := LoadAccount("/tmp/tenant", name)
+	loaded := LoadAccount(&storage, name)
 
 	if loaded == nil {
 		t.Errorf("Expected to load snapshot got nil instead")
@@ -117,18 +136,18 @@ func TestSnapshot_PromiseBuffer(t *testing.T) {
 }
 
 func BenchmarkAccountLoad(b *testing.B) {
-	tmpDir, err := ioutil.TempDir("", "test")
-	if err != nil {
-		b.Fatal(err.Error())
-	}
-	defer os.RemoveAll(tmpDir)
+	tmpdir, err := ioutil.TempDir(os.TempDir(), "test_storage")
+	require.Nil(b, err)
+	defer os.RemoveAll(tmpdir)
 
-	account := CreateAccount(tmpDir+"/tenant", "bench", "BNC", false)
+	storage := localfs.NewStorage(tmpdir)
+
+	account := CreateAccount(&storage, "bench", "BNC", false)
 	require.NotNil(b, account)
 
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		LoadAccount(tmpDir+"/tenant", "bench")
+		LoadAccount(&storage, "bench")
 	}
 }

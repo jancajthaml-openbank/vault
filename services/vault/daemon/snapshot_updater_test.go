@@ -2,8 +2,8 @@ package daemon
 
 import (
 	"context"
+	"io/ioutil"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/jancajthaml-openbank/vault/config"
@@ -11,30 +11,12 @@ import (
 	"github.com/jancajthaml-openbank/vault/persistence"
 
 	system "github.com/jancajthaml-openbank/actor-system"
+	localfs "github.com/jancajthaml-openbank/local-fs"
 	money "gopkg.in/inf.v0"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func removeContents(dir string) {
-	d, err := os.Open(dir)
-	if err != nil {
-		return
-	}
-	defer d.Close()
-	names, err := d.Readdirnames(-1)
-	if err != nil {
-		return
-	}
-	for _, name := range names {
-		err = os.RemoveAll(filepath.Join(dir, name))
-		if err != nil {
-			return
-		}
-	}
-	return
-}
 
 type CallbackMessage struct {
 	msg     interface{}
@@ -42,13 +24,17 @@ type CallbackMessage struct {
 }
 
 func TestSnapshotUpdater(t *testing.T) {
+	tmpdir, err := ioutil.TempDir(os.TempDir(), "test_storage")
+	require.Nil(t, err)
+	defer os.RemoveAll(tmpdir)
+
 	cfg := config.Configuration{
 		Tenant:            "tenant",
-		RootStorage:       "/tmp/cron",
+		RootStorage:       tmpdir,
 		JournalSaturation: 1,
 	}
 
-	defer removeContents(cfg.RootStorage)
+	storage := localfs.NewStorage(cfg.RootStorage)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -65,17 +51,17 @@ func TestSnapshotUpdater(t *testing.T) {
 	}
 
 	metrics := NewMetrics(ctx, cfg)
-	su := NewSnapshotUpdater(ctx, cfg, &metrics, callback)
+	su := NewSnapshotUpdater(ctx, cfg, &metrics, &storage, callback)
 
-	s := persistence.CreateAccount(cfg.RootStorage, "account_1", "EUR", true)
+	s := persistence.CreateAccount(&storage, "account_1", "EUR", true)
 	require.NotNil(t, s)
-	require.True(t, persistence.PersistPromise(cfg.RootStorage, "account_1", 0, new(money.Dec), "transaction_1"))
-	s = persistence.UpdateAccount(cfg.RootStorage, "account_1", s)
-	require.True(t, persistence.PersistPromise(cfg.RootStorage, "account_1", 1, new(money.Dec), "transaction_2"))
-	require.True(t, persistence.PersistCommit(cfg.RootStorage, "account_1", 1, new(money.Dec), "transaction_2"))
+	require.True(t, persistence.PersistPromise(&storage, "account_1", 0, new(money.Dec), "transaction_1"))
+	s = persistence.UpdateAccount(&storage, "account_1", s)
+	require.True(t, persistence.PersistPromise(&storage, "account_1", 1, new(money.Dec), "transaction_2"))
+	require.True(t, persistence.PersistCommit(&storage, "account_1", 1, new(money.Dec), "transaction_2"))
 	require.NotNil(t, s)
 
-	require.NotNil(t, persistence.CreateAccount(cfg.RootStorage, "account_2", "EUR", true))
+	require.NotNil(t, persistence.CreateAccount(&storage, "account_2", "EUR", true))
 
 	t.Log("return valid accounts")
 	{

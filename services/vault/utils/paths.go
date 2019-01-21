@@ -19,33 +19,33 @@ import (
 )
 
 // RootPath returns filepath for accounts
-func RootPath(root string) string {
-	return root + "/account"
+func RootPath() string {
+	return "account"
 }
 
 // EventsPath returns filepath for events
-func EventsPath(root, name string) string {
-	return root + "/account/" + name + "/events"
+func EventsPath(name string) string {
+	return "account/" + name + "/events"
 }
 
 // SnapshotsPath returns filepath for snapshots
-func SnapshotsPath(root, name string) string {
-	return root + "/account/" + name + "/snapshot"
+func SnapshotsPath(name string) string {
+	return "account/" + name + "/snapshot"
 }
 
 // EventPath returns filepath for given event
-func EventPath(root, name string, version int) string {
+func EventPath(name string, version int) string {
 	value := strconv.Itoa(version)
-	return root + "/account/" + name + "/events/" + "0000000000"[0:10-len(value)] + value
+	return "account/" + name + "/events/" + "0000000000"[0:10-len(value)] + value
 }
 
 // SnapshotPath returns filepath for given snapshot
-func SnapshotPath(root, name string, version int) string {
+func SnapshotPath(name string, version int) string {
 	value := strconv.Itoa(version)
-	return root + "/account/" + name + "/snapshot/" + "0000000000"[0:10-len(value)] + value
+	return "account/" + name + "/snapshot/" + "0000000000"[0:10-len(value)] + value
 }
 
 // MetadataPath returns filepath for given metadata
-func MetadataPath(root, name string) string {
-	return root + "/account/" + name + "/meta"
+func MetadataPath(name string) string {
+	return "account/" + name + "/meta"
 }
