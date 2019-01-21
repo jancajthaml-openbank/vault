@@ -20,20 +20,21 @@ import (
 	"github.com/jancajthaml-openbank/vault/config"
 
 	system "github.com/jancajthaml-openbank/actor-system"
+	localfs "github.com/jancajthaml-openbank/local-fs"
 )
 
 // ActorSystem represents actor system subroutine
 type ActorSystem struct {
 	system.Support
-	Storage string
+	Storage *localfs.Storage
 	Metrics *Metrics
 }
 
 // NewActorSystem returns actor system fascade
-func NewActorSystem(ctx context.Context, cfg config.Configuration, metrics *Metrics) ActorSystem {
+func NewActorSystem(ctx context.Context, cfg config.Configuration, metrics *Metrics, storage *localfs.Storage) ActorSystem {
 	return ActorSystem{
 		Support: system.NewSupport(ctx, "Vault/"+cfg.Tenant, cfg.LakeHostname),
-		Storage: cfg.RootStorage,
+		Storage: storage,
 		Metrics: metrics,
 	}
 }

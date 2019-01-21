@@ -20,6 +20,7 @@ import (
 	"os"
 	"strings"
 
+	localfs "github.com/jancajthaml-openbank/local-fs"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/jancajthaml-openbank/vault/actor"
@@ -66,13 +67,14 @@ func Initialize() Application {
 		log.SetLevel(log.WarnLevel)
 	}
 
+	storage := localfs.NewStorage(cfg.RootStorage)
 	metrics := daemon.NewMetrics(ctx, cfg)
 
-	actorSystem := daemon.NewActorSystem(ctx, cfg, &metrics)
+	actorSystem := daemon.NewActorSystem(ctx, cfg, &metrics, &storage)
 	actorSystem.Support.RegisterOnLocalMessage(actor.ProcessLocalMessage(&actorSystem))
 	actorSystem.Support.RegisterOnRemoteMessage(actor.ProcessRemoteMessage(&actorSystem))
 
-	snapshotUpdater := daemon.NewSnapshotUpdater(ctx, cfg, &metrics, actor.ProcessLocalMessage(&actorSystem))
+	snapshotUpdater := daemon.NewSnapshotUpdater(ctx, cfg, &metrics, &storage, actor.ProcessLocalMessage(&actorSystem))
 
 	return Application{
 		cfg:             cfg,

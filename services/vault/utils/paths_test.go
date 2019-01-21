@@ -23,12 +23,12 @@ func TestEventPath(t *testing.T) {
 	account := "account_2"
 
 	versionMin := 0
-	pathMin := EventPath("/tmp/tenant", account, versionMin)
-	expectedMin := fmt.Sprintf("/tmp/tenant/account/%s/events/%010d", account, versionMin)
+	pathMin := EventPath(account, versionMin)
+	expectedMin := fmt.Sprintf("account/%s/events/%010d", account, versionMin)
 
 	versionMax := math.MaxInt32
-	pathMax := EventPath("/tmp/tenant", account, versionMax)
-	expectedMax := fmt.Sprintf("/tmp/tenant/account/%s/events/%010d", account, versionMax)
+	pathMax := EventPath(account, versionMax)
+	expectedMax := fmt.Sprintf("account/%s/events/%010d", account, versionMax)
 
 	assert.Equal(t, expectedMin, pathMin)
 	assert.Equal(t, expectedMax, pathMax)
@@ -38,12 +38,12 @@ func TestSnapshotPath(t *testing.T) {
 	account := "account_3"
 
 	versionMin := 0
-	pathMin := SnapshotPath("/tmp/tenant", account, versionMin)
-	expectedMin := fmt.Sprintf("/tmp/tenant/account/%s/snapshot/%010d", account, versionMin)
+	pathMin := SnapshotPath(account, versionMin)
+	expectedMin := fmt.Sprintf("account/%s/snapshot/%010d", account, versionMin)
 
 	versionMax := math.MaxInt32
-	pathMax := SnapshotPath("/tmp/tenant", account, versionMax)
-	expectedMax := fmt.Sprintf("/tmp/tenant/account/%s/snapshot/%010d", account, versionMax)
+	pathMax := SnapshotPath(account, versionMax)
+	expectedMax := fmt.Sprintf("account/%s/snapshot/%010d", account, versionMax)
 
 	assert.Equal(t, expectedMin, pathMin)
 	assert.Equal(t, expectedMax, pathMax)
@@ -52,8 +52,8 @@ func TestSnapshotPath(t *testing.T) {
 func TestMetadataPath(t *testing.T) {
 	account := "account_4"
 
-	actual := MetadataPath("/tmp/tenant", account)
-	expected := fmt.Sprintf("/tmp/tenant/account/%s/meta", account)
+	actual := MetadataPath(account)
+	expected := fmt.Sprintf("account/%s/meta", account)
 
 	assert.Equal(t, expected, actual)
 }
@@ -62,7 +62,7 @@ func BenchmarkSnapshotPath(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
-		SnapshotPath("/benchmark/tenant", "X", 0)
+		SnapshotPath("X", 0)
 	}
 }
 
@@ -70,7 +70,7 @@ func BenchmarkSnapshotsPath(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
-		SnapshotsPath("/benchmark/tenant", "X")
+		SnapshotsPath("X")
 	}
 }
 
@@ -78,7 +78,7 @@ func BenchmarkEventPath(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
-		EventPath("/benchmark/tenant", "X", 0)
+		EventPath("X", 0)
 	}
 }
 
@@ -86,7 +86,7 @@ func BenchmarkEventsPath(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
-		EventsPath("/benchmark/tenant", "X")
+		EventsPath("X")
 	}
 }
 
@@ -94,6 +94,6 @@ func BenchmarkMetadataPath(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
-		MetadataPath("/benchmark/tenant", "X")
+		MetadataPath("X")
 	}
 }

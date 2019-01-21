@@ -23,14 +23,13 @@ import (
 	"github.com/jancajthaml-openbank/vault/model"
 	"github.com/jancajthaml-openbank/vault/utils"
 
-	storage "github.com/jancajthaml-openbank/local-fs"
-
+	localfs "github.com/jancajthaml-openbank/local-fs"
 	money "gopkg.in/inf.v0"
 )
 
 // LoadAccount rehydrates account entity state from storage
-func LoadAccount(root, name string) *model.Account {
-	allPath := utils.SnapshotsPath(root, name)
+func LoadAccount(storage *localfs.Storage, name string) *model.Account {
+	allPath := utils.SnapshotsPath(name)
 
 	snapshots, err := storage.ListDirectory(allPath, false)
 	if err != nil || len(snapshots) == 0 {
@@ -55,7 +54,7 @@ func LoadAccount(root, name string) *model.Account {
 	result.AccountName = name
 	result.Deserialise(data)
 
-	events, err := storage.ListDirectory(utils.EventPath(root, name, result.Version), false)
+	events, err := storage.ListDirectory(utils.EventPath(name, result.Version), false)
 	if err == nil {
 		for _, event := range events {
 			s := strings.SplitN(event, "_", 3)
@@ -86,8 +85,8 @@ func LoadAccount(root, name string) *model.Account {
 }
 
 // CreateAccount persist account entity state to storage
-func CreateAccount(root, name, currency string, isBalanceCheck bool) *model.Account {
-	return PersistAccount(root, name, &model.Account{
+func CreateAccount(storage *localfs.Storage, name, currency string, isBalanceCheck bool) *model.Account {
+	return PersistAccount(storage, name, &model.Account{
 		Balance:        new(money.Dec),
 		Promised:       new(money.Dec),
 		PromiseBuffer:  model.NewTransactionSet(),
@@ -99,12 +98,12 @@ func CreateAccount(root, name, currency string, isBalanceCheck bool) *model.Acco
 }
 
 // UpdateAccount persist account entity state with incremented version
-func UpdateAccount(root, name string, entity *model.Account) *model.Account {
+func UpdateAccount(storage *localfs.Storage, name string, entity *model.Account) *model.Account {
 	if entity.Version == math.MaxInt32 {
 		return entity
 	}
 
-	return PersistAccount(root, name, &model.Account{
+	return PersistAccount(storage, name, &model.Account{
 		Balance:        entity.Balance,
 		Promised:       entity.Promised,
 		PromiseBuffer:  entity.PromiseBuffer,
@@ -116,9 +115,9 @@ func UpdateAccount(root, name string, entity *model.Account) *model.Account {
 }
 
 // PersistAccount persist account entity state to storage
-func PersistAccount(root, name string, entity *model.Account) *model.Account {
+func PersistAccount(storage *localfs.Storage, name string, entity *model.Account) *model.Account {
 	data := entity.Serialise()
-	path := utils.SnapshotPath(root, name, entity.Version)
+	path := utils.SnapshotPath(name, entity.Version)
 
 	if storage.WriteFile(path, data) != nil {
 		return nil
@@ -128,22 +127,22 @@ func PersistAccount(root, name string, entity *model.Account) *model.Account {
 }
 
 // PersistPromise persists promise event
-func PersistPromise(root, name string, version int, amount *money.Dec, transaction string) bool {
+func PersistPromise(storage *localfs.Storage, name string, version int, amount *money.Dec, transaction string) bool {
 	event := model.EventPromise + "_" + amount.String() + "_" + transaction
-	fullPath := utils.EventPath(root, name, version) + "/" + event
+	fullPath := utils.EventPath(name, version) + "/" + event
 	return storage.TouchFile(fullPath) == nil
 }
 
 // PersistCommit persists commit event
-func PersistCommit(root, name string, version int, amount *money.Dec, transaction string) bool {
+func PersistCommit(storage *localfs.Storage, name string, version int, amount *money.Dec, transaction string) bool {
 	event := model.EventCommit + "_" + amount.String() + "_" + transaction
-	fullPath := utils.EventPath(root, name, version) + "/" + event
+	fullPath := utils.EventPath(name, version) + "/" + event
 	return storage.TouchFile(fullPath) == nil
 }
 
 // PersistRollback persists rollback event
-func PersistRollback(root, name string, version int, amount *money.Dec, transaction string) bool {
+func PersistRollback(storage *localfs.Storage, name string, version int, amount *money.Dec, transaction string) bool {
 	event := model.EventRollback + "_" + amount.String() + "_" + transaction
-	fullPath := utils.EventPath(root, name, version) + "/" + event
+	fullPath := utils.EventPath(name, version) + "/" + event
 	return storage.TouchFile(fullPath) == nil
 }

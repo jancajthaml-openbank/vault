@@ -24,7 +24,7 @@ import (
 	"github.com/jancajthaml-openbank/vault/utils"
 
 	system "github.com/jancajthaml-openbank/actor-system"
-	storage "github.com/jancajthaml-openbank/local-fs"
+	localfs "github.com/jancajthaml-openbank/local-fs"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -33,18 +33,18 @@ type SnapshotUpdater struct {
 	Support
 	callback            func(msg interface{}, to system.Coordinates, from system.Coordinates)
 	metrics             *Metrics
-	storage             string
+	storage             *localfs.Storage
 	scanInterval        time.Duration
 	saturationThreshold int
 }
 
 // NewSnapshotUpdater returns snapshot updater fascade
-func NewSnapshotUpdater(ctx context.Context, cfg config.Configuration, metrics *Metrics, callback func(msg interface{}, to system.Coordinates, from system.Coordinates)) SnapshotUpdater {
+func NewSnapshotUpdater(ctx context.Context, cfg config.Configuration, metrics *Metrics, storage *localfs.Storage, callback func(msg interface{}, to system.Coordinates, from system.Coordinates)) SnapshotUpdater {
 	return SnapshotUpdater{
 		Support:             NewDaemonSupport(ctx),
 		callback:            callback,
 		metrics:             metrics,
-		storage:             cfg.RootStorage,
+		storage:             storage,
 		scanInterval:        cfg.SnapshotScanInterval,
 		saturationThreshold: cfg.JournalSaturation,
 	}
@@ -75,7 +75,7 @@ func (updater SnapshotUpdater) updateSaturated() {
 }
 
 func (updater SnapshotUpdater) getAccounts() []string {
-	result, err := storage.ListDirectory(utils.RootPath(updater.storage), true)
+	result, err := updater.storage.ListDirectory(utils.RootPath(), true)
 	if err != nil {
 		return nil
 	}
@@ -83,7 +83,7 @@ func (updater SnapshotUpdater) getAccounts() []string {
 }
 
 func (updater SnapshotUpdater) getVersion(name string) int {
-	result, err := storage.ListDirectory(utils.SnapshotsPath(updater.storage, name), false)
+	result, err := updater.storage.ListDirectory(utils.SnapshotsPath(name), false)
 	if err != nil || len(result) == 0 {
 		return -1
 	}
@@ -97,7 +97,7 @@ func (updater SnapshotUpdater) getVersion(name string) int {
 }
 
 func (updater SnapshotUpdater) getEvents(name string, version int) int {
-	result, err := storage.CountFiles(utils.EventPath(updater.storage, name, version))
+	result, err := updater.storage.CountFiles(utils.EventPath(name, version))
 	if err != nil {
 		return -1
 	}
