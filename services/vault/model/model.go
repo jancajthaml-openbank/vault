@@ -32,15 +32,15 @@ type Account struct {
 }
 
 // Copy returns copy of Account
-func (s Account) Copy() Account {
+func (entity Account) Copy() Account {
 	return Account{
-		AccountName:    s.AccountName,
-		Currency:       s.Currency,
-		IsBalanceCheck: s.IsBalanceCheck,
-		Balance:        new(money.Dec).Set(s.Balance),
-		Promised:       new(money.Dec).Set(s.Promised),
-		PromiseBuffer:  s.PromiseBuffer, //.Copy(), // FIXME implement
-		Version:        s.Version,
+		AccountName:    entity.AccountName,
+		Currency:       entity.Currency,
+		IsBalanceCheck: entity.IsBalanceCheck,
+		Balance:        new(money.Dec).Set(entity.Balance),
+		Promised:       new(money.Dec).Set(entity.Promised),
+		PromiseBuffer:  entity.PromiseBuffer, //.Copy(), // FIXME implement
+		Version:        entity.Version,
 	}
 }
 
@@ -147,7 +147,7 @@ func (entity *Account) Serialise() []byte {
 	return buffer.Bytes()
 }
 
-// Hydrate deserializes Account entity from persistent data
+// Deserialise Account entity from persistable data
 func (entity *Account) Deserialise(data []byte) {
 	if entity == nil {
 		return
