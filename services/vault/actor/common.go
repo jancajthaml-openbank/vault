@@ -82,7 +82,7 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 			return
 		}
 
-		var message interface{} = nil
+		var message interface{}
 
 		switch payload {
 
