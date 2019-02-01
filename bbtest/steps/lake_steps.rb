@@ -1,14 +1,13 @@
 
 step "tenant :tenant receives :data" do |tenant, data|
-  LakeMock.send("Vault/#{tenant} Wall/bbtest #{data}")
+  LakeMock.send("VaultUnit/#{tenant} Wall/bbtest #{data}")
 end
 
 step "tenant :tenant responds with :data" do |_, data|
   expected = LakeMock.parse_message(data)
-
   eventually() {
     ok = LakeMock.pulled_message?(expected)
-    expect(ok).to be(true), "message #{expected} was not found in #{LakeMock.mailbox()}"
+    expect(ok).to be(true), "message #{expected} was not found in #{LakeMock.parsed_mailbox()}"
   }
   LakeMock.ack(expected)
 end

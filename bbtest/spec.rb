@@ -23,6 +23,20 @@ RSpec.configure do |config|
       %x(rm -rf #{folder}/*)
     }
 
+    print "[ installing package ]\n"
+
+    %x(find /etc/bbtest/packages -type f -name 'vault_*_amd64.deb')
+      .split("\n")
+      .map(&:strip)
+      .reject { |x| x.empty? }
+      .each { |package|
+        IO.popen("apt-get -y install -f #{package}") do |io|
+          while (line = io.gets) do
+            puts line
+          end
+        end
+      }
+
     print "[ suite started  ]\n"
   end
 
@@ -31,16 +45,17 @@ RSpec.configure do |config|
 
     if $?
       ids = ids.split("\n").map(&:strip).reject { |x|
-        x.empty? || !x.start_with?("vault")
+        x.empty? || !x.start_with?("vault@")
       }.map { |x| x.chomp(".service") }
     else
       ids = []
     end
 
     ids.each { |e|
-      %x(journalctl -o short-precise -u #{e} --no-pager > /reports/#{e}.log 2>&1)
+      %x(journalctl -o short-precise -u #{e}.service --no-pager > /reports/#{e}.log 2>&1)
       %x(systemctl stop #{e} 2>&1)
-      %x(journalctl -o short-precise -u #{e} --no-pager > /reports/#{e}.log 2>&1)
+      %x(systemctl disable #{e} 2>&1)
+      %x(journalctl -o short-precise -u #{e}.service --no-pager > /reports/#{e}.log 2>&1)
     } unless ids.empty?
   end
 

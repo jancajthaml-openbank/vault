@@ -14,18 +14,17 @@ step ":account should have data integrity" do |account|
   req_id = (0...5).map { ('a'..'z').to_a[rand(26)] }.join
 
   if snapshot.nil?
-    expected_response = "#{account} #{req_id} EE"
+    expected_response = "#{req_id} #{account} EE"
   else
-    expected_response = "#{account} #{req_id} SG #{meta[:currency]} #{snapshot[:activity] ? 't' : 'f'} #{snapshot[:balance]} #{snapshot[:balance]}"
+    expected_response = "#{req_id} #{account} SG #{meta[:currency]} #{snapshot[:activity] ? 't' : 'f'} #{snapshot[:balance]} #{snapshot[:balance]}"
   end
-
   expected = LakeMock.parse_message(expected_response)
 
   send "tenant :tenant receives :data", tenant, "#{account} #{req_id} GS"
 
   eventually(backoff: 0.2) {
     found = LakeMock.pulled_message?(expected)
-    expect(found).to be(true), "message #{expected} was not found in #{LakeMock.mailbox()}"
+    expect(found).to be(true), "message #{expected} was not found in #{LakeMock.parsed_mailbox()}"
   }
   LakeMock.ack(expected)
 end
@@ -38,14 +37,14 @@ step ":activity :currency account :account is created" do |activity, currency, a
   expect(@accounts).not_to have_key(account)
 
   req_id = (0...5).map { ('a'..'z').to_a[rand(26)] }.join
-  expected_response = "#{account} #{req_id} AN"
 
+  expected_response = "#{req_id} #{account} AN"
   expected = LakeMock.parse_message(expected_response)
 
   send "tenant :tenant receives :data", tenant, "#{account} #{req_id} NA #{currency} #{activity ? 't' : 'f'}"
   eventually(backoff: 0.2) {
     found = LakeMock.pulled_message?(expected)
-    expect(found).to be(true), "message #{expected} was not found in #{LakeMock.mailbox()}"
+    expect(found).to be(true), "message #{expected} was not found in #{LakeMock.parsed_mailbox()}"
   }
   LakeMock.ack(expected)
 
@@ -64,14 +63,14 @@ step ":account should exist" do |account|
 
   req_id = (0...5).map { ('a'..'z').to_a[rand(26)] }.join
   acc_local_data = @accounts[account]
-  expected_response = "#{account} #{req_id} SG #{acc_local_data[:currency]} #{acc_local_data[:activity] ? 't' : 'f'} #{acc_local_data[:balance]} #{acc_local_data[:promised]}"
 
+  expected_response = "#{req_id} #{account} SG #{acc_local_data[:currency]} #{acc_local_data[:activity] ? 't' : 'f'} #{acc_local_data[:balance]} #{acc_local_data[:promised]}"
   expected = LakeMock.parse_message(expected_response)
 
   send "tenant :tenant receives :data", tenant, "#{account} #{req_id} GS"
   eventually(backoff: 0.2) {
     found = LakeMock.pulled_message?(expected)
-    expect(found).to be(true), "message #{expected} was not found in #{LakeMock.mailbox()}"
+    expect(found).to be(true), "message #{expected} was not found in #{LakeMock.parsed_mailbox()}"
   }
   LakeMock.ack(expected)
 end
@@ -82,14 +81,14 @@ step ":account should not exist" do |account|
   expect(@accounts).not_to have_key(account)
 
   req_id = (0...5).map { ('a'..'z').to_a[rand(26)] }.join
-  expected_response = "#{account} #{req_id} EE"
 
+  expected_response = "#{req_id} #{account} EE"
   expected = LakeMock.parse_message(expected_response)
 
   send "tenant :tenant receives :data", tenant, "#{account} #{req_id} GS"
   eventually(backoff: 0.2) {
     found = LakeMock.pulled_message?(expected)
-    expect(found).to be(true), "message #{expected} was not found in #{LakeMock.mailbox()}"
+    expect(found).to be(true), "message #{expected} was not found in #{LakeMock.parsed_mailbox()}"
   }
   LakeMock.ack(expected)
 end

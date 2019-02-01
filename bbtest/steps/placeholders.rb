@@ -29,8 +29,34 @@ placeholder :path do
   end
 end
 
+placeholder :http_method do
+  match(/(GET|get|POST|post|PATCH|patch|DELETE|delete)/) do |http_method|
+    http_method.downcase
+  end
+end
+
+placeholder :http_status do
+  match(/\d{3}/) do |http_status|
+    http_status.to_i
+  end
+end
+
+placeholder :url do
+  match(/https?:\/\/[\S]+/) do |url|
+    url
+  end
+end
+
+
 placeholder :account do
   match(/[\S]+\/[\S]+/) do |account|
     account
   end
 end
+
+
+#placeholder :slash_pair do
+#match(/[\S]+\/[\S]+/) do |slash_pair|
+#slash_pair
+#end
+#end

@@ -63,36 +63,36 @@ end
 module LakeMock
 
   def self.parse_message(msg)
-    if groups = msg.match(/^Vault\/([^\s]{1,100}) Wall\/bbtest ([^\s]{1,100}) ([^\s]{1,100}) GS$/i)
-      _, account, _ = groups.captures
+    if groups = msg.match(/^VaultUnit\/([^\s]{1,100}) Wall\/bbtest ([^\s]{1,100}) ([^\s]{1,100}) GS$/i)
+      _, _, account = groups.captures
       return LakeMessageGetSnapshot.new(account)
 
-    elsif groups = msg.match(/^Wall\/bbtest Vault\/([^\s]{1,100}) ([^\s]{1,100}) ([^\s]{1,100}) SG ([A-Z]{3}) ([tf]{1}) (\d{1,100}) (\d{1,100})$/i)
-      _, account, _, currency, is_balance_check, amount, blocked = groups.captures
+    elsif groups = msg.match(/^Wall\/bbtest VaultUnit\/([^\s]{1,100}) ([^\s]{1,100}) ([^\s]{1,100}) SG ([A-Z]{3}) ([tf]{1}) (\d{1,100}) (\d{1,100})$/i)
+      _, _, account, currency, is_balance_check, amount, blocked = groups.captures
       return LakeMessageSnapshot.new("#{account} #{currency} #{is_balance_check} #{amount} #{blocked}")
 
     elsif groups = msg.match(/^([^\s]{1,100}) ([^\s]{1,100}) SG ([A-Z]{3}) ([tf]{1}) (\d{1,100}) (\d{1,100})$/i)
-      account, _, currency, is_balance_check, amount, blocked = groups.captures
+      _, account, currency, is_balance_check, amount, blocked = groups.captures
       return LakeMessageSnapshot.new("#{account} #{currency} #{is_balance_check} #{amount} #{blocked}")
 
-    elsif groups = msg.match(/^Vault\/([^\s]{1,100}) Wall\/bbtest ([^\s]{1,100}) ([^\s]{1,100}) NA ([A-Z]{3}) ([tf]{1})$/i)
-      _, account, _, currency, is_balance_check = groups.captures
+    elsif groups = msg.match(/^VaultUnit\/([^\s]{1,100}) Wall\/bbtest ([^\s]{1,100}) ([^\s]{1,100}) NA ([A-Z]{3}) ([tf]{1})$/i)
+      _, _, account, currency, is_balance_check = groups.captures
       return LakeMessageCreateAccount.new("#{account} #{currency} #{is_balance_check}")
 
-    elsif groups = msg.match(/^Wall\/bbtest Vault\/([^\s]{1,100}) ([^\s]{1,100}) ([^\s]{1,100}) AN$/i)
-      _, account, _, _ = groups.captures
+    elsif groups = msg.match(/^Wall\/bbtest VaultUnit\/([^\s]{1,100}) ([^\s]{1,100}) ([^\s]{1,100}) AN$/i)
+      _, _, account, _ = groups.captures
       return LakeMessageAccountCreated.new(account)
 
     elsif groups = msg.match(/^([^\s]{1,100}) ([^\s]{1,100}) AN$/i)
-      account, _ = groups.captures
+      _, account = groups.captures
       return LakeMessageAccountCreated.new(account)
 
-    elsif groups = msg.match(/^Wall\/bbtest Vault\/([^\s]{1,100}) ([^\s]{1,100}) ([^\s]{1,100}) EE$/i)
-      _, account, _ = groups.captures
+    elsif groups = msg.match(/^Wall\/bbtest VaultUnit\/([^\s]{1,100}) ([^\s]{1,100}) ([^\s]{1,100}) EE$/i)
+      _, _, account = groups.captures
       return LakeMessageError.new(account)
 
     elsif groups = msg.match(/^([^\s]{1,100}) ([^\s]{1,100}) EE$/i)
-      account, _ = groups.captures
+      _, account = groups.captures
       return LakeMessageError.new(account)
 
     else
@@ -137,7 +137,11 @@ module LakeMock
           self.pub_channel.send_string(data)
           next
         end
-        next unless data.start_with?("Wall/bbtest")
+
+        unless data.start_with?("Wall/bbtest")
+          self.send(data)
+          next
+        end
         self.mutex.synchronize do
           self.recv_backlog << data
         end
@@ -170,6 +174,10 @@ module LakeMock
     LakeMock.mailbox()
   end
 
+  def parsed_mailbox()
+    LakeMock.parsed_mailbox()
+  end
+
   def send(data)
     LakeMock.send(data)
   end
@@ -192,6 +200,10 @@ module LakeMock
 
   self.mutex = Mutex.new
   self.poisonPill = false
+
+  def self.parsed_mailbox()
+    return self.recv_backlog.map { |item| self.parse_message(item) }
+  end
 
   def self.mailbox()
     return self.recv_backlog
