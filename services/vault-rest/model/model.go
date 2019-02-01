@@ -40,7 +40,7 @@ func (entity *Account) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("cannot unmarshall to nil pointer")
 	}
 	all := struct {
-		Name           string `json:"name"`
+		Name           string `json:"accountNumber"`
 		Currency       string `json:"currency"`
 		IsBalanceCheck *bool  `json:"isBalanceCheck"`
 	}{}
@@ -49,7 +49,7 @@ func (entity *Account) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	if all.Name == "" {
-		return fmt.Errorf("missing attribute \"name\"")
+		return fmt.Errorf("missing attribute \"accountNumber\"")
 	}
 	if all.Currency == "" {
 		return fmt.Errorf("missing attribute \"currency\"")

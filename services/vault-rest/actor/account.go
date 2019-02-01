@@ -15,6 +15,7 @@
 package actor
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/jancajthaml-openbank/vault-rest/daemon"
@@ -76,12 +77,14 @@ func CreateAccount(s *daemon.ActorSystem, tenant string, account model.Account) 
 }
 
 // GetAccount retrives account state from target tenant vault
-func GetAccount(s *daemon.ActorSystem, name, tenant string) (result interface{}) {
+func GetAccount(s *daemon.ActorSystem, tenant string, id string) (result interface{}) {
 	// FIXME properly determine fail states
 	// input validation -> input error
 	// system in invalid state (and panics) -> fatal error
 	// timeout -> timeout
 	// account answer -> expected vs unexpected
+
+	fmt.Printf("actor get account tenant: %+v, id: %+v\n", tenant, id)
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -104,7 +107,8 @@ func GetAccount(s *daemon.ActorSystem, name, tenant string) (result interface{})
 			ch <- nil
 		}
 	})
-	s.SendRemote("VaultUnit/"+tenant, GetAccountMessage(envelope.Name, name))
+
+	s.SendRemote("VaultUnit/"+tenant, GetAccountMessage(envelope.Name, id))
 
 	select {
 

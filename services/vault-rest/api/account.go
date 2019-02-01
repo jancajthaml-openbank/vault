@@ -15,6 +15,7 @@
 package api
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -116,6 +117,12 @@ func CreateAccount(system *daemon.ActorSystem, tenant string, w http.ResponseWri
 
 	switch actor.CreateAccount(system, tenant, *req).(type) {
 
+	case nil:
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusConflict)
+		w.Write(emptyJSONObject)
+		return
+
 	case *model.AccountCreated:
 		resp, err := utils.JSON.Marshal(req)
 		if err != nil {
@@ -155,36 +162,40 @@ func GetAccounts(storage *localfs.Storage, tenant string, w http.ResponseWriter,
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	resp, err := utils.JSON.Marshal(accounts)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(emptyJSONArray)
-		return
+	} else {
+		w.WriteHeader(http.StatusOK)
+		w.Write(resp)
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(resp)
 	return
 }
 
 // GetAccount returns snapshot existing account
 func GetAccount(system *daemon.ActorSystem, tenant string, id string, w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("GetAccount tenant: %+v, id: %+v\n", tenant, id)
+
 	switch result := actor.GetAccount(system, tenant, id).(type) {
 
+	case nil:
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		w.Write(emptyJSONObject)
+		return
+
 	case *model.Account:
+		w.Header().Set("Content-Type", "application/json")
 		resp, err := utils.JSON.Marshal(result)
 		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(emptyJSONArray)
-			return
+			w.Write(emptyJSONObject)
+		} else {
+			w.WriteHeader(http.StatusOK)
+			w.Write(resp)
 		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(resp)
 		return
 
 	case *model.ReplyTimeout:

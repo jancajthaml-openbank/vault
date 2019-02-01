@@ -82,16 +82,6 @@ func Initialize() Application {
 	rest.HandleFunc("/account/{tenant}/{id}", api.AccountPartial(&actorSystem), "GET")
 	rest.HandleFunc("/account/{tenant}", api.AccountsPartial(&actorSystem, &storage), "POST", "GET")
 
-	/*
-		rest := daemon.NewServer(ctx, cfg, &actorSystem)
-		rest.HandleFunc("/health", api.HealtCheck, "GET", "HEAD")
-		rest.HandleFunc("/transaction/{tenant_id}/{transaction_id}/{transfer_id}", api.ForwardTransferPartial(cfg, &actorSystem), "PATCH")
-		rest.HandleFunc("/transaction/{tenant_id}/{transaction_id}", api.GetTransactionPartial(cfg, &actorSystem), "GET")
-		rest.HandleFunc("/transaction/{tenant_id}", api.CreateTransactionPartial(&actorSystem), "POST")
-		rest.HandleFunc("/account/{tenant_id}/{account_id}", api.GetAccountPartial(&actorSystem), "GET")
-		rest.HandleFunc("/account/{tenant_id}", api.CreateAccountPartial(&actorSystem), "POST")
-	*/
-
 	return Application{
 		cfg:           cfg,
 		interrupt:     make(chan os.Signal, 1),
