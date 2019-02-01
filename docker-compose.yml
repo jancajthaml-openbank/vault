@@ -13,7 +13,8 @@ services:
     image: openbankdev/vault_base
     volumes:
       - .:/project
-      - ./services/vault:/go/src/github.com/jancajthaml-openbank/vault
+      - ./services/vault-unit:/go/src/github.com/jancajthaml-openbank/vault-unit
+      - ./services/vault-rest:/go/src/github.com/jancajthaml-openbank/vault-rest
     working_dir: /project
     environment:
       - GOOS

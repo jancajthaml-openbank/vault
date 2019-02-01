@@ -19,8 +19,10 @@ COPY packaging/bin/* /opt/artifacts/
 RUN \
     if \
       \
-      [ ! -f /opt/artifacts/vault-linux-amd64 ] || \
-      [ ! -f /opt/artifacts/vault-linux-armhf ] || \
+      [ ! -f /opt/artifacts/vault-rest-linux-amd64 ] || \
+      [ ! -f /opt/artifacts/vault-unit-linux-amd64 ] || \
+      [ ! -f /opt/artifacts/vault-rest-linux-armhf ] || \
+      [ ! -f /opt/artifacts/vault-unit-linux-armhf ] || \
       \
       [ -z "$(find . /opt/artifacts -type f -name 'vault_*_amd64.deb' -print)" ] || \
       [ -z "$(find /opt/artifacts -type f -name 'vault_*_armhf.deb' -print)" ] \

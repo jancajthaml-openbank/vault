@@ -1,3 +1,2 @@
 bin
-debian_*/openbank/services/vault/vault
-
+debian_*/openbank/services/vault/vault*

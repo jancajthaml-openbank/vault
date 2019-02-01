@@ -18,7 +18,8 @@ package:
 .PHONY: bundle-binaries
 bundle-binaries:
 	@echo "[info] packaging binaries for linux/amd64"
-	@docker-compose run --rm package --arch linux/amd64 --pkg vault
+	@docker-compose run --rm package --arch linux/amd64 --pkg vault-unit
+	@docker-compose run --rm package --arch linux/amd64 --pkg vault-rest
 
 .PHONY: bundle-debian
 bundle-debian:
@@ -31,25 +32,32 @@ bootstrap:
 
 .PHONY: lint
 lint:
-	@docker-compose run --rm lint --pkg vault || :
+	@docker-compose run --rm lint --pkg vault-unit || :
+	@docker-compose run --rm lint --pkg vault-rest || :
 
 .PHONY: sec
 sec:
-	@docker-compose run --rm sec --pkg vault || :
+	@docker-compose run --rm sec --pkg vault-unit || :
+	@docker-compose run --rm sec --pkg vault-rest || :
 
 .PHONY: sync
 sync:
-	@echo "[info] sync vault"
-	@docker-compose run --rm sync --pkg vault
+	@echo "[info] sync vault-unit"
+	@docker-compose run --rm sync --pkg vault-unit
+	@echo "[info] sync vault-rest"
+	@docker-compose run --rm sync --pkg vault-rest
 
 .PHONY: update
 update:
-	@docker-compose run --rm update --pkg vault
+	@docker-compose run --rm update --pkg vault-unit
+	@docker-compose run --rm update --pkg vault-rest
 
 .PHONY: test
 test:
-	@echo "[info] test vault"
-	@docker-compose run --rm test --pkg vault
+	@echo "[info] test vault-unit"
+	@docker-compose run --rm test --pkg vault-unit
+	@echo "[info] test vault-rest"
+	@docker-compose run --rm test --pkg vault-rest
 
 .PHONY: release
 release:
@@ -58,10 +66,10 @@ release:
 .PHONY: bbtest
 bbtest:
 	@docker-compose build bbtest
-	@echo "removing older images if present"
+	@echo "[info] removing older images if present"
 	@(docker rm -f $$(docker ps -a --filter="name=vault_bbtest" -q) &> /dev/null || :)
-	@echo "running bbtest image"
-	@docker exec -it $$(\
+	@echo "[info] running bbtest image"
+	@(docker exec -it $$(\
 		docker run -d -ti \
 			--name=vault_bbtest \
 			-v /sys/fs/cgroup:/sys/fs/cgroup:ro \
@@ -74,6 +82,7 @@ bbtest:
 		--format documentation \
 		--format RspecJunitFormatter \
 		--out junit.xml \
-		--pattern /opt/bbtest/features/*.feature
-	@echo "removing bbtest image"
+		--pattern /opt/bbtest/features/*.feature || :)
+	@echo "[info] removing bbtest image"
 	@(docker rm -f $$(docker ps -a --filter="name=vault_bbtest" -q) &> /dev/null || :)
+

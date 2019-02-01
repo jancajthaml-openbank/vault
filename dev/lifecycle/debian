@@ -54,7 +54,7 @@ generate_changelog() {
     DATE=$(git log -1 --format=%cD ${tag})
     echo "vault (${VER}) ${DIST}; urgency=low" >> ${CHANGELOG}
     echo "" >> ${CHANGELOG}
-    echo "  * includes non-released commits" >> ${CHANGELOG}
+    echo "  * Includes non-released commits" >> ${CHANGELOG}
     echo "" >> ${CHANGELOG}
     echo " -- Jan Cajthaml <jan.cajthaml@gmail.com>  ${DATE}" >> ${CHANGELOG}
     echo "" >> ${CHANGELOG}
@@ -110,29 +110,44 @@ CONTROL=${DEB_SOURCES}/DEBIAN/control
 DIST=unstable
 FIRST=1
 
-if [ ! -f "${BIN_SOURCES}/vault-linux-${TARGET_ARCHITECTURE}" ] ; then
-  (>&2 echo "did not found binary to package at ${BIN_SOURCES}/vault-linux-${TARGET_ARCHITECTURE}")
+if [ ! -f "${BIN_SOURCES}/vault-unit-linux-${TARGET_ARCHITECTURE}" ] ; then
+  (>&2 echo "did not found binary to package at ${BIN_SOURCES}/vault-unit-linux-${TARGET_ARCHITECTURE}")
+  exit 1
+fi
+
+if [ ! -f "${BIN_SOURCES}/vault-rest-linux-${TARGET_ARCHITECTURE}" ] ; then
+  (>&2 echo "did not found binary to package at ${BIN_SOURCES}/vault-rest-linux-${TARGET_ARCHITECTURE}")
   exit 1
 fi
 
 mkdir -p ${DEB_SOURCES}/openbank/services/vault
 
-if [ -f "${DEB_SOURCES}/openbank/services/vault/vault" ] ; then
-  rm -f ${DEB_SOURCES}/openbank/services/vault/vault
+if [ -f "${DEB_SOURCES}/openbank/services/vault/vault-unit" ] ; then
+  rm -f ${DEB_SOURCES}/openbank/services/vault/vault-unit
 fi
 
-du -hs "${BIN_SOURCES}/vault-linux-${TARGET_ARCHITECTURE}"
+if [ -f "${DEB_SOURCES}/openbank/services/vault/vault-rest" ] ; then
+  rm -f ${DEB_SOURCES}/openbank/services/vault/vault-rest
+fi
+
+du -hs "${BIN_SOURCES}/vault-unit-linux-${TARGET_ARCHITECTURE}"
+du -hs "${BIN_SOURCES}/vault-rest-linux-${TARGET_ARCHITECTURE}"
 
 cp \
-  "${BIN_SOURCES}/vault-linux-${TARGET_ARCHITECTURE}" \
-  "${DEB_SOURCES}/openbank/services/vault/vault"
+  "${BIN_SOURCES}/vault-unit-linux-${TARGET_ARCHITECTURE}" \
+  "${DEB_SOURCES}/openbank/services/vault/vault-unit"
 
-file "${DEB_SOURCES}/openbank/services/vault/vault"
+cp \
+  "${BIN_SOURCES}/vault-rest-linux-${TARGET_ARCHITECTURE}" \
+  "${DEB_SOURCES}/openbank/services/vault/vault-rest"
+
+file "${DEB_SOURCES}/openbank/services/vault/vault-unit"
+file "${DEB_SOURCES}/openbank/services/vault/vault-rest"
 
 generate_changelog
 sed -i 's/Version.*/Version: '${VERSION#v}'/' ${CONTROL}
 
-find "${BIN_SOURCES}" -name "vault_*_${TARGET_ARCHITECTURE}.deb" -exec rm -f {} \;
+find "${BIN_SOURCES}" -type f -name "vault_*_${TARGET_ARCHITECTURE}.deb" -exec rm {} \;
 
 dpkg-deb --build "${DEB_SOURCES}" "${BIN_SOURCES}"
 

@@ -76,7 +76,7 @@ jobs:
 
             upload_to_docker_hub openbankdev/vault_base latest
       - save_cache:
-          key: vault-base-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
+          key: bondster-base-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
           paths:
             - /home/circleci/project
 
@@ -89,24 +89,31 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - vault-base-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
+            - bondster-base-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
       - run:
           name: ensure services namespace
           command: |
             mkdir -p /go/src/github.com/jancajthaml-openbank
-            cp -r /home/circleci/project/services/vault /go/src/github.com/jancajthaml-openbank/vault
+            cp -r /home/circleci/project/services/vault-rest /go/src/github.com/jancajthaml-openbank/vault-rest
+            cp -r /home/circleci/project/services/vault-unit /go/src/github.com/jancajthaml-openbank/vault-unit
       - run:
           name: sync dependencies
           command: |
-            ./dev/lifecycle/sync --pkg vault
+            ./dev/lifecycle/sync --pkg vault-rest
+            ./dev/lifecycle/sync --pkg vault-unit
       - run:
           name: move vendor folder to project
           command: |
-            cp -r /go/src/github.com/jancajthaml-openbank/vault/vendor /home/circleci/project/services/vault/vendor
+            cp -r /go/src/github.com/jancajthaml-openbank/vault-rest/vendor /home/circleci/project/services/vault-rest/vendor
+            cp -r /go/src/github.com/jancajthaml-openbank/vault-unit/vendor /home/circleci/project/services/vault-unit/vendor
       - run:
-          name: unit test
+          name: unit test vault-rest
           command: |
-            ./dev/lifecycle/test --pkg vault
+            ./dev/lifecycle/test --pkg vault-rest
+      - run:
+          name: unit test vault-unit
+          command: |
+            ./dev/lifecycle/test --pkg vault-unit
 
   # -------------------------------------------------------------------------- #
 
@@ -117,27 +124,35 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - vault-base-{{ .Environment.CIRCLE_SHA1 }}
+            - bondster-base-{{ .Environment.CIRCLE_SHA1 }}
       - run:
           name: ensure services namespace
           command: |
             mkdir -p /go/src/github.com/jancajthaml-openbank
-            cp -r /home/circleci/project/services/vault /go/src/github.com/jancajthaml-openbank/vault
+            cp -r /home/circleci/project/services/vault-rest /go/src/github.com/jancajthaml-openbank/vault-rest
+            cp -r /home/circleci/project/services/vault-unit /go/src/github.com/jancajthaml-openbank/vault-unit
       - run:
           name: sync dependencies
           command: |
-            ./dev/lifecycle/sync --pkg vault
+            ./dev/lifecycle/sync --pkg vault-rest
+            ./dev/lifecycle/sync --pkg vault-unit
       - run:
           name: move vendor folder to project
           command: |
-            cp -r /go/src/github.com/jancajthaml-openbank/vault/vendor /home/circleci/project/services/vault/vendor
+            cp -r /go/src/github.com/jancajthaml-openbank/vault-rest/vendor /home/circleci/project/services/vault-rest/vendor
+            cp -r /go/src/github.com/jancajthaml-openbank/vault-unit/vendor /home/circleci/project/services/vault-unit/vendor
       - run:
-          name: package binary
+          name: package binary of vault-unit
           command: |
-            ./dev/lifecycle/package --arch linux/amd64 --pkg vault
-            ./dev/lifecycle/package --arch linux/armhf --pkg vault
+            ./dev/lifecycle/package --arch linux/amd64 --pkg vault-unit
+            ./dev/lifecycle/package --arch linux/armhf --pkg vault-unit
       - run:
-          name: Package debian
+          name: package binary of vault-rest
+          command: |
+            ./dev/lifecycle/package --arch linux/amd64 --pkg vault-rest
+            ./dev/lifecycle/package --arch linux/armhf --pkg vault-rest
+      - run:
+          name: Package debian of vault
           command: |
             if [ -z ${CIRCLE_TAG} ] ; then
               tags=($(git tag --sort=-v:refname))
@@ -155,7 +170,7 @@ jobs:
             ./dev/lifecycle/debian -v ${VERSION} --arch amd64 --pkg vault
             ./dev/lifecycle/debian -v ${VERSION} --arch armhf --pkg vault
       - save_cache:
-          key: vault-binaries-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
+          key: bondster-binaries-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
           paths:
             - /home/circleci/project
       - persist_to_workspace:
@@ -172,7 +187,7 @@ jobs:
       - setup_remote_docker
       - restore_cache:
           keys:
-            - vault-binaries-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
+            - bondster-binaries-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
       - run: docker build -t openbank/vault .
       - run: docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}
       - deploy:
@@ -239,9 +254,11 @@ jobs:
       - setup_remote_docker
       - restore_cache:
           keys:
-            - vault-binaries-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
-      - run: if [ ! -f ./packaging/bin/vault-linux-amd64 ] ; then exit 1 ; fi
-      - run: if [ ! -f ./packaging/bin/vault-linux-armhf ] ; then exit 1 ; fi
+            - bondster-binaries-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
+      - run: if [ ! -f ./packaging/bin/vault-rest-linux-amd64 ] ; then exit 1 ; fi
+      - run: if [ ! -f ./packaging/bin/vault-unit-linux-amd64 ] ; then exit 1 ; fi
+      - run: if [ ! -f ./packaging/bin/vault-rest-linux-armhf ] ; then exit 1 ; fi
+      - run: if [ ! -f ./packaging/bin/vault-unit-linux-armhf ] ; then exit 1 ; fi
       - run: if [ ! -f ./packaging/bin/vault_${CIRCLE_TAG#v}_amd64.deb ] ; then exit 1 ; fi
       - run: if [ ! -f ./packaging/bin/vault_${CIRCLE_TAG#v}_armhf.deb ] ; then exit 1 ; fi
       - deploy:
