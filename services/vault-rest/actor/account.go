@@ -15,7 +15,6 @@
 package actor
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/jancajthaml-openbank/vault-rest/daemon"
@@ -83,8 +82,6 @@ func GetAccount(s *daemon.ActorSystem, tenant string, id string) (result interfa
 	// system in invalid state (and panics) -> fatal error
 	// timeout -> timeout
 	// account answer -> expected vs unexpected
-
-	fmt.Printf("actor get account tenant: %+v, id: %+v\n", tenant, id)
 
 	defer func() {
 		if r := recover(); r != nil {
