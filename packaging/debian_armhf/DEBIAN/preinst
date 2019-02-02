@@ -18,6 +18,8 @@ case "$1" in
       echo "VAULT_HTTP_PORT=4400" >> /etc/init/vault.conf
       echo "VAULT_SECRETS=/opt/vault/secrets" >> /etc/init/vault.conf
       echo "VAULT_LAKE_HOSTNAME=localhost" >> /etc/init/vault.conf
+      echo "VAULT_METRICS_REFRESHRATE=1s" >> /etc/init/vault.conf
+      echo "VAULT_METRICS_OUTPUT=/opt/vault/metrics/metrics.json" >> /etc/init/vault.conf
     fi
 
     secrets=$(sed -n -e 's/^.*VAULT_SECRETS=//p' /etc/init/vault.conf 2>/dev/null | awk '{gsub(/^ +| +$/,"")} {print $0}')

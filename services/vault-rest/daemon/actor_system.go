@@ -25,11 +25,13 @@ import (
 // ActorSystem represents actor system subroutine
 type ActorSystem struct {
 	system.Support
+	Metrics *Metrics
 }
 
 // NewActorSystem returns actor system fascade
-func NewActorSystem(ctx context.Context, cfg config.Configuration) ActorSystem {
+func NewActorSystem(ctx context.Context, cfg config.Configuration, metrics *Metrics) ActorSystem {
 	return ActorSystem{
 		Support: system.NewSupport(ctx, "VaultRest", cfg.LakeHostname),
+		Metrics: metrics,
 	}
 }
