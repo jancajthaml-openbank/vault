@@ -15,7 +15,6 @@
 package api
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -176,8 +175,6 @@ func GetAccounts(storage *localfs.Storage, tenant string, w http.ResponseWriter,
 
 // GetAccount returns snapshot existing account
 func GetAccount(system *daemon.ActorSystem, tenant string, id string, w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("GetAccount tenant: %+v, id: %+v\n", tenant, id)
-
 	switch result := actor.GetAccount(system, tenant, id).(type) {
 
 	case nil:
