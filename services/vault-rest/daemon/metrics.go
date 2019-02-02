@@ -16,12 +16,13 @@ package daemon
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"time"
 
-	"github.com/jancajthaml-openbank/vault-unit/config"
-	"github.com/jancajthaml-openbank/vault-unit/utils"
+	"github.com/jancajthaml-openbank/vault-rest/config"
+	"github.com/jancajthaml-openbank/vault-rest/utils"
 
 	metrics "github.com/rcrowley/go-metrics"
 	log "github.com/sirupsen/logrus"
@@ -29,64 +30,40 @@ import (
 
 // Snapshot holds metrics snapshot status
 type Snapshot struct {
-	SnapshotCronLatency float64 `json:"snapshotCronLatency"`
-	UpdatedSnapshots    int64   `json:"updatedSnapshots"`
-	CreatedAccounts     int64   `json:"createdAccounts"`
-	PromisesAccepted    int64   `json:"promisesAccepted"`
-	CommitsAccepted     int64   `json:"commitsAccepted"`
-	RollbacksAccepted   int64   `json:"rollbacksAccepted"`
+	GetAccountLatency    float64 `json:"getAccountLatency"`
+	CreateAccountLatency float64 `json:"createAccountLatency"`
+	CreatedAccounts      int64   `json:"createdAccounts"`
 }
 
 // Metrics represents metrics subroutine
 type Metrics struct {
 	Support
-	output              string
-	tenant              string
-	refreshRate         time.Duration
-	promisesAccepted    metrics.Counter
-	commitsAccepted     metrics.Counter
-	rollbacksAccepted   metrics.Counter
-	createdAccounts     metrics.Counter
-	updatedSnapshots    metrics.Meter
-	snapshotCronLatency metrics.Timer
+	output               string
+	refreshRate          time.Duration
+	getAccountLatency    metrics.Timer
+	createAccountLatency metrics.Timer
+	createdAccounts      metrics.Counter
 }
 
 // NewMetrics returns metrics fascade
 func NewMetrics(ctx context.Context, cfg config.Configuration) Metrics {
 	return Metrics{
-		Support:             NewDaemonSupport(ctx),
-		output:              cfg.MetricsOutput,
-		tenant:              cfg.Tenant,
-		refreshRate:         cfg.MetricsRefreshRate,
-		promisesAccepted:    metrics.NewCounter(),
-		commitsAccepted:     metrics.NewCounter(),
-		rollbacksAccepted:   metrics.NewCounter(),
-		createdAccounts:     metrics.NewCounter(),
-		updatedSnapshots:    metrics.NewMeter(),
-		snapshotCronLatency: metrics.NewTimer(),
+		Support:              NewDaemonSupport(ctx),
+		output:               cfg.MetricsOutput,
+		refreshRate:          cfg.MetricsRefreshRate,
+		getAccountLatency:    metrics.NewTimer(),
+		createAccountLatency: metrics.NewTimer(),
+		createdAccounts:      metrics.NewCounter(),
 	}
 }
 
 // NewSnapshot returns metrics snapshot
 func NewSnapshot(metrics Metrics) Snapshot {
 	return Snapshot{
-		SnapshotCronLatency: metrics.snapshotCronLatency.Percentile(0.95),
-		UpdatedSnapshots:    metrics.updatedSnapshots.Count(),
-		CreatedAccounts:     metrics.createdAccounts.Count(),
-		PromisesAccepted:    metrics.promisesAccepted.Count(),
-		CommitsAccepted:     metrics.commitsAccepted.Count(),
-		RollbacksAccepted:   metrics.rollbacksAccepted.Count(),
+		GetAccountLatency:    metrics.getAccountLatency.Percentile(0.95),
+		CreateAccountLatency: metrics.createAccountLatency.Percentile(0.95),
+		CreatedAccounts:      metrics.createdAccounts.Count(),
 	}
-}
-
-// TimeUpdateSaturatedSnapshots measures time of SaturatedSnapshots function run
-func (metrics Metrics) TimeUpdateSaturatedSnapshots(f func()) {
-	metrics.snapshotCronLatency.Time(f)
-}
-
-// SnapshotsUpdated increments updated snapshots by given count
-func (metrics Metrics) SnapshotsUpdated(count int64) {
-	metrics.updatedSnapshots.Mark(count)
 }
 
 // AccountCreated increments account created by one
@@ -94,19 +71,14 @@ func (metrics Metrics) AccountCreated() {
 	metrics.createdAccounts.Inc(1)
 }
 
-// PromiseAccepted increments accepted promises by one
-func (metrics Metrics) PromiseAccepted() {
-	metrics.promisesAccepted.Inc(1)
+// TimeGetAccount measure execution of GetAccount
+func (metrics Metrics) TimeGetAccount(f func()) {
+	metrics.getAccountLatency.Time(f)
 }
 
-// CommitAccepted increments accepted commits by one
-func (metrics Metrics) CommitAccepted() {
-	metrics.commitsAccepted.Inc(1)
-}
-
-// RollbackAccepted increments accepted rollbacks by one
-func (metrics Metrics) RollbackAccepted() {
-	metrics.rollbacksAccepted.Inc(1)
+// TimeCreateAccount measure execution of CreateAccount
+func (metrics Metrics) TimeCreateAccount(f func()) {
+	metrics.createAccountLatency.Time(f)
 }
 
 func (metrics Metrics) persist(filename string) {
@@ -137,17 +109,13 @@ func (metrics Metrics) persist(filename string) {
 	return
 }
 
-func getFilename(path string, tenant string) string {
-	if tenant == "" {
-		return path
-	}
-
+func getFilename(path string) string {
 	dirname := filepath.Dir(path)
 	ext := filepath.Ext(path)
 	filename := filepath.Base(path)
 	filename = filename[:len(filename)-len(ext)]
 
-	return dirname + "/" + filename + "." + tenant + ext
+	return fmt.Sprintf("%s/%s%s", dirname, filename, ext)
 }
 
 // Start handles everything needed to start metrics daemon
@@ -160,7 +128,7 @@ func (metrics Metrics) Start() {
 		return
 	}
 
-	output := getFilename(metrics.output, metrics.tenant)
+	output := getFilename(metrics.output)
 	ticker := time.NewTicker(metrics.refreshRate)
 	defer ticker.Stop()
 

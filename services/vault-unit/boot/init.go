@@ -68,6 +68,7 @@ func Initialize() Application {
 	}
 
 	storage := localfs.NewStorage(cfg.RootStorage)
+
 	metrics := daemon.NewMetrics(ctx, cfg)
 
 	actorSystem := daemon.NewActorSystem(ctx, cfg, &metrics, &storage)

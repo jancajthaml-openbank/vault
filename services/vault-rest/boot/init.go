@@ -35,6 +35,7 @@ type Application struct {
 	cfg           config.Configuration
 	interrupt     chan os.Signal
 	actorSystem   daemon.ActorSystem
+	metrics       daemon.Metrics
 	rest          daemon.Server
 	systemControl daemon.SystemControl
 	cancel        context.CancelFunc
@@ -72,7 +73,9 @@ func Initialize() Application {
 
 	storage := localfs.NewStorage(cfg.RootStorage)
 
-	actorSystem := daemon.NewActorSystem(ctx, cfg)
+	metrics := daemon.NewMetrics(ctx, cfg)
+
+	actorSystem := daemon.NewActorSystem(ctx, cfg, &metrics)
 	actorSystem.Support.RegisterOnRemoteMessage(actor.ProcessRemoteMessage(&actorSystem))
 
 	rest := daemon.NewServer(ctx, cfg)
@@ -85,6 +88,7 @@ func Initialize() Application {
 	return Application{
 		cfg:           cfg,
 		interrupt:     make(chan os.Signal, 1),
+		metrics:       metrics,
 		actorSystem:   actorSystem,
 		rest:          rest,
 		systemControl: systemControl,

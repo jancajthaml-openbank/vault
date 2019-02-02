@@ -19,6 +19,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -30,6 +31,8 @@ func loadConfFromEnv() Configuration {
 	rootStorage := getEnvString("VAULT_STORAGE", "/data")
 	lakeHostname := getEnvString("VAULT_LAKE_HOSTNAME", "")
 	port := getEnvInteger("VAULT_HTTP_PORT", 4001)
+	metricsOutput := getEnvString("VAULT_METRICS_OUTPUT", "")
+	metricsRefreshRate := getEnvDuration("VAULT_METRICS_REFRESHRATE", time.Second)
 
 	if lakeHostname == "" || secrets == "" || rootStorage == "" {
 		log.Fatal("missing required parameter to run")
@@ -46,13 +49,15 @@ func loadConfFromEnv() Configuration {
 	}
 
 	return Configuration{
-		RootStorage:  rootStorage,
-		ServerPort:   port,
-		SecretKey:    key,
-		SecretCert:   cert,
-		LakeHostname: lakeHostname,
-		LogOutput:    logOutput,
-		LogLevel:     logLevel,
+		RootStorage:        rootStorage,
+		ServerPort:         port,
+		SecretKey:          key,
+		SecretCert:         cert,
+		LakeHostname:       lakeHostname,
+		LogOutput:          logOutput,
+		LogLevel:           logLevel,
+		MetricsRefreshRate: metricsRefreshRate,
+		MetricsOutput:      metricsOutput,
 	}
 }
 
@@ -70,6 +75,18 @@ func getEnvInteger(key string, fallback int) int {
 		return fallback
 	}
 	cast, err := strconv.Atoi(value)
+	if err != nil {
+		log.Panicf("invalid value of variable %s", key)
+	}
+	return cast
+}
+
+func getEnvDuration(key string, fallback time.Duration) time.Duration {
+	value := strings.TrimSpace(os.Getenv(key))
+	if value == "" {
+		return fallback
+	}
+	cast, err := time.ParseDuration(value)
 	if err != nil {
 		log.Panicf("invalid value of variable %s", key)
 	}
