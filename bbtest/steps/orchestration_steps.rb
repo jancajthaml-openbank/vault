@@ -64,7 +64,7 @@ step "vault is reconfigured with" do |configuration|
     "JOURNAL_SATURATION" => "10000",
     "SNAPSHOT_SCANINTERVAL" => "1h",
     "METRICS_REFRESHRATE" => "1h",
-    "METRICS_OUTPUT" => "/opt/vault/metrics/metrics.json",
+    "METRICS_OUTPUT" => "/reports/metrics.json",
     "LAKE_HOSTNAME" => "localhost",
     "HTTP_PORT" => "4400",
     "SECRETS" => "/opt/vault/secrets",

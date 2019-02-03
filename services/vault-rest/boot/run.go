@@ -47,7 +47,7 @@ func (app Application) WaitReady(deadline time.Duration) (err error) {
 	}()
 
 	var wg sync.WaitGroup
-	wg.Add(3)
+	wg.Add(4)
 
 	go func() {
 		ticker := time.NewTicker(deadline)
@@ -88,6 +88,19 @@ func (app Application) WaitReady(deadline time.Duration) (err error) {
 		}
 	}()
 
+	go func() {
+		ticker := time.NewTicker(deadline)
+
+		select {
+		case <-app.metrics.IsReady:
+			wg.Done()
+			ticker.Stop()
+			return
+		case <-ticker.C:
+			panic("metrics was not ready within 5 seconds")
+		}
+	}()
+
 	wg.Wait()
 
 	return
@@ -102,6 +115,7 @@ func (app Application) WaitInterrupt() {
 func (app Application) Run() {
 	log.Info(">>> Start <<<")
 
+	go app.metrics.Start()
 	go app.actorSystem.Start()
 	go app.systemControl.Start()
 	go app.rest.Start()
@@ -121,6 +135,7 @@ func (app Application) Run() {
 	app.rest.Stop()
 	app.actorSystem.Stop()
 	app.systemControl.Stop()
+	app.metrics.Stop()
 	app.cancel()
 
 	log.Info(">>> Stop <<<")
