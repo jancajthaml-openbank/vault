@@ -17,6 +17,7 @@ package config
 import (
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -36,6 +37,10 @@ func loadConfFromEnv() Configuration {
 
 	if lakeHostname == "" || secrets == "" || rootStorage == "" {
 		log.Fatal("missing required parameter to run")
+	}
+
+	if metricsOutput != "" && os.MkdirAll(filepath.Dir(metricsOutput), os.ModePerm) != nil {
+		log.Fatal("unable to assert metrics output")
 	}
 
 	cert, err := ioutil.ReadFile(secrets + "/domain.local.crt")
