@@ -70,7 +70,7 @@ step "vault is reconfigured with" do |configuration|
     "SECRETS" => "/opt/vault/secrets",
   }
 
-  config = Array[defaults.merge(params).map {|k,v| "VAULT_#{k}=#{v}"}]
+  config = Array[defaults.merge(params).map { |k,v| "VAULT_#{k}=#{v}" }]
   config = config.join("\n").inspect.delete('\"')
 
   %x(mkdir -p /etc/init)

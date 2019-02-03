@@ -28,94 +28,98 @@ import (
 
 // CreateAccount creates new account for target tenant vault
 func CreateAccount(s *daemon.ActorSystem, tenant string, account model.Account) (result interface{}) {
-	// FIXME properly determine fail states
-	// input validation -> input error
-	// system in invalid state (and panics) -> fatal error
-	// timeout -> timeout
-	// account answer -> expected vs unexpected
+	s.Metrics.TimeCreateAccount(func() {
+		// FIXME properly determine fail states
+		// input validation -> input error
+		// system in invalid state (and panics) -> fatal error
+		// timeout -> timeout
+		// account answer -> expected vs unexpected
 
-	defer func() {
-		if r := recover(); r != nil {
-			log.Errorf("CreateAccount recovered in %v", r)
-			result = nil
-		}
-	}()
-
-	ch := make(chan interface{})
-	defer close(ch)
-
-	envelope := system.NewEnvelope("relay/"+xid.New().String(), nil)
-	defer s.UnregisterActor(envelope.Name)
-
-	s.RegisterActor(envelope, func(state interface{}, context system.Context) {
-		switch msg := context.Data.(type) {
-		case model.AccountCreated:
-			if account.IsBalanceCheck {
-				s.BroadcastRemote(tenant + " A_NEW " + account.Name + " " + account.Currency + " T") // FIXME ACTIVE
-			} else {
-				s.BroadcastRemote(tenant + " A_NEW " + account.Name + " " + account.Currency + " F") // FIXME PASIVE
+		defer func() {
+			if r := recover(); r != nil {
+				log.Errorf("CreateAccount recovered in %v", r)
+				result = nil
 			}
-			ch <- &msg
-		default:
-			ch <- nil
+		}()
+
+		ch := make(chan interface{})
+		defer close(ch)
+
+		envelope := system.NewEnvelope("relay/"+xid.New().String(), nil)
+		defer s.UnregisterActor(envelope.Name)
+
+		s.RegisterActor(envelope, func(state interface{}, context system.Context) {
+			switch msg := context.Data.(type) {
+			case model.AccountCreated:
+				if account.IsBalanceCheck {
+					s.BroadcastRemote(tenant + " A_NEW " + account.Name + " " + account.Currency + " T") // FIXME ACTIVE
+				} else {
+					s.BroadcastRemote(tenant + " A_NEW " + account.Name + " " + account.Currency + " F") // FIXME PASIVE
+				}
+				ch <- &msg
+				s.Metrics.AccountCreated()
+			default:
+				ch <- nil
+			}
+		})
+
+		s.SendRemote("VaultUnit/"+tenant, CreateAccountMessage(envelope.Name, account.Name, account.Currency, account.IsBalanceCheck))
+
+		select {
+
+		case result = <-ch:
+			return
+
+		case <-time.After(time.Second):
+			result = new(model.ReplyTimeout)
+			return
 		}
 	})
-
-	s.SendRemote("VaultUnit/"+tenant, CreateAccountMessage(envelope.Name, account.Name, account.Currency, account.IsBalanceCheck))
-
-	select {
-
-	case result = <-ch:
-		return
-
-	case <-time.After(time.Second):
-		result = new(model.ReplyTimeout)
-		return
-	}
 	return
 }
 
 // GetAccount retrives account state from target tenant vault
 func GetAccount(s *daemon.ActorSystem, tenant string, id string) (result interface{}) {
-	// FIXME properly determine fail states
-	// input validation -> input error
-	// system in invalid state (and panics) -> fatal error
-	// timeout -> timeout
-	// account answer -> expected vs unexpected
+	s.Metrics.TimeGetAccount(func() {
+		// FIXME properly determine fail states
+		// input validation -> input error
+		// system in invalid state (and panics) -> fatal error
+		// timeout -> timeout
+		// account answer -> expected vs unexpected
 
-	defer func() {
-		if r := recover(); r != nil {
-			log.Errorf("GetAccount recovered in %v", r)
-			result = nil
-		}
-	}()
+		defer func() {
+			if r := recover(); r != nil {
+				log.Errorf("GetAccount recovered in %v", r)
+				result = nil
+			}
+		}()
 
-	ch := make(chan interface{})
-	defer close(ch)
+		ch := make(chan interface{})
+		defer close(ch)
 
-	envelope := system.NewEnvelope("relay/"+xid.New().String(), nil)
-	defer s.UnregisterActor(envelope.Name)
+		envelope := system.NewEnvelope("relay/"+xid.New().String(), nil)
+		defer s.UnregisterActor(envelope.Name)
 
-	s.RegisterActor(envelope, func(state interface{}, context system.Context) {
-		switch msg := context.Data.(type) {
-		case model.Account:
-			ch <- &msg
-		default:
-			ch <- nil
+		s.RegisterActor(envelope, func(state interface{}, context system.Context) {
+			switch msg := context.Data.(type) {
+			case model.Account:
+				ch <- &msg
+			default:
+				ch <- nil
+			}
+		})
+
+		s.SendRemote("VaultUnit/"+tenant, GetAccountMessage(envelope.Name, id))
+
+		select {
+
+		case result = <-ch:
+			return
+
+		case <-time.After(time.Second):
+			result = new(model.ReplyTimeout)
+			return
 		}
 	})
-
-	s.SendRemote("VaultUnit/"+tenant, GetAccountMessage(envelope.Name, id))
-
-	select {
-
-	case result = <-ch:
-		return
-
-	case <-time.After(time.Second):
-		result = new(model.ReplyTimeout)
-		return
-	}
-
 	return
 }
