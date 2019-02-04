@@ -28,13 +28,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Snapshot holds metrics snapshot status
-type Snapshot struct {
-	GetAccountLatency    float64 `json:"getAccountLatency"`
-	CreateAccountLatency float64 `json:"createAccountLatency"`
-	CreatedAccounts      int64   `json:"createdAccounts"`
-}
-
 // Metrics represents metrics subroutine
 type Metrics struct {
 	Support
@@ -55,6 +48,13 @@ func NewMetrics(ctx context.Context, cfg config.Configuration) Metrics {
 		createAccountLatency: metrics.NewTimer(),
 		createdAccounts:      metrics.NewCounter(),
 	}
+}
+
+// Snapshot holds metrics snapshot status
+type Snapshot struct {
+	GetAccountLatency    float64 `json:"getAccountLatency"`
+	CreateAccountLatency float64 `json:"createAccountLatency"`
+	CreatedAccounts      int64   `json:"createdAccounts"`
 }
 
 // NewSnapshot returns metrics snapshot

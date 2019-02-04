@@ -15,6 +15,8 @@
 package actor
 
 import (
+	"fmt"
+
 	"github.com/jancajthaml-openbank/vault-unit/daemon"
 	"github.com/jancajthaml-openbank/vault-unit/model"
 
@@ -22,6 +24,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	money "gopkg.in/inf.v0"
 )
+
+var nilCoordinates = system.Coordinates{}
 
 // ProcessLocalMessage processing of local message to this vault
 func ProcessLocalMessage(s *daemon.ActorSystem) system.ProcessLocalMessage {
@@ -44,30 +48,52 @@ func ProcessLocalMessage(s *daemon.ActorSystem) system.ProcessLocalMessage {
 	}
 }
 
+func asEnvelopes(s *daemon.ActorSystem, parts []string) (system.Coordinates, system.Coordinates, string, error) {
+	if len(parts) < 4 {
+		return nilCoordinates, nilCoordinates, "", fmt.Errorf("invalid message received %+v", parts)
+	}
+
+	region, receiver, sender, payload := parts[0], parts[1], parts[2], parts[3]
+
+	from := system.Coordinates{
+		Name:   sender,
+		Region: region,
+	}
+
+	to := system.Coordinates{
+		Name:   receiver,
+		Region: s.Name,
+	}
+
+	return from, to, payload, nil
+}
+
+func spawnAccountActor(s *daemon.ActorSystem, name string) (*system.Envelope, error) {
+	envelope := system.NewEnvelope(name, model.NewAccount(name))
+
+	err := s.RegisterActor(envelope, NilAccount(s))
+	if err != nil {
+		log.Warnf("%s ~ Spawning Actor Error unable to register", name)
+		return nil, err
+	}
+
+	log.Debugf("%s ~ Actor Spawned", name)
+	return envelope, nil
+}
+
 // ProcessRemoteMessage processing of remote message to this vault
 func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 	return func(parts []string) {
-		if len(parts) < 4 {
-			log.Warnf("invalid message received %+v", parts)
+		from, to, payload, err := asEnvelopes(s, parts)
+		if err != nil {
+			log.Warn(err.Error())
 			return
-		}
-
-		region, receiver, sender, payload := parts[0], parts[1], parts[2], parts[3]
-
-		from := system.Coordinates{
-			Name:   sender,
-			Region: region,
-		}
-
-		to := system.Coordinates{
-			Name:   receiver,
-			Region: s.Name,
 		}
 
 		defer func() {
 			if r := recover(); r != nil {
 				log.Errorf("procesRemoteMessage recovered in [remote %v -> local %v] : %+v", from, to, r)
-				s.SendRemote(region, FatalErrorMessage(to.Name, from.Name))
+				s.SendRemote(from.Region, FatalErrorMessage(to.Name, from.Name))
 			}
 		}()
 
@@ -78,7 +104,7 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 
 		if err != nil {
 			log.Warnf("Actor not found [remote %v -> local %v]", from, to)
-			s.SendRemote(region, FatalErrorMessage(to.Name, from.Name))
+			s.SendRemote(from.Region, FatalErrorMessage(to.Name, from.Name))
 			return
 		}
 
@@ -135,23 +161,10 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 
 		if message == nil {
 			log.Warnf("Deserialization of unsuported message [remote %v -> local %v] : %+v", from, to, parts)
-			s.SendRemote(region, FatalErrorMessage(to.Name, from.Name))
+			s.SendRemote(from.Region, FatalErrorMessage(to.Name, from.Name))
 			return
 		}
 
 		ref.Tell(message, from)
 	}
-}
-
-func spawnAccountActor(s *daemon.ActorSystem, name string) (*system.Envelope, error) {
-	envelope := system.NewEnvelope(name, model.NewAccount(name))
-
-	err := s.RegisterActor(envelope, NilAccount(s))
-	if err != nil {
-		log.Warnf("%s ~ Spawning Actor Error unable to register", name)
-		return nil, err
-	}
-
-	log.Debugf("%s ~ Actor Spawned", name)
-	return envelope, nil
 }
