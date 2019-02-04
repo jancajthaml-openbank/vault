@@ -35,6 +35,7 @@ type Account struct {
 	IsBalanceCheck bool   `json:"isBalanceCheck"`
 }
 
+// UnmarshalJSON unmarshal json of Account entity
 func (entity *Account) UnmarshalJSON(data []byte) error {
 	if entity == nil {
 		return fmt.Errorf("cannot unmarshall to nil pointer")
