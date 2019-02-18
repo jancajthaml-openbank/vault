@@ -46,7 +46,7 @@ func loadConfFromEnv() Configuration {
 	return Configuration{
 		Tenant:               tenant,
 		LakeHostname:         lakeHostname,
-		RootStorage:          storage + "/" + tenant,
+		RootStorage:          storage + "/" + "t_" + tenant,
 		LogOutput:            logOutput,
 		LogLevel:             logLevel,
 		MetricsRefreshRate:   metricsRefreshRate,

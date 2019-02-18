@@ -13,7 +13,7 @@ module JournalHelper
   def self.account_snapshot(tenant, account, version)
     snapshots = [version.to_s.rjust(10, '0')]
 
-    path = "/data/#{tenant}/account/#{account}/snapshot/#{snapshots[0]}"
+    path = "/data/t_#{tenant}/account/#{account}/snapshot/#{snapshots[0]}"
 
     File.open(path, 'rb') { |f|
       data = f.read
@@ -34,13 +34,13 @@ module JournalHelper
 
   def self.account_latest_snapshot(tenant, account)
     snapshots = []
-    Dir.foreach("/data/#{tenant}/account/#{account}/snapshot") { |f|
+    Dir.foreach("/data/t_#{tenant}/account/#{account}/snapshot") { |f|
       snapshots << f unless f.start_with?(".")
     }
     return if snapshots.empty?
     snapshots.sort_by! { |i| -i.to_i }
 
-    path = "/data/#{tenant}/account/#{account}/snapshot/#{snapshots[0]}"
+    path = "/data/t_#{tenant}/account/#{account}/snapshot/#{snapshots[0]}"
 
     File.open(path, 'rb') { |f|
       data = f.read

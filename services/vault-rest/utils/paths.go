@@ -16,5 +16,5 @@ package utils
 
 // AccountsPath returns filepath for accounts
 func AccountsPath(tenant string) string {
-	return tenant + "/account"
+	return "t_" + tenant + "/account"
 }

@@ -1,3 +1,18 @@
+vault (1.2.0) unstable; urgency=low
+
+  * Do not exit 1 if unable to start after installation (#79)
+  * Fixed linting issues (#78)
+  * Actually use metrics for vault-rest (#77)
+  * Start metrics daemon for vault-rest (#76)
+  * Added getAccountLatency and createAccount latency to vault-rest metrics (#75)
+  * Removed debugging messages (#73)
+  * Preinstall dependencies for bbtest in image (#72)
+  * Rest server for accounts access, fixed receiver/sender swap bug (#71)
+  * More pedant linter, fixed some issues (#69)
+  * Using localfs@v1.0.0 (#68)
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Mon, 4 Feb 2019 09:56:29 +0100
+
 vault (1.1.4) unstable; urgency=low
 
   * Using provided and local-fs for persistence (#67)
