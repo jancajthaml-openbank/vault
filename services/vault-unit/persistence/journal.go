@@ -15,7 +15,6 @@
 package persistence
 
 import (
-	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -33,13 +32,11 @@ func LoadAccount(storage *localfs.Storage, name string) *model.Account {
 
 	snapshots, err := storage.ListDirectory(allPath, false)
 	if err != nil || len(snapshots) == 0 {
-		fmt.Printf("fail-1 %+v", err)
 		return nil
 	}
 
 	data, err := storage.ReadFileFully(allPath + "/" + snapshots[0])
 	if err != nil {
-		fmt.Printf("fail-2 %+v", err)
 		return nil
 	}
 
