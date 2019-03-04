@@ -3,8 +3,8 @@ version: 1
 update_configs:
   - package_manager: "go:modules"
     directory: "/services/vault-rest"
-    update_schedule: "live"
+    update_schedule: "daily"
 
   - package_manager: "go:modules"
     directory: "/services/vault-unit"
-    update_schedule: "live"
+    update_schedule: "daily"
