@@ -5,12 +5,12 @@ require 'timeout'
 
 class LakeMessage
 
-  def initialize(msg)
+  def initialize(_)
     raise "raw LakeMessage cannot be initialized"
   end
 
-  def ===(other)
-    other === @raw
+  def ==(other)
+    other == @raw
   end
 
   def to_s
@@ -212,7 +212,7 @@ module LakeMock
   def self.pulled_message?(expected)
     copy = self.recv_backlog.dup
     copy.each { |item|
-      return true if self.parse_message(item) === expected
+      return true if self.parse_message(item) == expected
     }
     return false
   end
@@ -223,7 +223,7 @@ module LakeMock
 
   def self.ack(data)
     self.mutex.synchronize do
-      self.recv_backlog.reject! { |v| self.parse_message(v) === data }
+      self.recv_backlog.reject! { |v| self.parse_message(v) == data }
     end
   end
 
