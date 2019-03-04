@@ -16,6 +16,8 @@ package daemon
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/jancajthaml-openbank/vault-rest/config"
 
@@ -33,5 +35,32 @@ func NewActorSystem(ctx context.Context, cfg config.Configuration, metrics *Metr
 	return ActorSystem{
 		Support: system.NewSupport(ctx, "VaultRest", cfg.LakeHostname),
 		Metrics: metrics,
+	}
+}
+
+// WaitReady wait for system to be ready
+func (system ActorSystem) WaitReady(deadline time.Duration) (err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			switch x := e.(type) {
+			case string:
+				err = fmt.Errorf(x)
+			case error:
+				err = x
+			default:
+				err = fmt.Errorf("unknown panic")
+			}
+		}
+	}()
+
+	ticker := time.NewTicker(deadline)
+	select {
+	case <-system.IsReady:
+		ticker.Stop()
+		err = nil
+		return
+	case <-ticker.C:
+		err = fmt.Errorf("daemon was not ready within %v seconds", deadline)
+		return
 	}
 }

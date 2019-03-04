@@ -109,11 +109,7 @@ func NewAccount(name string) Account {
 }
 
 // Serialise Account entity to persistable data
-func (entity *Account) Serialise() []byte {
-	if entity == nil {
-		return nil
-	}
-
+func (entity Account) Serialise() []byte {
 	var buffer bytes.Buffer
 
 	if entity.IsBalanceCheck {

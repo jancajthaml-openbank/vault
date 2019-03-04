@@ -16,6 +16,7 @@ package daemon
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -102,6 +103,33 @@ func (updater SnapshotUpdater) getEvents(name string, version int) int {
 		return -1
 	}
 	return result
+}
+
+// WaitReady wait for snapshot updated to be ready
+func (updater SnapshotUpdater) WaitReady(deadline time.Duration) (err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			switch x := e.(type) {
+			case string:
+				err = fmt.Errorf(x)
+			case error:
+				err = x
+			default:
+				err = fmt.Errorf("unknown panic")
+			}
+		}
+	}()
+
+	ticker := time.NewTicker(deadline)
+	select {
+	case <-updater.IsReady:
+		ticker.Stop()
+		err = nil
+		return
+	case <-ticker.C:
+		err = fmt.Errorf("daemon was not ready within %v seconds", deadline)
+		return
+	}
 }
 
 // Start handles everything needed to start snapshot updater daemon it runs scan
