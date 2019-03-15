@@ -12,7 +12,10 @@ case "$1" in
     systemctl disable vault.service
 
     (rm /lib/systemd/system/vault-rest.service || :)
-    (rm /lib/systemd/system/vault-unit.service || :)
+    (rm /lib/systemd/system/vault-rest.path || :)
+
+    (rm /lib/systemd/system/vault-unit@.service || :)
+    (rm /lib/systemd/system/vault-unit@.path || :)
 
     (rm /etc/init/vault.conf || :)
 
