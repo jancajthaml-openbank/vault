@@ -5,12 +5,17 @@ set -e
 case "$1" in
 
   purge)
+    systemctl stop vault-rest.service
+    systemctl disable vault-rest.service
+
     systemctl stop vault.service
     systemctl disable vault.service
-    (rm /lib/systemd/system/vault.service || :)
-    (rm /lib/systemd/system/vault.service || :)
+
+    (rm /lib/systemd/system/vault-rest.service || :)
+    (rm /lib/systemd/system/vault-unit.service || :)
+
     (rm /etc/init/vault.conf || :)
-    (rm /opt/vault/metrics/metrics.json || :)
+
     systemctl daemon-reload
     systemctl reset-failed
   ;;

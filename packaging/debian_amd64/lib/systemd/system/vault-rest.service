@@ -1,13 +1,13 @@
 [Unit]
-Description=openbank account vault tenant %i
-After=inetd.service
+Description=openbank account vault REST service
+PartOf=vault.service
+After=vault.service
 
 [Service]
 Type=notify
-Environment=VAULT_TENANT=%i
 EnvironmentFile=/etc/init/vault.conf
 StartLimitBurst=0
-ExecStart=/openbank/services/vault/vault-unit %i
+ExecStart=/openbank/services/vault/vault-rest
 StandardInput=null
 LimitNOFILE=1048576
 LimitNPROC=infinity
@@ -19,4 +19,4 @@ TimeoutSec=infinity
 KillMode=process
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=vault.service

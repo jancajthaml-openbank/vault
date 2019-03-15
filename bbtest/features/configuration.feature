@@ -4,7 +4,7 @@ Feature: Service can be configured
     Given tenant CONFIGURATION is onbdoarded
     Then systemctl contains following
     """
-      vault@CONFIGURATION.service
+      vault-unit@CONFIGURATION.service
     """
 
   Scenario: configure log level
@@ -13,7 +13,7 @@ Feature: Service can be configured
     """
       LOG_LEVEL=DEBUG
     """
-    Then journalctl of "vault@CONFIGURATION.service" contains following
+    Then journalctl of "vault-unit@CONFIGURATION.service" contains following
     """
       Log level set to DEBUG
     """
@@ -22,7 +22,7 @@ Feature: Service can be configured
     """
       LOG_LEVEL=ERROR
     """
-    Then journalctl of "vault@CONFIGURATION.service" contains following
+    Then journalctl of "vault-unit@CONFIGURATION.service" contains following
     """
       Log level set to ERROR
     """
@@ -31,7 +31,7 @@ Feature: Service can be configured
     """
       LOG_LEVEL=INFO
     """
-    Then journalctl of "vault@CONFIGURATION.service" contains following
+    Then journalctl of "vault-unit@CONFIGURATION.service" contains following
     """
       Log level set to INFO
     """
