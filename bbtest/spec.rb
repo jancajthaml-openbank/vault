@@ -45,7 +45,7 @@ RSpec.configure do |config|
 
     if $?
       ids = ids.split("\n").map(&:strip).reject { |x|
-        x.empty? || !x.start_with?("vault@")
+        x.empty? || !x.start_with?("vault-unit@")
       }.map { |x| x.chomp(".service") }
     else
       ids = []

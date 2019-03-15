@@ -1,2 +1,1 @@
 /etc/init/vault.conf
-/opt/vault/metrics/metrics.json

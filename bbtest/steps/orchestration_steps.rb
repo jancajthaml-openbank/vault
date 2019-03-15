@@ -5,7 +5,7 @@ step "vault is restarted" do ||
   expect($?).to be_success, ids
 
   ids = ids.split("\n").map(&:strip).reject { |x|
-    x.empty? || !x.start_with?("vault@")
+    x.empty? || !x.start_with?("vault-unit@")
   }.map { |x| x.chomp(".service") }
 
   expect(ids).not_to be_empty
@@ -24,10 +24,10 @@ end
 
 step "tenant :tenant is offboarded" do |tenant|
   eventually() {
-    %x(journalctl -o short-precise -u vault@#{tenant}.service --no-pager > /reports/vault@#{tenant}.log 2>&1)
-    %x(systemctl stop vault@#{tenant} 2>&1)
-    %x(systemctl disable vault@#{tenant} 2>&1)
-    %x(journalctl -o short-precise -u vault@#{tenant}.service --no-pager > /reports/vault@#{tenant}.log 2>&1)
+    %x(journalctl -o short-precise -u vault-unit@#{tenant}.service --no-pager > /reports/vault-unit@#{tenant}.log 2>&1)
+    %x(systemctl stop vault-unit@#{tenant} 2>&1)
+    %x(systemctl disable vault-unit@#{tenant} 2>&1)
+    %x(journalctl -o short-precise -u vault-unit@#{tenant}.service --no-pager > /reports/vault-unit@#{tenant}.log 2>&1)
   }
 end
 
@@ -47,11 +47,11 @@ step "tenant :tenant is onbdoarded" do |tenant|
   %x(mkdir -p /etc/init)
   %x(echo '#{params}' > /etc/init/vault.conf)
 
-  %x(systemctl enable vault@#{tenant} 2>&1)
-  %x(systemctl start vault@#{tenant} 2>&1)
+  %x(systemctl enable vault-unit@#{tenant} 2>&1)
+  %x(systemctl start vault-unit@#{tenant} 2>&1)
 
   eventually() {
-    out = %x(systemctl show -p SubState vault@#{tenant} 2>&1 | sed 's/SubState=//g')
+    out = %x(systemctl show -p SubState vault-unit@#{tenant} 2>&1 | sed 's/SubState=//g')
     expect(out.strip).to eq("running")
   }
 end
@@ -80,7 +80,7 @@ step "vault is reconfigured with" do |configuration|
   expect($?).to be_success, ids
 
   ids = ids.split("\n").map(&:strip).reject { |x|
-    x.empty? || !x.start_with?("vault")
+    x.empty? || !x.start_with?("vault-")
   }.map { |x| x.chomp(".service") }
 
   expect(ids).not_to be_empty

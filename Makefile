@@ -42,9 +42,7 @@ sec:
 
 .PHONY: sync
 sync:
-	@echo "[info] sync vault-unit"
 	@docker-compose run --rm sync --pkg vault-unit
-	@echo "[info] sync vault-rest"
 	@docker-compose run --rm sync --pkg vault-rest
 
 .PHONY: update
@@ -54,9 +52,7 @@ update:
 
 .PHONY: test
 test:
-	@echo "[info] test vault-unit"
 	@docker-compose run --rm test --pkg vault-unit
-	@echo "[info] test vault-rest"
 	@docker-compose run --rm test --pkg vault-rest
 
 .PHONY: release
