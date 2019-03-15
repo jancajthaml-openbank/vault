@@ -5,4 +5,4 @@ Description=openbank account vault REST service
 PathChanged=/etc/init/vault.conf
 
 [Install]
-WantedBy=vault.service
+WantedBy=vault-rest.service
