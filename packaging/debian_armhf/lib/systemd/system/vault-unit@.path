@@ -1,8 +1,0 @@
-[Unit]
-Description=openbank account vault tenant %i
-
-[Path]
-PathChanged=/etc/init/vault.conf
-
-[Install]
-WantedBy=vault-unit@.service

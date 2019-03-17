@@ -1,12 +1,5 @@
 Feature: Service can be configured
 
-  Scenario: properly installed debian package
-    Given tenant CONFIGURATION is onbdoarded
-    Then systemctl contains following
-    """
-      vault-unit@CONFIGURATION.service
-    """
-
   Scenario: configure log level
     Given tenant CONFIGURATION is onbdoarded
     And vault is reconfigured with
