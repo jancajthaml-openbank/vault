@@ -6,13 +6,18 @@ case "$1" in
 
   configure)
     if [ -f "/etc/init/vault.conf" ] ; then
-      systemctl unmask vault-rest.service >/dev/null
-      systemctl enable vault-rest.service >/dev/null
+      systemctl unmask \
+        vault.path \
+        vault-unit.service \
+        vault-rest.service \
+        vault.service \
+      >/dev/null
 
-      systemctl unmask vault-unit.service >/dev/null
-
-      systemctl unmask vault.service >/dev/null
-      systemctl enable vault.service >/dev/null
+      systemctl enable \
+        vault.path \
+        vault-rest.service \
+        vault.service \
+      >/dev/null
 
       (systemctl start vault.service >/dev/null || :)
     else

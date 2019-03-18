@@ -14,7 +14,6 @@ case "$1" in
       echo "VAULT_JOURNAL_SATURATION=200" >> /etc/init/vault.conf
       echo "VAULT_SNAPSHOT_SCANINTERVAL=120s" >> /etc/init/vault.conf
       echo "VAULT_METRICS_REFRESHRATE=1s" >> /etc/init/vault.conf
-      echo "VAULT_METRICS_OUTPUT=/opt/vault/metrics/metrics.json" >> /etc/init/vault.conf
       echo "VAULT_HTTP_PORT=4400" >> /etc/init/vault.conf
       echo "VAULT_SECRETS=/opt/vault/secrets" >> /etc/init/vault.conf
       echo "VAULT_LAKE_HOSTNAME=localhost" >> /etc/init/vault.conf

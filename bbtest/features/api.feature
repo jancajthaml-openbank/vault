@@ -1,6 +1,51 @@
-Feature: Account API test
+Feature: REST
 
-  Scenario: Account API - get accounts when application is from scratch
+  Scenario: Tenant API
+    Given vault is reconfigured with
+    """
+      LOG_LEVEL=DEBUG
+      HTTP_PORT=443
+    """
+
+    When I request curl GET https://localhost/tenant
+    Then curl responds with 200
+    """
+      []
+    """
+
+    When I request curl POST https://localhost/tenant/APITESTA
+    Then curl responds with 200
+    """
+      {}
+    """
+
+    When I request curl POST https://localhost/tenant/APITESTB
+    Then curl responds with 200
+    """
+      {}
+    """
+
+    When I request curl GET https://localhost/tenant
+    Then curl responds with 200
+    """
+      [
+        "APITESTB"
+      ]
+    """
+
+    When I request curl POST https://localhost/tenant/APITESTC
+    Then curl responds with 200
+    """
+      {}
+    """
+
+    When I request curl DELETE https://localhost/tenant/APITESTC
+    Then curl responds with 200
+    """
+      {}
+    """
+
+  Scenario: Account API
     Given tenant API is onbdoarded
     And vault is reconfigured with
     """
@@ -14,39 +59,16 @@ Feature: Account API test
       []
     """
 
-  Scenario: Account API - account doesn't exist
-    Given tenant API is onbdoarded
-    And vault is reconfigured with
-    """
-      LOG_LEVEL=DEBUG
-      HTTP_PORT=443
-    """
-
     When I request curl GET https://localhost/account/API/xxx
     Then curl responds with 404
     """
       {}
     """
 
-  Scenario: Account API - request for account of non-existent vault
-    Given vault is reconfigured with
-    """
-      LOG_LEVEL=DEBUG
-      HTTP_PORT=443
-    """
-
     When I request curl GET https://localhost/account/nothing/xxx
     Then curl responds with 504
     """
       {}
-    """
-
-  Scenario: Account API - create non existant account
-    Given tenant API is onbdoarded
-    And vault is reconfigured with
-    """
-      LOG_LEVEL=DEBUG
-      HTTP_PORT=443
     """
 
     When I request curl POST https://localhost/account/API
@@ -60,14 +82,6 @@ Feature: Account API test
     Then curl responds with 200
     """
       {}
-    """
-
-  Scenario: Account API - account already exists
-    Given tenant API is onbdoarded
-    And vault is reconfigured with
-    """
-      LOG_LEVEL=DEBUG
-      HTTP_PORT=443
     """
 
     When I request curl POST https://localhost/account/API
@@ -96,14 +110,6 @@ Feature: Account API test
       {}
     """
 
-  Scenario: Account API - get accounts
-    Given tenant API is onbdoarded
-    And vault is reconfigured with
-    """
-      LOG_LEVEL=DEBUG
-      HTTP_PORT=443
-    """
-
     When I request curl POST https://localhost/account/API
     """
       {
@@ -121,14 +127,6 @@ Feature: Account API test
         "A",
         "B"
       ]
-    """
-
-  Scenario: Account API - get account balance
-    Given tenant API is onbdoarded
-    And vault is reconfigured with
-    """
-      LOG_LEVEL=DEBUG
-      HTTP_PORT=443
     """
 
     When I request curl POST https://localhost/account/API
