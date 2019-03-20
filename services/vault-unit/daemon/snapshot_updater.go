@@ -141,9 +141,16 @@ func (updater SnapshotUpdater) Start() {
 	ticker := time.NewTicker(updater.scanInterval)
 	defer ticker.Stop()
 
-	log.Infof("Start snapshot updater daemon, scan each %v and update journals with at least %d events", updater.scanInterval, updater.saturationThreshold)
-
 	updater.MarkReady()
+
+	select {
+	case <-updater.canStart:
+		break
+	case <-updater.Done():
+		return
+	}
+
+	log.Infof("Start snapshot updater daemon, scan each %v and update journals with at least %d events", updater.scanInterval, updater.saturationThreshold)
 
 	for {
 		select {
