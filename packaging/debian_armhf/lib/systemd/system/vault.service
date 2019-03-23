@@ -1,6 +1,7 @@
 [Unit]
 Description=openbank account vault services namespace
 After=inetd.service
+ConditionPathExists=/etc/init/vault.conf
 
 [Service]
 Type=oneshot
