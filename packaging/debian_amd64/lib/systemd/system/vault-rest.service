@@ -2,6 +2,7 @@
 Description=openbank account vault REST service
 PartOf=vault.service
 After=vault.service
+ConditionPathExists=/etc/init/vault.conf
 
 [Service]
 Type=notify
