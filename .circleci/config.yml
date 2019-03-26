@@ -76,7 +76,7 @@ jobs:
 
             upload_to_docker_hub openbankdev/vault_base latest
       - save_cache:
-          key: bondster-base-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
+          key: vault-base-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
           paths:
             - /home/circleci/project
 
@@ -89,7 +89,7 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - bondster-base-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
+            - vault-base-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
       - run:
           name: ensure services namespace
           command: |
@@ -124,7 +124,7 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - bondster-base-{{ .Environment.CIRCLE_SHA1 }}
+            - vault-base-{{ .Environment.CIRCLE_SHA1 }}
       - run:
           name: ensure services namespace
           command: |
@@ -170,7 +170,7 @@ jobs:
             ./dev/lifecycle/debian -v ${VERSION} --arch amd64 --pkg vault
             ./dev/lifecycle/debian -v ${VERSION} --arch armhf --pkg vault
       - save_cache:
-          key: bondster-binaries-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
+          key: vault-binaries-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
           paths:
             - /home/circleci/project
       - persist_to_workspace:
@@ -187,7 +187,7 @@ jobs:
       - setup_remote_docker
       - restore_cache:
           keys:
-            - bondster-binaries-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
+            - vault-binaries-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
       - run: docker build -t openbank/vault .
       - run: docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}
       - deploy:
@@ -254,7 +254,7 @@ jobs:
       - setup_remote_docker
       - restore_cache:
           keys:
-            - bondster-binaries-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
+            - vault-binaries-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
       - run: if [ ! -f ./packaging/bin/vault-rest-linux-amd64 ] ; then exit 1 ; fi
       - run: if [ ! -f ./packaging/bin/vault-unit-linux-amd64 ] ; then exit 1 ; fi
       - run: if [ ! -f ./packaging/bin/vault-rest-linux-armhf ] ; then exit 1 ; fi
