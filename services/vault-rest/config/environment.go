@@ -31,7 +31,7 @@ func loadConfFromEnv() Configuration {
 	secrets := getEnvString("VAULT_SECRETS", "")
 	rootStorage := getEnvString("VAULT_STORAGE", "/data")
 	lakeHostname := getEnvString("VAULT_LAKE_HOSTNAME", "")
-	port := getEnvInteger("VAULT_HTTP_PORT", 4001)
+	port := getEnvInteger("VAULT_HTTP_PORT", 4400)
 	metricsOutput := getEnvString("VAULT_METRICS_OUTPUT", "")
 	metricsRefreshRate := getEnvDuration("VAULT_METRICS_REFRESHRATE", time.Second)
 
