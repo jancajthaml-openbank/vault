@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2018, Jan Cajthaml <jan.cajthaml@gmail.com>
+// Copyright (c) 2016-2019, Jan Cajthaml <jan.cajthaml@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@ const (
 	// ReqAccountState vault message request code for "Get Snapshot"
 	ReqAccountState = "GS"
 	// RespAccountState vault message response code for "Get Snapshot"
-	RespAccountState = "SG"
+	RespAccountState = "S0"
+	// RespAccountMissing vault message response code for "Get Snapshot"
+	RespAccountMissing = "S1"
 	// ReqCreateAccount vault message request code for "New Account"
 	ReqCreateAccount = "NA"
 	// RespCreateAccount vault message response code for "New Account"

@@ -44,11 +44,4 @@ func TestMetricsPersist(t *testing.T) {
 		assert.Equal(t, int64(1), entity.createAccountLatency.Count())
 		assert.InDelta(t, entity.createAccountLatency.Percentile(0.95), delay, delta)
 	}
-
-	t.Log("AccountCreated properly increments number of created accounts")
-	{
-		require.Equal(t, int64(0), entity.createdAccounts.Count())
-		entity.AccountCreated()
-		assert.Equal(t, int64(1), entity.createdAccounts.Count())
-	}
 }

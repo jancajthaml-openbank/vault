@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2018, Jan Cajthaml <jan.cajthaml@gmail.com>
+// Copyright (c) 2016-2019, Jan Cajthaml <jan.cajthaml@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -49,18 +49,7 @@ func CreateAccount(s *daemon.ActorSystem, tenant string, account model.Account) 
 		defer s.UnregisterActor(envelope.Name)
 
 		s.RegisterActor(envelope, func(state interface{}, context system.Context) {
-			switch msg := context.Data.(type) {
-			case model.AccountCreated:
-				if account.IsBalanceCheck {
-					s.BroadcastRemote(tenant + " A_NEW " + account.Name + " " + account.Currency + " T") // FIXME ACTIVE
-				} else {
-					s.BroadcastRemote(tenant + " A_NEW " + account.Name + " " + account.Currency + " F") // FIXME PASIVE
-				}
-				ch <- &msg
-				s.Metrics.AccountCreated()
-			default:
-				ch <- nil
-			}
+			ch <- context.Data
 		})
 
 		s.SendRemote("VaultUnit/"+tenant, CreateAccountMessage(envelope.Name, account.Name, account.Currency, account.IsBalanceCheck))
@@ -101,12 +90,7 @@ func GetAccount(s *daemon.ActorSystem, tenant string, id string) (result interfa
 		defer s.UnregisterActor(envelope.Name)
 
 		s.RegisterActor(envelope, func(state interface{}, context system.Context) {
-			switch msg := context.Data.(type) {
-			case model.Account:
-				ch <- &msg
-			default:
-				ch <- nil
-			}
+			ch <- context.Data
 		})
 
 		s.SendRemote("VaultUnit/"+tenant, GetAccountMessage(envelope.Name, id))

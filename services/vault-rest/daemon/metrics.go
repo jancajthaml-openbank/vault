@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2018, Jan Cajthaml <jan.cajthaml@gmail.com>
+// Copyright (c) 2016-2019, Jan Cajthaml <jan.cajthaml@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -46,7 +46,6 @@ func NewMetrics(ctx context.Context, cfg config.Configuration) Metrics {
 		refreshRate:          cfg.MetricsRefreshRate,
 		getAccountLatency:    metrics.NewTimer(),
 		createAccountLatency: metrics.NewTimer(),
-		createdAccounts:      metrics.NewCounter(),
 	}
 }
 
@@ -54,7 +53,6 @@ func NewMetrics(ctx context.Context, cfg config.Configuration) Metrics {
 type Snapshot struct {
 	GetAccountLatency    float64 `json:"getAccountLatency"`
 	CreateAccountLatency float64 `json:"createAccountLatency"`
-	CreatedAccounts      int64   `json:"createdAccounts"`
 }
 
 // NewSnapshot returns metrics snapshot
@@ -62,13 +60,7 @@ func NewSnapshot(metrics Metrics) Snapshot {
 	return Snapshot{
 		GetAccountLatency:    metrics.getAccountLatency.Percentile(0.95),
 		CreateAccountLatency: metrics.createAccountLatency.Percentile(0.95),
-		CreatedAccounts:      metrics.createdAccounts.Count(),
 	}
-}
-
-// AccountCreated increments account created by one
-func (metrics Metrics) AccountCreated() {
-	metrics.createdAccounts.Inc(1)
 }
 
 // TimeGetAccount measure execution of GetAccount

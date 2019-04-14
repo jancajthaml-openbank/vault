@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2018, Jan Cajthaml <jan.cajthaml@gmail.com>
+// Copyright (c) 2016-2019, Jan Cajthaml <jan.cajthaml@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -116,12 +116,6 @@ func CreateAccount(system *daemon.ActorSystem, tenant string, w http.ResponseWri
 
 	switch actor.CreateAccount(system, tenant, *req).(type) {
 
-	case nil:
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusConflict)
-		w.Write(emptyJSONObject)
-		return
-
 	case *model.AccountCreated:
 		resp, err := utils.JSON.Marshal(req)
 		if err != nil {
@@ -144,7 +138,7 @@ func CreateAccount(system *daemon.ActorSystem, tenant string, w http.ResponseWri
 
 	default:
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusConflict)
 		w.Write(emptyJSONObject)
 		return
 
@@ -177,7 +171,7 @@ func GetAccounts(storage *localfs.Storage, tenant string, w http.ResponseWriter,
 func GetAccount(system *daemon.ActorSystem, tenant string, id string, w http.ResponseWriter, r *http.Request) {
 	switch result := actor.GetAccount(system, tenant, id).(type) {
 
-	case nil:
+	case *model.AccountMissing:
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
 		w.Write(emptyJSONObject)

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2018, Jan Cajthaml <jan.cajthaml@gmail.com>
+// Copyright (c) 2016-2019, Jan Cajthaml <jan.cajthaml@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import (
 
 // Account represents metadata of account entity
 type Account struct {
-	AccountName    string `json:"accountNumber"`
+	AccountName    string `json:"name"`
 	Currency       string `json:"currency"`
 	IsBalanceCheck bool   `json:"isBalanceCheck"`
 	Balance        *money.Dec

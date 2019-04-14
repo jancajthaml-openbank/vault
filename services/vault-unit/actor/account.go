@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2018, Jan Cajthaml <jan.cajthaml@gmail.com>
+// Copyright (c) 2016-2019, Jan Cajthaml <jan.cajthaml@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -73,6 +73,10 @@ func NonExistAccount(s *daemon.ActorSystem) func(interface{}, system.Context) {
 		case model.Rollback:
 			s.SendRemote(context.Sender.Region, RollbackAcceptedMessage(context.Receiver.Name, context.Sender.Name))
 			log.Debugf("%s ~ (NonExist Rollback) OK", state.AccountName)
+
+		case model.GetAccountState:
+			s.SendRemote(context.Sender.Region, AccountMissingMessage(context.Receiver.Name, context.Sender.Name))
+			log.Debugf("%s ~ (NonExist GetAccountState) Error", state.AccountName)
 
 		default:
 			s.SendRemote(context.Sender.Region, FatalErrorMessage(context.Receiver.Name, context.Sender.Name))

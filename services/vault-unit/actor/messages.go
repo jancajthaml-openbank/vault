@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2018, Jan Cajthaml <jan.cajthaml@gmail.com>
+// Copyright (c) 2016-2019, Jan Cajthaml <jan.cajthaml@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
 package actor
 
 import (
-	"fmt"
-
 	"github.com/jancajthaml-openbank/vault-unit/model"
 )
 
@@ -24,7 +22,9 @@ const (
 	// ReqAccountState vault message request code for "Get Snapshot"
 	ReqAccountState = "GS"
 	// RespAccountState vault message response code for "Get Snapshot"
-	RespAccountState = "SG"
+	RespAccountState = "S0"
+	// RespAccountMissing vault message response code for "Get Snapshot"
+	RespAccountMissing = "S1"
 	// ReqCreateAccount vault message request code for "New Account"
 	ReqCreateAccount = "NA"
 	// RespCreateAccount vault message response code for "New Account"
@@ -49,7 +49,6 @@ const (
 
 // FatalErrorMessage is reply message carrying failure
 func FatalErrorMessage(self, sender string) string {
-	fmt.Printf("sending EE [%+v]\n", sender+" "+self+" "+FatalError)
 	return sender + " " + self + " " + FatalError
 }
 
@@ -83,4 +82,9 @@ func AccountStateMessage(self, sender, currency, balance, promised string, isBal
 	}
 
 	return sender + " " + self + " " + RespAccountState + " " + currency + " f " + balance + " " + promised
+}
+
+// AccountMissingMessage is reply message informing that account does not exist
+func AccountMissingMessage(self, sender string) string {
+	return sender + " " + self + " " + RespAccountMissing
 }

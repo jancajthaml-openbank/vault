@@ -1,5 +1,23 @@
 require_relative 'placeholders'
 
+step "vault is running" do ||
+  ids = %x(systemctl -t service --no-legend | awk '{ print $1 }')
+  expect($?).to be_success, ids
+
+  ids = ids.split("\n").map(&:strip).reject { |x|
+    x.empty? || !x.start_with?("vault-unit@")
+  }.map { |x| x.chomp(".service") }
+
+  ids << "vault-rest"
+
+  eventually() {
+    ids.each { |e|
+      out = %x(systemctl show -p SubState #{e} 2>&1 | sed 's/SubState=//g')
+      expect(out.strip).to eq("running")
+    }
+  }
+end
+
 step "vault is restarted" do ||
   ids = %x(systemctl -t service --no-legend | awk '{ print $1 }')
   expect($?).to be_success, ids
@@ -8,7 +26,7 @@ step "vault is restarted" do ||
     x.empty? || !x.start_with?("vault-unit@")
   }.map { |x| x.chomp(".service") }
 
-  expect(ids).not_to be_empty
+  ids << "vault-rest"
 
   ids.each { |e|
     %x(systemctl restart #{e} 2>&1)
@@ -40,7 +58,7 @@ step "tenant :tenant is onbdoarded" do |tenant|
     "VAULT_METRICS_OUTPUT=/reports/metrics.json",
     "VAULT_LAKE_HOSTNAME=localhost",
     "VAULT_METRICS_REFRESHRATE=1h",
-    "VAULT_HTTP_PORT=4400",
+    "VAULT_HTTP_PORT=443",
     "VAULT_SECRETS=/opt/vault/secrets",
   ].join("\n").inspect.delete('\"')
 
@@ -66,7 +84,7 @@ step "vault is reconfigured with" do |configuration|
     "METRICS_REFRESHRATE" => "1h",
     "METRICS_OUTPUT" => "/reports/metrics.json",
     "LAKE_HOSTNAME" => "localhost",
-    "HTTP_PORT" => "4400",
+    "HTTP_PORT" => "443",
     "SECRETS" => "/opt/vault/secrets",
   }
 

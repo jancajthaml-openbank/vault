@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2018, Jan Cajthaml <jan.cajthaml@gmail.com>
+// Copyright (c) 2016-2019, Jan Cajthaml <jan.cajthaml@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,6 +26,9 @@ type ReplyTimeout struct{}
 // AccountCreated message
 type AccountCreated struct{}
 
+// AccountMissing message
+type AccountMissing struct{}
+
 // Account represents account
 type Account struct {
 	Name           string `json:"-"`
@@ -41,7 +44,7 @@ func (entity *Account) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("cannot unmarshall to nil pointer")
 	}
 	all := struct {
-		Name           string `json:"accountNumber"`
+		Name           string `json:"name"`
 		Currency       string `json:"currency"`
 		IsBalanceCheck *bool  `json:"isBalanceCheck"`
 	}{}
@@ -50,7 +53,7 @@ func (entity *Account) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	if all.Name == "" {
-		return fmt.Errorf("missing attribute \"accountNumber\"")
+		return fmt.Errorf("missing attribute \"name\"")
 	}
 	if all.Currency == "" {
 		return fmt.Errorf("missing attribute \"currency\"")
