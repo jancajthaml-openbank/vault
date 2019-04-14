@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2018, Jan Cajthaml <jan.cajthaml@gmail.com>
+// Copyright (c) 2016-2019, Jan Cajthaml <jan.cajthaml@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -76,15 +76,18 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 			message = FatalError
 
 		case RespAccountState:
-			message = model.Account{
+			message = &model.Account{
 				Currency:       parts[4],
 				IsBalanceCheck: parts[5] != "f",
 				Balance:        parts[6],
 				Blocking:       parts[7],
 			}
 
+		case RespAccountMissing:
+			message = new(model.AccountMissing)
+
 		case RespCreateAccount:
-			message = model.AccountCreated{}
+			message = new(model.AccountCreated)
 
 		default:
 			log.Warnf("Deserialization of unsuported message [remote %v -> local %v] : %+v", from, to, parts)

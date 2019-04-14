@@ -42,8 +42,8 @@ func TestMessagesIntegrity(t *testing.T) {
 
 	t.Log("AccountStateMessage")
 	{
-		assert.Equal(t, "TO FROM SG CURRENCY t BALANCE PROMISED", AccountStateMessage("FROM", "TO", "CURRENCY", "BALANCE", "PROMISED", true))
-		assert.Equal(t, "TO FROM SG CURRENCY f BALANCE PROMISED", AccountStateMessage("FROM", "TO", "CURRENCY", "BALANCE", "PROMISED", false))
+		assert.Equal(t, "TO FROM S0 CURRENCY t BALANCE PROMISED", AccountStateMessage("FROM", "TO", "CURRENCY", "BALANCE", "PROMISED", true))
+		assert.Equal(t, "TO FROM S0 CURRENCY f BALANCE PROMISED", AccountStateMessage("FROM", "TO", "CURRENCY", "BALANCE", "PROMISED", false))
 	}
 }
 
@@ -77,14 +77,5 @@ func TestSymetricityOfEvents(t *testing.T) {
 	{
 		kind := strings.Split(RollbackAcceptedMessage("FROM", "TO"), " ")[2]
 		assert.Equal(t, RollbackOrder, reverseString(kind))
-	}
-
-	t.Log("Get Account -> (" + ReqAccountState + " -> " + reverseString(ReqAccountState) + ")")
-	{
-		kind1 := strings.Split(AccountStateMessage("FROM", "TO", "CURRENCY", "BALANCE", "PROMISED", true), " ")[2]
-		assert.Equal(t, ReqAccountState, reverseString(kind1))
-
-		kind2 := strings.Split(AccountStateMessage("FROM", "TO", "CURRENCY", "BALANCE", "PROMISED", false), " ")[2]
-		assert.Equal(t, ReqAccountState, reverseString(kind2))
 	}
 }

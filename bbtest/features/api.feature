@@ -1,11 +1,7 @@
 Feature: REST
 
   Scenario: Tenant API
-    Given vault is reconfigured with
-    """
-      LOG_LEVEL=DEBUG
-      HTTP_PORT=443
-    """
+    Given vault is running
 
     When I request curl GET https://localhost/tenant
     Then curl responds with 200
@@ -47,11 +43,7 @@ Feature: REST
 
   Scenario: Account API
     Given tenant API is onbdoarded
-    And vault is reconfigured with
-    """
-      LOG_LEVEL=DEBUG
-      HTTP_PORT=443
-    """
+    And   vault is running
 
     When I request curl GET https://localhost/account/API
     Then curl responds with 200
@@ -74,7 +66,7 @@ Feature: REST
     When I request curl POST https://localhost/account/API
     """
       {
-        "accountNumber": "A",
+        "name": "A",
         "currency": "XXX",
         "isBalanceCheck": false
       }
@@ -87,7 +79,7 @@ Feature: REST
     When I request curl POST https://localhost/account/API
     """
       {
-        "accountNumber": "yyy",
+        "name": "yyy",
         "currency": "XXX",
         "isBalanceCheck": false
       }
@@ -100,7 +92,7 @@ Feature: REST
     When I request curl POST https://localhost/account/API
     """
       {
-        "accountNumber": "yyy",
+        "name": "yyy",
         "currency": "XXX",
         "isBalanceCheck": false
       }
@@ -113,7 +105,7 @@ Feature: REST
     When I request curl POST https://localhost/account/API
     """
       {
-        "accountNumber": "B",
+        "name": "B",
         "currency": "XXX",
         "isBalanceCheck": false
       }
@@ -132,7 +124,7 @@ Feature: REST
     When I request curl POST https://localhost/account/API
     """
       {
-        "accountNumber": "xxx",
+        "name": "xxx",
         "currency": "XXX",
         "isBalanceCheck": false
       }

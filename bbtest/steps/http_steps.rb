@@ -15,12 +15,14 @@ step "curl responds with :http_status" do |http_status, body = nil|
   raise if @http_req.nil?
 
   @resp = Hash.new
-  resp = %x(#{@http_req})
+  eventually() {
+    resp = %x(#{@http_req})
+    @resp[:code] = resp[resp.length-3...resp.length].to_i
+    @resp[:body] = resp[0...resp.length-3] unless resp.nil?
 
-  @resp[:code] = resp[resp.length-3...resp.length].to_i
-  @resp[:body] = resp[0...resp.length-3] unless resp.nil?
-
-  expect(@resp[:code]).to eq(http_status)
+    http_status = [http_status] unless http_status.kind_of?(Array)
+    expect(http_status).to include(@resp[:code]), "#{@http_req} -> #{@resp[:code]} #{@resp[:body]}"
+  }
 
   return if body.nil?
 
