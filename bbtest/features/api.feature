@@ -43,7 +43,7 @@ Feature: REST
 
   Scenario: Account API
     Given tenant API is onbdoarded
-    And   vault is running
+    And   vault is restarted
 
     When I request curl GET https://localhost/account/API
     Then curl responds with 200

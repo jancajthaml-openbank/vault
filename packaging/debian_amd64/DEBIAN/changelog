@@ -1,3 +1,9 @@
+vault (v1.2.1+master) unstable; urgency=low
+
+  * Includes non-released commits
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Sun, 14 Apr 2019 12:03:21 +0200
+
 vault (1.2.1) unstable; urgency=low
 
   * Blackbox-testing install and uninstall (#95)
