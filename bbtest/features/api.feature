@@ -4,25 +4,25 @@ Feature: REST
     Given vault is running
     And   vault is restarted
 
-    When I request curl GET https://localhost/tenant
+    When I request curl GET https://127.0.0.1/tenant
     Then curl responds with 200
     """
       []
     """
 
-    When I request curl POST https://localhost/tenant/APITESTA
+    When I request curl POST https://127.0.0.1/tenant/APITESTA
     Then curl responds with 200
     """
       {}
     """
 
-    When I request curl POST https://localhost/tenant/APITESTB
+    When I request curl POST https://127.0.0.1/tenant/APITESTB
     Then curl responds with 200
     """
       {}
     """
 
-    When I request curl GET https://localhost/tenant
+    When I request curl GET https://127.0.0.1/tenant
     Then curl responds with 200
     """
       [
@@ -30,13 +30,13 @@ Feature: REST
       ]
     """
 
-    When I request curl POST https://localhost/tenant/APITESTC
+    When I request curl POST https://127.0.0.1/tenant/APITESTC
     Then curl responds with 200
     """
       {}
     """
 
-    When I request curl DELETE https://localhost/tenant/APITESTC
+    When I request curl DELETE https://127.0.0.1/tenant/APITESTC
     Then curl responds with 200
     """
       {}
@@ -46,25 +46,25 @@ Feature: REST
     Given tenant API is onbdoarded
     And   vault is restarted
 
-    When I request curl GET https://localhost/account/API
+    When I request curl GET https://127.0.0.1/account/API
     Then curl responds with 200
     """
       []
     """
 
-    When I request curl GET https://localhost/account/API/xxx
+    When I request curl GET https://127.0.0.1/account/API/xxx
     Then curl responds with 404
     """
       {}
     """
 
-    When I request curl GET https://localhost/account/nothing/xxx
+    When I request curl GET https://127.0.0.1/account/nothing/xxx
     Then curl responds with 504
     """
       {}
     """
 
-    When I request curl POST https://localhost/account/API
+    When I request curl POST https://127.0.0.1/account/API
     """
       {
         "name": "A",
@@ -77,7 +77,7 @@ Feature: REST
       {}
     """
 
-    When I request curl POST https://localhost/account/API
+    When I request curl POST https://127.0.0.1/account/API
     """
       {
         "name": "yyy",
@@ -90,7 +90,7 @@ Feature: REST
       {}
     """
 
-    When I request curl POST https://localhost/account/API
+    When I request curl POST https://127.0.0.1/account/API
     """
       {
         "name": "yyy",
@@ -103,7 +103,7 @@ Feature: REST
       {}
     """
 
-    When I request curl POST https://localhost/account/API
+    When I request curl POST https://127.0.0.1/account/API
     """
       {
         "name": "B",
@@ -113,7 +113,7 @@ Feature: REST
     """
     Then curl responds with 200
 
-    When I request curl GET https://localhost/account/API
+    When I request curl GET https://127.0.0.1/account/API
     Then curl responds with 200
     """
       [
@@ -122,7 +122,7 @@ Feature: REST
       ]
     """
 
-    When I request curl POST https://localhost/account/API
+    When I request curl POST https://127.0.0.1/account/API
     """
       {
         "name": "xxx",
@@ -132,7 +132,7 @@ Feature: REST
     """
     Then curl responds with 200
 
-    When I request curl GET https://localhost/account/API/xxx
+    When I request curl GET https://127.0.0.1/account/API/xxx
     Then curl responds with 200
     """
       {
