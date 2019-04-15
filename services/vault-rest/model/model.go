@@ -16,6 +16,7 @@ package model
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/jancajthaml-openbank/vault-rest/utils"
 )
@@ -69,7 +70,8 @@ func (entity *Account) UnmarshalJSON(data []byte) error {
 	} else {
 		entity.IsBalanceCheck = *all.IsBalanceCheck
 	}
-	entity.Name = all.Name
+
+	entity.Name = strings.Replace(all.Name, " ", "_", -1)
 	entity.Currency = all.Currency
 	return nil
 }
