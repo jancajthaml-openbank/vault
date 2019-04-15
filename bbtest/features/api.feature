@@ -2,6 +2,7 @@ Feature: REST
 
   Scenario: Tenant API
     Given vault is running
+    And   vault is restarted
 
     When I request curl GET https://localhost/tenant
     Then curl responds with 200
