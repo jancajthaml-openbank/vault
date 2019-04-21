@@ -1,8 +1,22 @@
-vault (v1.2.1+master) unstable; urgency=low
+vault (1.2.2) unstable; urgency=low
 
-  * Includes non-released commits
+  * Replace all spaces in account name request with underscore (#110)
+  * Use ip instead of hostname so curl don't flake on dns resolution (#109)
+  * More stable bbtest with randomizes scenario (#108)
+  * More robust deep diff in http-steps (#107)
+  * Rolling contract (#106)
+  * Bugfixed bbtest restart before api test due to configuration change (#105)
+  * Removed broadcast, added more bbtests, removed metrics aggregate on rest unit (#104)
+  * Bump github.com/gorilla/mux from 1.7.0 to 1.7.1 in /services/vault-rest (#103)
+  * Bump github.com/sirupsen/logrus in /services/vault-unit (#102)
+  * Bump github.com/sirupsen/logrus in /services/vault-rest (#101)
+  * Removed duplicate entries (#100)
+  * Bump github.com/jancajthaml-openbank/local-fs in /services/vault-rest (#99)
+  * Bump github.com/jancajthaml-openbank/local-fs in /services/vault-unit (#98)
+  * Require config file presence for units (#97)
+  * Start daemon after app starts (#96)
 
- -- Jan Cajthaml <jan.cajthaml@gmail.com>  Sun, 14 Apr 2019 12:03:21 +0200
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Mon, 15 Apr 2019 14:28:13 +0200
 
 vault (1.2.1) unstable; urgency=low
 

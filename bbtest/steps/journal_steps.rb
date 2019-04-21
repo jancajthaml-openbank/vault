@@ -6,7 +6,7 @@ require 'date'
 
 step "snapshot :account version :count should be" do |account, version, expectation|
   (tenant, account) = account.split('/')
-  actual = account_snapshot(tenant, account, version)
+  actual = JournalHelper.account_snapshot(tenant, account, version)
   expectation = JSON.parse(expectation)
 
   expect(actual[:version]).to eq(expectation["version"])

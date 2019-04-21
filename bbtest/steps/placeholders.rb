@@ -53,10 +53,3 @@ placeholder :account do
     account
   end
 end
-
-
-#placeholder :slash_pair do
-#match(/[\S]+\/[\S]+/) do |slash_pair|
-#slash_pair
-#end
-#end
