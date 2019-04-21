@@ -2,14 +2,6 @@ require 'bigdecimal'
 
 module JournalHelper
 
-  def account_latest_snapshot(tenant, account)
-    JournalHelper.account_latest_snapshot(tenant, account)
-  end
-
-  def account_snapshot(tenant, account, version)
-    JournalHelper.account_snapshot(tenant, account, version)
-  end
-
   def self.account_snapshot(tenant, account, version)
     snapshots = [version.to_s.rjust(10, '0')]
 
