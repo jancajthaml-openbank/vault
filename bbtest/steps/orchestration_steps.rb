@@ -80,7 +80,7 @@ step "tenant :tenant is onbdoarded" do |tenant|
     "VAULT_METRICS_OUTPUT=/reports/metrics.json",
     "VAULT_LAKE_HOSTNAME=127.0.0.1",
     "VAULT_METRICS_REFRESHRATE=1h",
-    "VAULT_HTTP_PORT=443",
+    "VAULT_HTTP_PORT=4400",
     "VAULT_SECRETS=/opt/vault/secrets",
   ].join("\n").inspect.delete('\"')
 
@@ -106,7 +106,7 @@ step "vault is reconfigured with" do |configuration|
     "METRICS_REFRESHRATE" => "1h",
     "METRICS_OUTPUT" => "/reports/metrics.json",
     "LAKE_HOSTNAME" => "127.0.0.1",
-    "HTTP_PORT" => "443",
+    "HTTP_PORT" => "4400",
     "SECRETS" => "/opt/vault/secrets",
   }
 

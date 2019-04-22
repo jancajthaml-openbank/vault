@@ -2,27 +2,26 @@ Feature: REST
 
   Scenario: Tenant API
     Given vault is running
-    And   vault is restarted
 
-    When I request curl GET https://127.0.0.1/tenant
+    When I request curl GET https://127.0.0.1:4400/tenant
     Then curl responds with 200
     """
       []
     """
 
-    When I request curl POST https://127.0.0.1/tenant/APITESTA
+    When I request curl POST https://127.0.0.1:4400/tenant/APITESTA
     Then curl responds with 200
     """
       {}
     """
 
-    When I request curl POST https://127.0.0.1/tenant/APITESTB
+    When I request curl POST https://127.0.0.1:4400/tenant/APITESTB
     Then curl responds with 200
     """
       {}
     """
 
-    When I request curl GET https://127.0.0.1/tenant
+    When I request curl GET https://127.0.0.1:4400/tenant
     Then curl responds with 200
     """
       [
@@ -30,42 +29,41 @@ Feature: REST
       ]
     """
 
-    When I request curl POST https://127.0.0.1/tenant/APITESTC
+    When I request curl POST https://127.0.0.1:4400/tenant/APITESTC
     Then curl responds with 200
     """
       {}
     """
 
-    When I request curl DELETE https://127.0.0.1/tenant/APITESTC
+    When I request curl DELETE https://127.0.0.1:4400/tenant/APITESTC
     Then curl responds with 200
     """
       {}
     """
 
   Scenario: Account API
-    Given tenant API is onbdoarded
     Given vault is running
-    And   vault is restarted
+    Given tenant API is onbdoarded
 
-    When I request curl GET https://127.0.0.1/account/API
+    When I request curl GET https://127.0.0.1:4400/account/API
     Then curl responds with 200
     """
       []
     """
 
-    When I request curl GET https://127.0.0.1/account/API/xxx
+    When I request curl GET https://127.0.0.1:4400/account/API/xxx
     Then curl responds with 404
     """
       {}
     """
 
-    When I request curl GET https://127.0.0.1/account/nothing/xxx
+    When I request curl GET https://127.0.0.1:4400/account/nothing/xxx
     Then curl responds with 504
     """
       {}
     """
 
-    When I request curl POST https://127.0.0.1/account/API
+    When I request curl POST https://127.0.0.1:4400/account/API
     """
       {
         "name": "A",
@@ -78,7 +76,7 @@ Feature: REST
       {}
     """
 
-    When I request curl POST https://127.0.0.1/account/API
+    When I request curl POST https://127.0.0.1:4400/account/API
     """
       {
         "name": "yyy",
@@ -91,7 +89,7 @@ Feature: REST
       {}
     """
 
-    When I request curl POST https://127.0.0.1/account/API
+    When I request curl POST https://127.0.0.1:4400/account/API
     """
       {
         "name": "yyy",
@@ -104,7 +102,7 @@ Feature: REST
       {}
     """
 
-    When I request curl POST https://127.0.0.1/account/API
+    When I request curl POST https://127.0.0.1:4400/account/API
     """
       {
         "name": "B",
@@ -114,7 +112,7 @@ Feature: REST
     """
     Then curl responds with 200
 
-    When I request curl GET https://127.0.0.1/account/API
+    When I request curl GET https://127.0.0.1:4400/account/API
     Then curl responds with 200
     """
       [
@@ -123,7 +121,7 @@ Feature: REST
       ]
     """
 
-    When I request curl POST https://127.0.0.1/account/API
+    When I request curl POST https://127.0.0.1:4400/account/API
     """
       {
         "name": "xxx",
@@ -133,7 +131,7 @@ Feature: REST
     """
     Then curl responds with 200
 
-    When I request curl GET https://127.0.0.1/account/API/xxx
+    When I request curl GET https://127.0.0.1:4400/account/API/xxx
     Then curl responds with 200
     """
       {

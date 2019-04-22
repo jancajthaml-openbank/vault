@@ -18,7 +18,7 @@ step ":account should have data integrity" do |account|
     isBalanceCheck: (snapshot[:activity] || false)
   }.to_json
 
-  uri = "https://127.0.0.1/account/#{tenant}/#{account}"
+  uri = "https://127.0.0.1:4400/account/#{tenant}/#{account}"
 
   send "I request curl :http_method :url", "GET", uri
   send "curl responds with :http_status", 200, expected_response
@@ -37,7 +37,7 @@ step ":activity :currency account :account is created" do |activity, currency, a
     isBalanceCheck: activity
   }.to_json
 
-  uri = "https://127.0.0.1/account/#{tenant}"
+  uri = "https://127.0.0.1:4400/account/#{tenant}"
 
   send "I request curl :http_method :url", "POST", uri, payload
   send "curl responds with :http_status", 200
@@ -54,7 +54,7 @@ step ":account should exist" do |account|
   @accounts ||= {}
   (tenant, account) = account.split('/')
 
-  uri = "https://127.0.0.1/account/#{tenant}/#{account}"
+  uri = "https://127.0.0.1:4400/account/#{tenant}/#{account}"
 
   send "I request curl :http_method :url", "GET", uri
   send "curl responds with :http_status", 200
@@ -65,7 +65,7 @@ step ":account should not exist" do |account|
   (tenant, account) = account.split('/')
   expect(@accounts).not_to have_key(account)
 
-  uri = "https://127.0.0.1/account/#{tenant}/#{account}"
+  uri = "https://127.0.0.1:4400/account/#{tenant}/#{account}"
 
   send "I request curl :http_method :url", "GET", uri
   send "curl responds with :http_status", [404, 504]

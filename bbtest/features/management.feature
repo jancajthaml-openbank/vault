@@ -23,7 +23,6 @@ Feature: Properly behaving units
   Scenario: offboard
     Given tenant lorem is offboarded
     And   tenant ipsum is offboarded
-
     Then  systemctl does not contains following
     """
       vault-unit@lorem.service
