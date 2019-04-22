@@ -2,7 +2,7 @@ Feature: High level Lifecycle
 
   Scenario: create account
     Given tenant BLACKBOX is onbdoarded
-    And   vault is running
+    And   vault is restarted
 
     Then  BLACKBOX/testAccount should not exist
 
