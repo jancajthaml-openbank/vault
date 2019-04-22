@@ -44,6 +44,7 @@ Feature: REST
 
   Scenario: Account API
     Given tenant API is onbdoarded
+    Given vault is running
     And   vault is restarted
 
     When I request curl GET https://127.0.0.1/account/API
