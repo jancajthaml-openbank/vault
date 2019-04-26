@@ -1,3 +1,13 @@
+vault (1.2.3) unstable; urgency=low
+
+  * Less port reconfiguration and unit restart in bbtest (#117)
+  * Simplified config resolver (#116)
+  * Restart vault in highlevel scenario so port setting change is propagated to vault-rest (#115)
+  * Nitpicking bbtest http_helper (#113)
+  * Better http helper (#112)
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Mon, 22 Apr 2019 14:11:49 +0200
+
 vault (1.2.2) unstable; urgency=low
 
   * Replace all spaces in account name request with underscore (#110)
