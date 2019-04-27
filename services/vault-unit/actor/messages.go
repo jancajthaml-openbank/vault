@@ -14,10 +14,6 @@
 
 package actor
 
-import (
-	"github.com/jancajthaml-openbank/vault-unit/model"
-)
-
 const (
 	// ReqAccountState vault message request code for "Get Snapshot"
 	ReqAccountState = "GS"
@@ -29,18 +25,28 @@ const (
 	ReqCreateAccount = "NA"
 	// RespCreateAccount vault message response code for "New Account"
 	RespCreateAccount = "AN"
+
 	// PromiseOrder vault message request code for "Promise"
-	PromiseOrder = model.EventPromise + "X"
+	PromiseOrder = "NP"
+	// PromiseAccepted vault message response code for "Promise" accepted
+	PromiseAccepted = "P1"
+	// PromiseRejected vault message response code for "Promise" rejected
+	PromiseRejected = "P2"
+
 	// CommitOrder vault message request code for "Commit"
-	CommitOrder = model.EventCommit + "X"
+	CommitOrder = "NC"
+	// CommitAccepted vault message response code for "Commit" accepted
+	CommitAccepted = "C1"
+	// CommitRejected vault message response code for "Commit" rejected
+	CommitRejected = "C2"
+
 	// RollbackOrder vault message request code for "Rollback"
-	RollbackOrder = model.EventRollback + "X"
-	// PromiseAccepted vault message response code for "Promise"
-	PromiseAccepted = "X" + model.EventPromise
-	// CommitAccepted vault message response code for "Commit"
-	CommitAccepted = "X" + model.EventCommit
-	// RollbackAccepted vault message response code for "Rollback"
-	RollbackAccepted = "X" + model.EventRollback
+	RollbackOrder = "NR"
+	// RollbackAccepted vault message response code for "Rollback" accepted
+	RollbackAccepted = "R1"
+	// RollbackRejected vault message response code for "Rollback" rejected
+	RollbackRejected = "R2"
+
 	// FatalError vault message response code for "Error"
 	FatalError = "EE"
 	// UpdateSnapshot vault message request code for "Update Snapshot"
@@ -63,16 +69,34 @@ func PromiseAcceptedMessage(self, sender string) string {
 	return sender + " " + self + " " + PromiseAccepted
 }
 
+// PromiseRejectedMessage is reply message informing that transaction promise was
+// rejected
+func PromiseRejectedMessage(self, sender, reason string) string {
+	return sender + " " + self + " " + PromiseRejected + " " + reason
+}
+
 // CommitAcceptedMessage is reply message informing that transaction commit was
 // accepted
 func CommitAcceptedMessage(self, sender string) string {
 	return sender + " " + self + " " + CommitAccepted
 }
 
+// CommitRejectedMessage is reply message informing that transaction commit was
+// rejected
+func CommitRejectedMessage(self, sender, reason string) string {
+	return sender + " " + self + " " + CommitRejected + " " + reason
+}
+
 // RollbackAcceptedMessage is reply message informing that transaction rollback
 // was accepted
 func RollbackAcceptedMessage(self, sender string) string {
 	return sender + " " + self + " " + RollbackAccepted
+}
+
+// RollbackRejectedMessage is reply message informing that transaction rollback
+// was rejected
+func RollbackRejectedMessage(self, sender, reason string) string {
+	return sender + " " + self + " " + RollbackRejected + " " + reason
 }
 
 // AccountStateMessage is reply message carrying account state

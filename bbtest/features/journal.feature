@@ -11,29 +11,29 @@ Feature: Persistent journal
     When pasive EUR account JOURNAL/Euro is created
     Then snapshot JOURNAL/Euro version 0 should be
     """
-        {
-            "version": 0,
-            "balance": "0",
-            "promised": "0",
-            "promiseBuffer": [],
-            "accountName": "Euro",
-            "isBalanceCheck": false,
-            "currency": "EUR"
-        }
+      {
+        "version": 0,
+        "balance": "0",
+        "promised": "0",
+        "promiseBuffer": [],
+        "accountName": "Euro",
+        "isBalanceCheck": false,
+        "currency": "EUR"
+      }
     """
 
     When active XRP account JOURNAL/Ripple is created
     Then snapshot JOURNAL/Ripple version 0 should be
     """
-        {
-            "version": 0,
-            "balance": "0",
-            "promised": "0",
-            "promiseBuffer": [],
-            "accountName": "Ripple",
-            "isBalanceCheck": true,
-            "currency": "XRP"
-        }
+      {
+        "version": 0,
+        "balance": "0",
+        "promised": "0",
+        "promiseBuffer": [],
+        "accountName": "Ripple",
+        "isBalanceCheck": true,
+        "currency": "XRP"
+      }
     """
 
     # fixme create 3 events and check that journal did update
