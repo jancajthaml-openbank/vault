@@ -41,7 +41,7 @@ func NilAccount(s *daemon.ActorSystem) func(interface{}, system.Context) {
 			log.Debugf("%s ~ Nil -> Exist", state.AccountName)
 		}
 
-		context.Receiver.Tell(context.Data, context.Sender)
+		context.Receiver.Receive(context)
 	}
 }
 
