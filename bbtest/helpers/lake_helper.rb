@@ -46,10 +46,7 @@ module LakeMock
           self.recv_backlog << data
         end
 
-        unless data.start_with?("LedgerRest")
-          self.send(data)
-          next
-        end
+        self.send(data)
 
       end
     end

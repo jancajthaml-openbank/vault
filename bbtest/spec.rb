@@ -34,6 +34,8 @@ RSpec.configure do |config|
   end
 
   config.after(:type => :feature) do
+    LakeMock.reset()
+
     ids = %x(systemctl -a -t service --no-legend | awk '{ print $1 }')
 
     if $?
