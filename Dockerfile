@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019, Jan Cajthaml <jan.cajthaml@gmail.com>
+# Copyright (c) 2017-2018, Jan Cajthaml <jan.cajthaml@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,21 +15,5 @@
 FROM alpine
 
 COPY packaging/bin/* /opt/artifacts/
-
-RUN \
-    if \
-      \
-      [ ! -f /opt/artifacts/vault-rest-linux-amd64 ] || \
-      [ ! -f /opt/artifacts/vault-unit-linux-amd64 ] || \
-      [ ! -f /opt/artifacts/vault-rest-linux-armhf ] || \
-      [ ! -f /opt/artifacts/vault-unit-linux-armhf ] || \
-      \
-      [ -z "$(find . /opt/artifacts -type f -name 'vault_*_amd64.deb' -print)" ] || \
-      [ -z "$(find /opt/artifacts -type f -name 'vault_*_armhf.deb' -print)" ] \
-      \
-      ; then \
-      (>&2 echo "missing expected files, run package and debian for both amd64 and armhf") ; \
-      exit 1 ; \
-    fi
 
 ENTRYPOINT [ "echo", "only stores candidate binaries in /opt/artifacts" ]

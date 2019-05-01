@@ -1,3 +1,16 @@
+vault (1.2.5) unstable; urgency=low
+
+  * Better lake helper and spec behaviour in bbtests (#120)
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Sun, 28 Apr 2019 10:13:25 +0200
+
+vault (1.2.4) unstable; urgency=low
+
+  * Added rejection reasons to messages (#119)
+  * Strictly compare values in http steps of bbtest (#118)
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Sat, 27 Apr 2019 18:27:11 +0200
+
 vault (1.2.3) unstable; urgency=low
 
   * Less port reconfiguration and unit restart in bbtest (#117)
