@@ -29,7 +29,6 @@ class UnitHelper
     %x(docker rm temp-container-vault)
 
     Dir.glob('/opt/artifacts/vault_*_amd64.deb').each { |f|
-      puts "#{f}"
       FileUtils.mv(f, '/etc/bbtest/packages/vault.deb')
     }
 
