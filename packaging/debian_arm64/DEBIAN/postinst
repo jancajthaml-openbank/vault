@@ -1,0 +1,39 @@
+#!/bin/sh
+
+set -e
+
+case "$1" in
+
+  configure)
+    if [ -f "/etc/init/vault.conf" ] ; then
+      systemctl unmask \
+        vault.path \
+        vault-unit.service \
+        vault-rest.service \
+        vault.service \
+      >/dev/null
+
+      systemctl enable \
+        vault.path \
+        vault-rest.service \
+        vault.service \
+      >/dev/null
+
+      (systemctl start vault.service >/dev/null || :)
+    else
+      (>&2 echo "/etc/init/vault.conf file not found")
+      exit 1
+    fi
+  ;;
+
+  abort-upgrade|abort-remove|abort-deconfigure)
+  ;;
+
+  *)
+    (>&2 echo "postinst called with unknown argument \ `$1`")
+    exit 1
+  ;;
+
+esac
+
+exit 0

@@ -7,10 +7,7 @@ services:
   # -------------------------------------------------------------------------- #
 
   go:
-    build:
-      dockerfile: dev/Dockerfile
-      context: .
-    image: openbankdev/vault_base
+    image: jancajthaml/go
     volumes:
       - .:/project
       - ./services/vault-unit:/go/src/github.com/jancajthaml-openbank/vault-unit
@@ -74,18 +71,10 @@ services:
 
   # -------------------------------------------------------------------------- #
 
-  bbtest:
-    build:
-      context: .
-      dockerfile: bbtest/Dockerfile
-    image: openbankdev/vault_bbtest
-
-  # -------------------------------------------------------------------------- #
-
   artifacts:
     build:
       dockerfile: Dockerfile
       context: .
-    image: openbank/vault
+    image: openbank/lake
 
 # ---------------------------------------------------------------------------- #
