@@ -18,8 +18,8 @@ package:
 
 .PHONY: bundle-binaries
 bundle-binaries:
-	@docker-compose run --rm package --arch linux/arm64 --pkg vault-rest
-	@docker-compose run --rm package --arch linux/arm64 --pkg vault-unit
+	@docker-compose run --rm package --arch linux/amd64 --pkg vault-rest
+	@docker-compose run --rm package --arch linux/amd64 --pkg vault-unit
 
 .PHONY: bundle-debian
 bundle-debian:
