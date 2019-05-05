@@ -3,6 +3,7 @@ require_relative 'eventually_helper'
 require 'fileutils'
 require 'timeout'
 require 'thread'
+require 'tempfile'
 
 Thread.abort_on_exception = true
 
@@ -15,8 +16,17 @@ class UnitHelper
 
   def download()
     raise "no version specified" unless ENV.has_key?('UNIT_VERSION')
+    raise "no arch specified" unless ENV.has_key?('UNIT_ARCH')
 
     version = ENV['UNIT_VERSION']
+    parts = version.split(/(?:v)([^-]+)\-(.+)/)
+
+    raise "invalid version #{version}" if parts.length != 3
+
+    version = parts[1]
+    branch = parts[2]
+
+    arch = ENV['UNIT_ARCH']
 
     FileUtils.mkdir_p "/opt/artifacts"
     %x(rm -rf /opt/artifacts/*)
@@ -24,14 +34,32 @@ class UnitHelper
     FileUtils.mkdir_p "/etc/bbtest/packages"
     %x(rm -rf /etc/bbtest/packages/*)
 
-    %x(docker run --name temp-container-vault openbank/vault:#{version} /bin/true)
-    %x(docker cp temp-container-vault:/opt/artifacts/. /opt/artifacts)
-    %x(docker rm temp-container-vault)
+    file = Tempfile.new('search_artifacts')
 
-    Dir.glob('/opt/artifacts/vault_*_amd64.deb').each { |f|
-      puts "#{f}"
-      FileUtils.mv(f, '/etc/bbtest/packages/vault.deb')
-    }
+    begin
+      file.write([
+        "FROM alpine",
+        "COPY --from=openbank/vault:v#{version}-#{branch} /opt/artifacts/vault_#{version}+#{branch}_#{arch}.deb /opt/artifacts/vault.deb",
+        "RUN ls -la /opt/artifacts"
+      ].join("\n"))
+      file.close
+
+      IO.popen("docker build -t vault_artifacts - < #{file.path}") do |stream|
+        stream.each do |line|
+          puts line
+        end
+      end
+      raise "failed to build vault_artifacts" unless $? == 0
+
+      %x(docker run --name vault_artifacts-scratch vault_artifacts /bin/true)
+      %x(docker cp vault_artifacts-scratch:/opt/artifacts/ /opt)
+    ensure
+      %x(docker rmi -f vault_artifacts)
+      %x(docker rm vault_artifacts-scratch)
+      file.delete
+    end
+
+    FileUtils.mv('/opt/artifacts/vault.deb', '/etc/bbtest/packages/vault.deb')
 
     raise "no package to install" unless File.file?('/etc/bbtest/packages/vault.deb')
   end
