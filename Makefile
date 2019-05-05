@@ -65,7 +65,6 @@ bbtest:
 			--name=vault_bbtest \
 			-e UNIT_VERSION="$(VERSION)-$(META)" \
 			-e UNIT_ARCH=amd64 \
-			-e GITHUB_RELEASE_TOKEN="$(GITHUB_RELEASE_TOKEN)" \
 			-v /sys/fs/cgroup:/sys/fs/cgroup:ro \
 			-v /var/run/docker.sock:/var/run/docker.sock \
       -v /var/lib/docker/containers:/var/lib/docker/containers \
