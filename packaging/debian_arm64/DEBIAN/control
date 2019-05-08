@@ -1,9 +1,10 @@
 Package: vault
-Version: 1.1.2+cleanup
-Architecture: arm64
-Maintainer: Jan Cajthaml <jan.cajthaml@gmail.com>
-Depends: init-system-helpers (>= 1.18~), libzmq5 (>= 4.2.1~), openssl (>= 1.1~)
-Section: openbank
+Version: 1.2.5+more-robust-debian-packaging
+Section: misc
 Priority: extra
-Vcs-Git: git@github.com:jancajthaml-openbank/vault.git
-Description: Openbank account vault
+Architecture: arm64
+Vcs-Git: https://github.com/jancajthaml-openbank/vault.git
+Maintainer: Jan Cajthaml <jan.cajthaml@gmail.com>
+Depends: libzmq5 (>= 4.2.1~), openssl (>= 1.1~), libc6
+Description: account vault for openbank
+ Service holding accounts journal for OpenBank services.

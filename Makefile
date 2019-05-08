@@ -6,24 +6,32 @@ META := $(shell git rev-parse --abbrev-ref HEAD 2> /dev/null | sed 's:.*/::')
 VERSION := $(shell git fetch --tags --force 2> /dev/null; tags=($$(git tag --sort=-v:refname)) && ([ $${\#tags[@]} -eq 0 ] && echo v0.0.0 || echo $${tags[0]}))
 
 .ONESHELL:
+.PHONY: arm64
+.PHONY: amd64
+.PHONY: armhf
 
 .PHONY: all
 all: bootstrap sync test package bbtest
 
 .PHONY: package
 package:
-	@$(MAKE) bundle-binaries
-	@$(MAKE) bundle-debian
+	@$(MAKE) bundle-binaries-amd64
+	@$(MAKE) bundle-debian-amd64
 	@$(MAKE) bundle-docker
 
-.PHONY: bundle-binaries
-bundle-binaries:
-	@docker-compose run --rm package --arch linux/amd64 --pkg vault-rest
-	@docker-compose run --rm package --arch linux/amd64 --pkg vault-unit
+.PHONY: package-%
+package-%: %
+	@$(MAKE) bundle-binaries-$^
+	@$(MAKE) bundle-debian-$^
 
-.PHONY: bundle-debian
-bundle-debian:
-	@docker-compose run --rm debian -v $(VERSION)+$(META) --arch amd64
+.PHONY: bundle-binaries-%
+bundle-binaries-%: %
+	@docker-compose run --rm package --arch linux/$^ --pkg vault-rest
+	@docker-compose run --rm package --arch linux/$^ --pkg vault-unit
+
+.PHONY: bundle-debian-%
+bundle-debian-%: %
+	@docker-compose run --rm debian -v $(VERSION)+$(META) --arch $^
 
 .PHONY: bundle-docker
 bundle-docker:
@@ -35,23 +43,19 @@ bootstrap:
 
 .PHONY: lint
 lint:
-	@docker-compose run --rm lint --pkg vault-rest || :
-	@docker-compose run --rm lint --pkg vault-unit || :
+	@docker-compose run --rm lint --pkg vault || :
 
 .PHONY: sec
 sec:
-	@docker-compose run --rm sec --pkg vault-rest || :
-	@docker-compose run --rm sec --pkg vault-unit || :
+	@docker-compose run --rm sec --pkg vault || :
 
 .PHONY: sync
 sync:
-	@docker-compose run --rm sync --pkg vault-rest
-	@docker-compose run --rm sync --pkg vault-unit
+	@docker-compose run --rm sync --pkg vault
 
 .PHONY: test
 test:
-	@docker-compose run --rm test --pkg vault-rest
-	@docker-compose run --rm test --pkg vault-unit
+	@docker-compose run --rm test --pkg vault
 
 .PHONY: release
 release:
@@ -59,23 +63,21 @@ release:
 
 .PHONY: bbtest
 bbtest:
-	@(docker rm -f $$(docker ps -a --filter="name=vault_bbtest" -q) &> /dev/null || :)
+	@(docker rm -f $$(docker ps -a --filter="name=vault_bbtest_amd64" -q) &> /dev/null || :)
 	@docker exec -it $$(\
 		docker run -d -ti \
-			--name=vault_bbtest \
+			--name=vault_bbtest_amd64 \
 			-e UNIT_VERSION="$(VERSION)-$(META)" \
 			-e UNIT_ARCH=amd64 \
 			-v /sys/fs/cgroup:/sys/fs/cgroup:ro \
 			-v /var/run/docker.sock:/var/run/docker.sock \
-      -v /var/lib/docker/containers:/var/lib/docker/containers \
+			-v /var/lib/docker/containers:/var/lib/docker/containers \
 			-v $$(pwd)/bbtest:/opt/bbtest \
 			-v $$(pwd)/reports:/reports \
-			--privileged=true \
-			--security-opt seccomp:unconfined \
 		jancajthaml/bbtest:amd64 \
 	) rspec --require /opt/bbtest/spec.rb \
 		--format documentation \
 		--format RspecJunitFormatter \
 		--out junit.xml \
 		--pattern /opt/bbtest/features/*.feature
-	@(docker rm -f $$(docker ps -a --filter="name=vault_bbtest" -q) &> /dev/null || :)
+	@(docker rm -f $$(docker ps -a --filter="name=vault_bbtest_amd64" -q) &> /dev/null || :)

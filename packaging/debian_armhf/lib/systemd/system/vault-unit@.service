@@ -9,7 +9,7 @@ Type=notify
 Environment=VAULT_TENANT=%i
 EnvironmentFile=/etc/init/vault.conf
 StartLimitBurst=0
-ExecStart=/openbank/services/vault/vault-unit %i
+ExecStart=/usr/bin/vault-unit %i
 StandardInput=null
 LimitNOFILE=1048576
 LimitNPROC=infinity
