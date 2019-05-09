@@ -43,19 +43,23 @@ bootstrap:
 
 .PHONY: lint
 lint:
-	@docker-compose run --rm lint --pkg vault || :
+	@docker-compose run --rm lint --pkg vault-rest || :
+	@docker-compose run --rm lint --pkg vault-unit || :
 
 .PHONY: sec
 sec:
-	@docker-compose run --rm sec --pkg vault || :
+	@docker-compose run --rm sec --pkg vault-rest || :
+	@docker-compose run --rm sec --pkg vault-unit || :
 
 .PHONY: sync
 sync:
-	@docker-compose run --rm sync --pkg vault
+	@docker-compose run --rm sync --pkg vault-rest
+	@docker-compose run --rm sync --pkg vault-unit
 
 .PHONY: test
 test:
-	@docker-compose run --rm test --pkg vault
+	@docker-compose run --rm test --pkg vault-rest
+	@docker-compose run --rm test --pkg vault-unit
 
 .PHONY: release
 release:

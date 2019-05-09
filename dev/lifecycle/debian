@@ -65,22 +65,22 @@ generate_manpage() {
 cat > ${target_unit} <<EOL
 .TH VAULT-UNIT 8 2019 "Vault Unit" "OpenBank Account Vault Tenant Unit"
 .SH NAME
-vault \- starts openbank account vault account unit
+vault-unit \- starts openbank account vault account unit
 .SH DESCRIPTION
 The
 .B pldd
-vault rest provides REST server for accessing and manipulating vault units
+vault unit stores account journal and negotiates account balance blocation
 .EE
 EOL
 
 cat > ${target_rest} <<EOL
 .TH VAULT-REST 8 2019 "Vault REST" "OpenBank Account Vault REST Server"
 .SH NAME
-vault \- starts openbank account vault REST server
+vault-rest \- starts openbank account vault REST server
 .SH DESCRIPTION
 The
 .B pldd
-vault unit stores account journal and negotiates account balance blocation
+vault rest provides REST server for accessing and manipulating vault units
 .EE
 EOL
 
@@ -230,10 +230,10 @@ case ${TARGET_ARCHITECTURE} in
   *)
     cp \
       "${BIN_SOURCES}/vault-rest-linux-${TARGET_ARCHITECTURE}" \
-      "${DEB_SOURCES}/usr/bin/vault-unit"
-    cp \
-      "${BIN_SOURCES}/vault-rest-linux-${TARGET_ARCHITECTURE}" \
       "${DEB_SOURCES}/usr/bin/vault-rest"
+    cp \
+      "${BIN_SOURCES}/vault-unit-linux-${TARGET_ARCHITECTURE}" \
+      "${DEB_SOURCES}/usr/bin/vault-unit"
   ;;
 
 esac
