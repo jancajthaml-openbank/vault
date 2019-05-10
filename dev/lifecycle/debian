@@ -67,9 +67,7 @@ cat > ${target_unit} <<EOL
 .SH NAME
 vault-unit \- starts openbank account vault account unit
 .SH DESCRIPTION
-The
-.B pldd
-vault unit stores account journal and negotiates account balance blocation
+The vault unit stores account journal and negotiates account balance blocation
 .EE
 EOL
 
@@ -78,9 +76,7 @@ cat > ${target_rest} <<EOL
 .SH NAME
 vault-rest \- starts openbank account vault REST server
 .SH DESCRIPTION
-The
-.B pldd
-vault rest provides REST server for accessing and manipulating vault units
+The vault rest provides REST server for accessing and manipulating vault units
 .EE
 EOL
 
@@ -153,8 +149,15 @@ generate_changelog() {
     fi
   done
 
-  cat ${target} | gzip -n -9 > ${target}.Debian.gz
+  cat ${target} | gzip -n -9 > ${target}.gz
   rm ${target}
+}
+
+check_files() {
+  chmod 0755 "${DEB_SOURCES}/DEBIAN/control"
+  chmod 0755 "${DEB_SOURCES}/DEBIAN/postinst"
+  chmod 0755 "${DEB_SOURCES}/DEBIAN/postrm"
+  chmod 0755 "${DEB_SOURCES}/DEBIAN/preinst"
 }
 
 ################################################################################
@@ -244,6 +247,8 @@ generate_manpage
 sed -i 's/Version.*/Version: '${VERSION#v}'/' "${DEB_SOURCES}/DEBIAN/control"
 
 find "${BIN_SOURCES}" -name "vault_*_${TARGET_ARCHITECTURE}.deb" -exec rm -f {} \;
+
+check_files
 
 dpkg-deb --build "${DEB_SOURCES}" "${BIN_SOURCES}"
 
