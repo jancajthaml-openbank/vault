@@ -26,7 +26,6 @@ import (
 )
 
 func loadConfFromEnv() Configuration {
-	logOutput := getEnvString("VAULT_LOG", "")
 	logLevel := strings.ToUpper(getEnvString("VAULT_LOG_LEVEL", "DEBUG"))
 	secrets := getEnvString("VAULT_SECRETS", "")
 	rootStorage := getEnvString("VAULT_STORAGE", "/data")
@@ -59,7 +58,6 @@ func loadConfFromEnv() Configuration {
 		SecretKey:          key,
 		SecretCert:         cert,
 		LakeHostname:       lakeHostname,
-		LogOutput:          logOutput,
 		LogLevel:           logLevel,
 		MetricsRefreshRate: metricsRefreshRate,
 		MetricsOutput:      metricsOutput,
