@@ -156,12 +156,12 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 			}
 
 		case RollbackOrder:
-			if len(parts) == 7 {
-				if amount, ok := new(money.Dec).SetString(parts[5]); ok {
+			if len(parts) == 8 {
+				if amount, ok := new(money.Dec).SetString(parts[6]); ok {
 					message = model.Rollback{
-						Transaction: parts[4],
+						Transaction: parts[5],
 						Amount:      amount,
-						Currency:    parts[6],
+						Currency:    parts[7],
 					}
 				}
 			}
