@@ -14,6 +14,10 @@
 
 package actor
 
+import (
+	system "github.com/jancajthaml-openbank/actor-system"
+)
+
 const (
 	// ReqAccountState vault message request code for "Get Snapshot"
 	ReqAccountState = "GS"
@@ -54,61 +58,61 @@ const (
 )
 
 // FatalErrorMessage is reply message carrying failure
-func FatalErrorMessage(self, sender string) string {
-	return sender + " " + self + " " + FatalError
+func FatalErrorMessage(context system.Context) string {
+	return context.Sender.Region + " " + context.Receiver.Region + " " + context.Sender.Name + " " + context.Receiver.Name + " " + FatalError
 }
 
 // AccountCreatedMessage is reply message informing that account was created
-func AccountCreatedMessage(self, sender string) string {
-	return sender + " " + self + " " + RespCreateAccount
+func AccountCreatedMessage(context system.Context) string {
+	return context.Sender.Region + " " + context.Receiver.Region + " " + context.Sender.Name + " " + context.Receiver.Name + " " + RespCreateAccount
 }
 
 // PromiseAcceptedMessage is reply message informing that transaction promise was
 // accepted
-func PromiseAcceptedMessage(self, sender string) string {
-	return sender + " " + self + " " + PromiseAccepted
+func PromiseAcceptedMessage(context system.Context) string {
+	return context.Sender.Region + " " + context.Receiver.Region + " " + context.Sender.Name + " " + context.Receiver.Name + " " + PromiseAccepted
 }
 
 // PromiseRejectedMessage is reply message informing that transaction promise was
 // rejected
-func PromiseRejectedMessage(self, sender, reason string) string {
-	return sender + " " + self + " " + PromiseRejected + " " + reason
+func PromiseRejectedMessage(context system.Context, reason string) string {
+	return context.Sender.Region + " " + context.Receiver.Region + " " + context.Sender.Name + " " + context.Receiver.Name + " " + PromiseRejected + " " + reason
 }
 
 // CommitAcceptedMessage is reply message informing that transaction commit was
 // accepted
-func CommitAcceptedMessage(self, sender string) string {
-	return sender + " " + self + " " + CommitAccepted
+func CommitAcceptedMessage(context system.Context) string {
+	return context.Sender.Region + " " + context.Receiver.Region + " " + context.Sender.Name + " " + context.Receiver.Name + " " + CommitAccepted
 }
 
 // CommitRejectedMessage is reply message informing that transaction commit was
 // rejected
-func CommitRejectedMessage(self, sender, reason string) string {
-	return sender + " " + self + " " + CommitRejected + " " + reason
+func CommitRejectedMessage(context system.Context, reason string) string {
+	return context.Sender.Region + " " + context.Receiver.Region + " " + context.Sender.Name + " " + context.Receiver.Name + " " + CommitRejected + " " + reason
 }
 
 // RollbackAcceptedMessage is reply message informing that transaction rollback
 // was accepted
-func RollbackAcceptedMessage(self, sender string) string {
-	return sender + " " + self + " " + RollbackAccepted
+func RollbackAcceptedMessage(context system.Context) string {
+	return context.Sender.Region + " " + context.Receiver.Region + " " + context.Sender.Name + " " + context.Receiver.Name + " " + RollbackAccepted
 }
 
 // RollbackRejectedMessage is reply message informing that transaction rollback
 // was rejected
-func RollbackRejectedMessage(self, sender, reason string) string {
-	return sender + " " + self + " " + RollbackRejected + " " + reason
+func RollbackRejectedMessage(context system.Context, reason string) string {
+	return context.Sender.Region + " " + context.Receiver.Region + " " + context.Sender.Name + " " + context.Receiver.Name + " " + RollbackRejected + " " + reason
 }
 
 // AccountStateMessage is reply message carrying account state
-func AccountStateMessage(self, sender, currency, balance, promised string, isBalanceCheck bool) string {
+func AccountStateMessage(context system.Context, currency string, balance string, promised string, isBalanceCheck bool) string {
 	if isBalanceCheck {
-		return sender + " " + self + " " + RespAccountState + " " + currency + " t " + balance + " " + promised
+		return context.Sender.Region + " " + context.Receiver.Region + " " + context.Sender.Name + " " + context.Receiver.Name + " " + RespAccountState + " " + currency + " t " + balance + " " + promised
 	}
 
-	return sender + " " + self + " " + RespAccountState + " " + currency + " f " + balance + " " + promised
+	return context.Sender.Region + " " + context.Receiver.Region + " " + context.Sender.Name + " " + context.Receiver.Name + " " + RespAccountState + " " + currency + " f " + balance + " " + promised
 }
 
 // AccountMissingMessage is reply message informing that account does not exist
-func AccountMissingMessage(self, sender string) string {
-	return sender + " " + self + " " + RespAccountMissing
+func AccountMissingMessage(context system.Context) string {
+	return context.Sender.Region + " " + context.Receiver.Region + " " + context.Sender.Name + " " + context.Receiver.Name + " " + RespAccountMissing
 }

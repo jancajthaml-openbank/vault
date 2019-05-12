@@ -1,5 +1,5 @@
 Package: vault
-Version: 1.2.6+changelog
+Version: 1.2.6+bbtest-message-expectation-flake
 Section: misc
 Priority: extra
 Architecture: amd64
