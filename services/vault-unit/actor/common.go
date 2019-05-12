@@ -16,6 +16,7 @@ package actor
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/jancajthaml-openbank/vault-unit/daemon"
 	"github.com/jancajthaml-openbank/vault-unit/model"
@@ -44,28 +45,30 @@ func ProcessLocalMessage(s *daemon.ActorSystem) system.ProcessLocalMessage {
 			log.Warnf("Actor not found [local %s]", to)
 			return
 		}
-		ref.Tell(message, from)
+		ref.Tell(message, to, from)
 	}
 }
 
-func asEnvelopes(s *daemon.ActorSystem, parts []string) (system.Coordinates, system.Coordinates, string, error) {
-	if len(parts) < 4 {
-		return nilCoordinates, nilCoordinates, "", fmt.Errorf("invalid message received %+v", parts)
+func asEnvelopes(s *daemon.ActorSystem, msg string) (system.Coordinates, system.Coordinates, []string, error) {
+	parts := strings.Split(msg, " ")
+
+	if len(parts) < 5 {
+		return nilCoordinates, nilCoordinates, nil, fmt.Errorf("invalid message received %+v", parts)
 	}
 
-	region, receiver, sender, payload := parts[0], parts[1], parts[2], parts[3]
+	recieverRegion, senderRegion, receiverName, senderName := parts[0], parts[1], parts[2], parts[3]
 
 	from := system.Coordinates{
-		Name:   sender,
-		Region: region,
+		Name:   senderName,
+		Region: senderRegion,
 	}
 
 	to := system.Coordinates{
-		Name:   receiver,
-		Region: s.Name,
+		Name:   receiverName,
+		Region: recieverRegion,
 	}
 
-	return from, to, payload, nil
+	return from, to, parts, nil
 }
 
 func spawnAccountActor(s *daemon.ActorSystem, name string) (*system.Envelope, error) {
@@ -83,8 +86,8 @@ func spawnAccountActor(s *daemon.ActorSystem, name string) (*system.Envelope, er
 
 // ProcessRemoteMessage processing of remote message to this vault
 func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
-	return func(parts []string) {
-		from, to, payload, err := asEnvelopes(s, parts)
+	return func(msg string) {
+		from, to, parts, err := asEnvelopes(s, msg)
 		if err != nil {
 			log.Warn(err.Error())
 			return
@@ -93,7 +96,10 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 		defer func() {
 			if r := recover(); r != nil {
 				log.Errorf("procesRemoteMessage recovered in [remote %v -> local %v] : %+v", from, to, r)
-				s.SendRemote(from.Region, FatalErrorMessage(to.Name, from.Name))
+				s.SendRemote(FatalErrorMessage(system.Context{
+					Receiver: to,
+					Sender:   from,
+				}))
 			}
 		}()
 
@@ -104,44 +110,47 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 
 		if err != nil {
 			log.Warnf("Actor not found [remote %v -> local %v]", from, to)
-			s.SendRemote(from.Region, FatalErrorMessage(to.Name, from.Name))
+			s.SendRemote(FatalErrorMessage(system.Context{
+				Receiver: to,
+				Sender:   from,
+			}))
 			return
 		}
 
 		var message interface{}
 
-		switch payload {
+		switch parts[4] {
 
 		case ReqAccountState:
 			message = model.GetAccountState{}
 
 		case ReqCreateAccount:
-			if len(parts) == 6 {
+			if len(parts) == 7 {
 				message = model.CreateAccount{
 					AccountName:    to.Name,
-					Currency:       parts[4],
-					IsBalanceCheck: parts[5] != "f",
+					Currency:       parts[5],
+					IsBalanceCheck: parts[6] != "f",
 				}
 			}
 
 		case PromiseOrder:
-			if len(parts) == 7 {
-				if amount, ok := new(money.Dec).SetString(parts[5]); ok {
+			if len(parts) == 8 {
+				if amount, ok := new(money.Dec).SetString(parts[6]); ok {
 					message = model.Promise{
-						Transaction: parts[4],
+						Transaction: parts[5],
 						Amount:      amount,
-						Currency:    parts[6],
+						Currency:    parts[7],
 					}
 				}
 			}
 
 		case CommitOrder:
-			if len(parts) == 7 {
-				if amount, ok := new(money.Dec).SetString(parts[5]); ok {
+			if len(parts) == 8 {
+				if amount, ok := new(money.Dec).SetString(parts[6]); ok {
 					message = model.Commit{
-						Transaction: parts[4],
+						Transaction: parts[5],
 						Amount:      amount,
-						Currency:    parts[6],
+						Currency:    parts[7],
 					}
 				}
 			}
@@ -161,10 +170,13 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 
 		if message == nil {
 			log.Warnf("Deserialization of unsuported message [remote %v -> local %v] : %+v", from, to, parts)
-			s.SendRemote(from.Region, FatalErrorMessage(to.Name, from.Name))
+			s.SendRemote(FatalErrorMessage(system.Context{
+				Receiver: to,
+				Sender:   from,
+			}))
 			return
 		}
 
-		ref.Tell(message, from)
+		ref.Tell(message, to, from)
 	}
 }

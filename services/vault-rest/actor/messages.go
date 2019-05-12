@@ -30,14 +30,14 @@ const (
 )
 
 // CreateAccountMessage is message for creation of new account
-func CreateAccountMessage(sender, name, currency string, isBalanceCheck bool) string {
+func CreateAccountMessage(tenant string, sender string, name string, currency string, isBalanceCheck bool) string {
 	if isBalanceCheck {
-		return name + " " + sender + " " + ReqCreateAccount + " " + currency + " t"
+		return "VaultUnit/" + tenant + " VaultRest " + name + " " + sender + " " + ReqCreateAccount + " " + currency + " t"
 	}
-	return name + " " + sender + " " + ReqCreateAccount + " " + currency + " f"
+	return "VaultUnit/" + tenant + " VaultRest " + name + " " + sender + " " + ReqCreateAccount + " " + currency + " f"
 }
 
 // GetAccountMessage is message for getting balance of account
-func GetAccountMessage(sender, name string) string {
-	return name + " " + sender + " " + ReqAccountState
+func GetAccountMessage(tenant string, sender string, name string) string {
+	return "VaultUnit/" + tenant + " VaultRest " + name + " " + sender + " " + ReqAccountState
 }

@@ -52,7 +52,7 @@ func CreateAccount(s *daemon.ActorSystem, tenant string, account model.Account) 
 			ch <- context.Data
 		})
 
-		s.SendRemote("VaultUnit/"+tenant, CreateAccountMessage(envelope.Name, account.Name, account.Currency, account.IsBalanceCheck))
+		s.SendRemote(CreateAccountMessage(tenant, envelope.Name, account.Name, account.Currency, account.IsBalanceCheck))
 
 		select {
 
@@ -68,7 +68,7 @@ func CreateAccount(s *daemon.ActorSystem, tenant string, account model.Account) 
 }
 
 // GetAccount retrives account state from target tenant vault
-func GetAccount(s *daemon.ActorSystem, tenant string, id string) (result interface{}) {
+func GetAccount(s *daemon.ActorSystem, tenant string, name string) (result interface{}) {
 	s.Metrics.TimeGetAccount(func() {
 		// FIXME properly determine fail states
 		// input validation -> input error
@@ -93,7 +93,7 @@ func GetAccount(s *daemon.ActorSystem, tenant string, id string) (result interfa
 			ch <- context.Data
 		})
 
-		s.SendRemote("VaultUnit/"+tenant, GetAccountMessage(envelope.Name, id))
+		s.SendRemote(GetAccountMessage(tenant, envelope.Name, name))
 
 		select {
 

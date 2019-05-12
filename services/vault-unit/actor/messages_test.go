@@ -3,53 +3,66 @@ package actor
 import (
 	"testing"
 
+	system "github.com/jancajthaml-openbank/actor-system"
+
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMessagesIntegrity(t *testing.T) {
+	context := system.Context{
+		Sender: system.Coordinates{
+			Name:   "FROM_NAME",
+			Region: "FROM_REGION",
+		},
+		Receiver: system.Coordinates{
+			Name:   "TO_NAME",
+			Region: "TO_REGION",
+		},
+	}
+
 	t.Log("FatalErrorMessage")
 	{
-		assert.Equal(t, "TO FROM EE", FatalErrorMessage("FROM", "TO"))
+		assert.Equal(t, "FROM_REGION TO_REGION FROM_NAME TO_NAME EE", FatalErrorMessage(context))
 	}
 
 	t.Log("AccountCreatedMessage")
 	{
-		assert.Equal(t, "TO FROM AN", AccountCreatedMessage("FROM", "TO"))
+		assert.Equal(t, "FROM_REGION TO_REGION FROM_NAME TO_NAME AN", AccountCreatedMessage(context))
 	}
 
 	t.Log("PromiseAcceptedMessage")
 	{
-		assert.Equal(t, "TO FROM P1", PromiseAcceptedMessage("FROM", "TO"))
+		assert.Equal(t, "FROM_REGION TO_REGION FROM_NAME TO_NAME P1", PromiseAcceptedMessage(context))
 	}
 
 	t.Log("PromiseRejectedMessage")
 	{
-		assert.Equal(t, "TO FROM P2 REASON", PromiseRejectedMessage("FROM", "TO", "REASON"))
+		assert.Equal(t, "FROM_REGION TO_REGION FROM_NAME TO_NAME P2 REASON", PromiseRejectedMessage(context, "REASON"))
 	}
 
 	t.Log("CommitAcceptedMessage")
 	{
-		assert.Equal(t, "TO FROM C1", CommitAcceptedMessage("FROM", "TO"))
+		assert.Equal(t, "FROM_REGION TO_REGION FROM_NAME TO_NAME C1", CommitAcceptedMessage(context))
 	}
 
 	t.Log("CommitRejectedMessage")
 	{
-		assert.Equal(t, "TO FROM C2 REASON", CommitRejectedMessage("FROM", "TO", "REASON"))
+		assert.Equal(t, "FROM_REGION TO_REGION FROM_NAME TO_NAME C2 REASON", CommitRejectedMessage(context, "REASON"))
 	}
 
 	t.Log("RollbackAcceptedMessage")
 	{
-		assert.Equal(t, "TO FROM R1", RollbackAcceptedMessage("FROM", "TO"))
+		assert.Equal(t, "FROM_REGION TO_REGION FROM_NAME TO_NAME R1", RollbackAcceptedMessage(context))
 	}
 
 	t.Log("RollbackRejectedMessage")
 	{
-		assert.Equal(t, "TO FROM R2 REASON", RollbackRejectedMessage("FROM", "TO", "REASON"))
+		assert.Equal(t, "FROM_REGION TO_REGION FROM_NAME TO_NAME R2 REASON", RollbackRejectedMessage(context, "REASON"))
 	}
 
 	t.Log("AccountStateMessage")
 	{
-		assert.Equal(t, "TO FROM S0 CURRENCY t BALANCE PROMISED", AccountStateMessage("FROM", "TO", "CURRENCY", "BALANCE", "PROMISED", true))
-		assert.Equal(t, "TO FROM S0 CURRENCY f BALANCE PROMISED", AccountStateMessage("FROM", "TO", "CURRENCY", "BALANCE", "PROMISED", false))
+		assert.Equal(t, "FROM_REGION TO_REGION FROM_NAME TO_NAME S0 CURRENCY t BALANCE PROMISED", AccountStateMessage(context, "CURRENCY", "BALANCE", "PROMISED", true))
+		assert.Equal(t, "FROM_REGION TO_REGION FROM_NAME TO_NAME S0 CURRENCY f BALANCE PROMISED", AccountStateMessage(context, "CURRENCY", "BALANCE", "PROMISED", false))
 	}
 }
