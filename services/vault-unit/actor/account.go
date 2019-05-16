@@ -64,11 +64,13 @@ func NonExistAccount(s *daemon.ActorSystem) func(interface{}, system.Context) {
 				return
 			}
 
-			context.Self.Become(*snaphostResult, ExistAccount(s))
+			s.Metrics.AccountCreated()
+
 			s.SendRemote(AccountCreatedMessage(context))
+
+			context.Self.Become(*snaphostResult, ExistAccount(s))
 			log.Infof("New Account %s Created", state.AccountName)
 			log.Debugf("%s ~ (NonExist CreateAccount) OK", state.AccountName)
-			s.Metrics.AccountCreated()
 
 		case model.Rollback:
 			s.SendRemote(RollbackAcceptedMessage(context))
@@ -128,12 +130,13 @@ func ExistAccount(s *daemon.ActorSystem) func(interface{}, system.Context) {
 				next.Promised = nextPromised
 				next.PromiseBuffer.Add(msg.Transaction)
 
-				context.Self.Become(next, ExistAccount(s))
+				s.Metrics.PromiseAccepted()
 
 				s.SendRemote(PromiseAcceptedMessage(context))
+
+				context.Self.Become(next, ExistAccount(s))
 				log.Infof("Account %s Promised %s %s", state.AccountName, msg.Amount.String(), state.Currency)
 				log.Debugf("%s ~ (Exist Promise) OK", state.AccountName)
-				s.Metrics.PromiseAccepted()
 				return
 			}
 
@@ -167,11 +170,12 @@ func ExistAccount(s *daemon.ActorSystem) func(interface{}, system.Context) {
 			next.Promised = new(money.Dec).Sub(state.Promised, msg.Amount)
 			next.PromiseBuffer.Remove(msg.Transaction)
 
-			context.Self.Become(next, ExistAccount(s))
+			s.Metrics.CommitAccepted()
 
 			s.SendRemote(CommitAcceptedMessage(context))
+
+			context.Self.Become(next, ExistAccount(s))
 			log.Debugf("%s ~ (Exist Commit) OK", state.AccountName)
-			s.Metrics.CommitAccepted()
 			return
 
 		case model.Rollback:
@@ -191,12 +195,13 @@ func ExistAccount(s *daemon.ActorSystem) func(interface{}, system.Context) {
 			next.Promised = new(money.Dec).Sub(state.Promised, msg.Amount)
 			next.PromiseBuffer.Remove(msg.Transaction)
 
-			context.Self.Become(next, ExistAccount(s))
+			s.Metrics.RollbackAccepted()
 
 			s.SendRemote(RollbackAcceptedMessage(context))
+
+			context.Self.Become(next, ExistAccount(s))
 			log.Infof("Account %s Rejected %s %s", state.AccountName, msg.Amount.String(), state.Currency)
 			log.Debugf("%s ~ (Exist Rollback) OK", state.AccountName)
-			s.Metrics.RollbackAccepted()
 			return
 
 		case model.Update:
