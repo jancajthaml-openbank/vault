@@ -22,7 +22,8 @@ import (
 
 	"github.com/jancajthaml-openbank/vault-unit/actor"
 	"github.com/jancajthaml-openbank/vault-unit/config"
-	"github.com/jancajthaml-openbank/vault-unit/daemon"
+	"github.com/jancajthaml-openbank/vault-unit/metrics"
+	"github.com/jancajthaml-openbank/vault-unit/persistence"
 	"github.com/jancajthaml-openbank/vault-unit/utils"
 )
 
@@ -30,9 +31,9 @@ import (
 type Application struct {
 	cfg             config.Configuration
 	interrupt       chan os.Signal
-	metrics         daemon.Metrics
-	actorSystem     daemon.ActorSystem
-	snapshotUpdater daemon.SnapshotUpdater
+	metrics         metrics.Metrics
+	actorSystem     actor.ActorSystem
+	snapshotUpdater persistence.SnapshotUpdater
 	cancel          context.CancelFunc
 }
 
@@ -45,21 +46,17 @@ func Initialize() Application {
 	utils.SetupLogger(cfg.LogLevel)
 
 	storage := localfs.NewStorage(cfg.RootStorage)
+	metricsDaemon := metrics.NewMetrics(ctx, cfg.Tenant, cfg.MetricsOutput, cfg.MetricsRefreshRate)
 
-	metrics := daemon.NewMetrics(ctx, cfg)
-
-	actorSystem := daemon.NewActorSystem(ctx, cfg, &metrics, &storage)
-	actorSystem.Support.RegisterOnLocalMessage(actor.ProcessLocalMessage(&actorSystem))
-	actorSystem.Support.RegisterOnRemoteMessage(actor.ProcessRemoteMessage(&actorSystem))
-
-	snapshotUpdater := daemon.NewSnapshotUpdater(ctx, cfg, &metrics, &storage, actor.ProcessLocalMessage(&actorSystem))
+	actorSystemDaemon := actor.NewActorSystem(ctx, cfg.Tenant, cfg.LakeHostname, &metricsDaemon, &storage)
+	snapshotUpdaterDaemon := persistence.NewSnapshotUpdater(ctx, cfg.JournalSaturation, cfg.SnapshotScanInterval, &metricsDaemon, &storage, actor.ProcessLocalMessage(&actorSystemDaemon))
 
 	return Application{
 		cfg:             cfg,
 		interrupt:       make(chan os.Signal, 1),
-		metrics:         metrics,
-		actorSystem:     actorSystem,
-		snapshotUpdater: snapshotUpdater,
+		metrics:         metricsDaemon,
+		actorSystem:     actorSystemDaemon,
+		snapshotUpdater: snapshotUpdaterDaemon,
 		cancel:          cancel,
 	}
 }

@@ -12,30 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package daemon
+package actor
 
 import (
 	"context"
 	"fmt"
 	"time"
 
-	"github.com/jancajthaml-openbank/vault-rest/config"
+	"github.com/jancajthaml-openbank/vault-unit/metrics"
 
 	system "github.com/jancajthaml-openbank/actor-system"
+	localfs "github.com/jancajthaml-openbank/local-fs"
 )
 
 // ActorSystem represents actor system subroutine
 type ActorSystem struct {
 	system.Support
-	Metrics *Metrics
+	Storage *localfs.Storage
+	Metrics *metrics.Metrics
 }
 
 // NewActorSystem returns actor system fascade
-func NewActorSystem(ctx context.Context, cfg config.Configuration, metrics *Metrics) ActorSystem {
-	return ActorSystem{
-		Support: system.NewSupport(ctx, "VaultRest", cfg.LakeHostname),
+func NewActorSystem(ctx context.Context, tenant string, lakeEndpoint string, metrics *metrics.Metrics, storage *localfs.Storage) ActorSystem {
+	result := ActorSystem{
+		Support: system.NewSupport(ctx, "VaultUnit/"+tenant, lakeEndpoint),
+		Storage: storage,
 		Metrics: metrics,
 	}
+
+	result.Support.RegisterOnLocalMessage(ProcessLocalMessage(&result))
+	result.Support.RegisterOnRemoteMessage(ProcessRemoteMessage(&result))
+
+	return result
 }
 
 // GreenLight daemon noop

@@ -21,7 +21,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/jancajthaml-openbank/vault-unit/daemon"
 	"github.com/jancajthaml-openbank/vault-unit/utils"
 
 	log "github.com/sirupsen/logrus"
@@ -38,7 +37,7 @@ func (app Application) WaitReady(deadline time.Duration) error {
 	mux := new(sync.Mutex)
 
 	var wg sync.WaitGroup
-	waitWithDeadline := func(support daemon.Daemon) {
+	waitWithDeadline := func(support utils.Daemon) {
 		go func() {
 			err := support.WaitReady(deadline)
 			if err != nil {

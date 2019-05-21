@@ -1,5 +1,5 @@
 Package: vault
-Version: 1.2.6+bbtest-message-expectation-flake
+Version: 1.2.6+single-app-struct
 Section: misc
 Priority: extra
 Architecture: amd64

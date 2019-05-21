@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jancajthaml-openbank/vault-unit/daemon"
 	"github.com/jancajthaml-openbank/vault-unit/model"
 
 	system "github.com/jancajthaml-openbank/actor-system"
@@ -29,7 +28,7 @@ import (
 var nilCoordinates = system.Coordinates{}
 
 // ProcessLocalMessage processing of local message to this vault
-func ProcessLocalMessage(s *daemon.ActorSystem) system.ProcessLocalMessage {
+func ProcessLocalMessage(s *ActorSystem) system.ProcessLocalMessage {
 	return func(message interface{}, to system.Coordinates, from system.Coordinates) {
 		if to.Region != "" && to.Region != s.Name {
 			log.Warnf("Invalid region received [local %s -> local %s]", from, to)
@@ -49,7 +48,7 @@ func ProcessLocalMessage(s *daemon.ActorSystem) system.ProcessLocalMessage {
 	}
 }
 
-func asEnvelopes(s *daemon.ActorSystem, msg string) (system.Coordinates, system.Coordinates, []string, error) {
+func asEnvelopes(s *ActorSystem, msg string) (system.Coordinates, system.Coordinates, []string, error) {
 	parts := strings.Split(msg, " ")
 
 	if len(parts) < 5 {
@@ -71,7 +70,7 @@ func asEnvelopes(s *daemon.ActorSystem, msg string) (system.Coordinates, system.
 	return from, to, parts, nil
 }
 
-func spawnAccountActor(s *daemon.ActorSystem, name string) (*system.Envelope, error) {
+func spawnAccountActor(s *ActorSystem, name string) (*system.Envelope, error) {
 	envelope := system.NewEnvelope(name, model.NewAccount(name))
 
 	err := s.RegisterActor(envelope, NilAccount(s))
@@ -85,7 +84,7 @@ func spawnAccountActor(s *daemon.ActorSystem, name string) (*system.Envelope, er
 }
 
 // ProcessRemoteMessage processing of remote message to this vault
-func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
+func ProcessRemoteMessage(s *ActorSystem) system.ProcessRemoteMessage {
 	return func(msg string) {
 		from, to, parts, err := asEnvelopes(s, msg)
 		if err != nil {

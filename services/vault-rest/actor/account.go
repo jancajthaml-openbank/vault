@@ -17,7 +17,6 @@ package actor
 import (
 	"time"
 
-	"github.com/jancajthaml-openbank/vault-rest/daemon"
 	"github.com/jancajthaml-openbank/vault-rest/model"
 
 	"github.com/rs/xid"
@@ -27,8 +26,8 @@ import (
 )
 
 // CreateAccount creates new account for target tenant vault
-func CreateAccount(s *daemon.ActorSystem, tenant string, account model.Account) (result interface{}) {
-	s.Metrics.TimeCreateAccount(func() {
+func CreateAccount(sys *ActorSystem, tenant string, account model.Account) (result interface{}) {
+	sys.Metrics.TimeCreateAccount(func() {
 		// FIXME properly determine fail states
 		// input validation -> input error
 		// system in invalid state (and panics) -> fatal error
@@ -46,13 +45,13 @@ func CreateAccount(s *daemon.ActorSystem, tenant string, account model.Account) 
 		defer close(ch)
 
 		envelope := system.NewEnvelope("relay/"+xid.New().String(), nil)
-		defer s.UnregisterActor(envelope.Name)
+		defer sys.UnregisterActor(envelope.Name)
 
-		s.RegisterActor(envelope, func(state interface{}, context system.Context) {
+		sys.RegisterActor(envelope, func(state interface{}, context system.Context) {
 			ch <- context.Data
 		})
 
-		s.SendRemote(CreateAccountMessage(tenant, envelope.Name, account.Name, account.Currency, account.IsBalanceCheck))
+		sys.SendRemote(CreateAccountMessage(tenant, envelope.Name, account.Name, account.Currency, account.IsBalanceCheck))
 
 		select {
 
@@ -68,8 +67,8 @@ func CreateAccount(s *daemon.ActorSystem, tenant string, account model.Account) 
 }
 
 // GetAccount retrives account state from target tenant vault
-func GetAccount(s *daemon.ActorSystem, tenant string, name string) (result interface{}) {
-	s.Metrics.TimeGetAccount(func() {
+func GetAccount(sys *ActorSystem, tenant string, name string) (result interface{}) {
+	sys.Metrics.TimeGetAccount(func() {
 		// FIXME properly determine fail states
 		// input validation -> input error
 		// system in invalid state (and panics) -> fatal error
@@ -87,13 +86,13 @@ func GetAccount(s *daemon.ActorSystem, tenant string, name string) (result inter
 		defer close(ch)
 
 		envelope := system.NewEnvelope("relay/"+xid.New().String(), nil)
-		defer s.UnregisterActor(envelope.Name)
+		defer sys.UnregisterActor(envelope.Name)
 
-		s.RegisterActor(envelope, func(state interface{}, context system.Context) {
+		sys.RegisterActor(envelope, func(state interface{}, context system.Context) {
 			ch <- context.Data
 		})
 
-		s.SendRemote(GetAccountMessage(tenant, envelope.Name, name))
+		sys.SendRemote(GetAccountMessage(tenant, envelope.Name, name))
 
 		select {
 

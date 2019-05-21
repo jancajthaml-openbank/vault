@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package daemon
+package metrics
 
 import (
 	"context"
@@ -21,7 +21,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/jancajthaml-openbank/vault-rest/config"
 	"github.com/jancajthaml-openbank/vault-rest/utils"
 
 	metrics "github.com/rcrowley/go-metrics"
@@ -30,7 +29,7 @@ import (
 
 // Metrics represents metrics subroutine
 type Metrics struct {
-	Support
+	utils.DaemonSupport
 	output               string
 	refreshRate          time.Duration
 	getAccountLatency    metrics.Timer
@@ -39,11 +38,11 @@ type Metrics struct {
 }
 
 // NewMetrics returns metrics fascade
-func NewMetrics(ctx context.Context, cfg config.Configuration) Metrics {
+func NewMetrics(ctx context.Context, output string, refreshRate time.Duration) Metrics {
 	return Metrics{
-		Support:              NewDaemonSupport(ctx),
-		output:               cfg.MetricsOutput,
-		refreshRate:          cfg.MetricsRefreshRate,
+		DaemonSupport:        utils.NewDaemonSupport(ctx),
+		output:               output,
+		refreshRate:          refreshRate,
 		getAccountLatency:    metrics.NewTimer(),
 		createAccountLatency: metrics.NewTimer(),
 	}
@@ -147,30 +146,31 @@ func (metrics Metrics) Start() {
 		return
 	}
 
-	output := getFilename(metrics.output)
+	metricsOutput := getFilename(metrics.output)
+
 	ticker := time.NewTicker(metrics.refreshRate)
 	defer ticker.Stop()
 
 	metrics.MarkReady()
 
 	select {
-	case <-metrics.canStart:
+	case <-metrics.CanStart:
 		break
 	case <-metrics.Done():
 		return
 	}
 
-	log.Infof("Start metrics daemon, update each %v into %v", metrics.refreshRate, output)
+	log.Infof("Start metrics daemon, update each %v into %v", metrics.refreshRate, metricsOutput)
 
 	for {
 		select {
 		case <-metrics.Done():
 			log.Info("Stopping metrics daemon")
-			metrics.persist(output)
+			metrics.persist(metricsOutput)
 			log.Info("Stop metrics daemon")
 			return
 		case <-ticker.C:
-			metrics.persist(output)
+			metrics.persist(metricsOutput)
 		}
 	}
 }

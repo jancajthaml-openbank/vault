@@ -19,17 +19,15 @@ import (
 	"net/http"
 
 	"github.com/jancajthaml-openbank/vault-rest/actor"
-	"github.com/jancajthaml-openbank/vault-rest/daemon"
 	"github.com/jancajthaml-openbank/vault-rest/model"
 	"github.com/jancajthaml-openbank/vault-rest/persistence"
 	"github.com/jancajthaml-openbank/vault-rest/utils"
 
 	"github.com/gorilla/mux"
-	localfs "github.com/jancajthaml-openbank/local-fs"
 )
 
 // AccountPartial returns http handler for single account
-func AccountPartial(system *daemon.ActorSystem) func(w http.ResponseWriter, r *http.Request) {
+func AccountPartial(server *Server) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 
@@ -46,7 +44,7 @@ func AccountPartial(system *daemon.ActorSystem) func(w http.ResponseWriter, r *h
 		switch r.Method {
 
 		case "GET":
-			GetAccount(system, tenant, id, w, r)
+			GetAccount(server, tenant, id, w, r)
 			return
 
 		default:
@@ -60,7 +58,7 @@ func AccountPartial(system *daemon.ActorSystem) func(w http.ResponseWriter, r *h
 }
 
 // AccountsPartial returns http handler for accounts
-func AccountsPartial(system *daemon.ActorSystem, storage *localfs.Storage) func(w http.ResponseWriter, r *http.Request) {
+func AccountsPartial(server *Server) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 
@@ -76,11 +74,11 @@ func AccountsPartial(system *daemon.ActorSystem, storage *localfs.Storage) func(
 		switch r.Method {
 
 		case "GET":
-			GetAccounts(storage, tenant, w, r)
+			GetAccounts(server, tenant, w, r)
 			return
 
 		case "POST":
-			CreateAccount(system, tenant, w, r)
+			CreateAccount(server, tenant, w, r)
 			return
 
 		default:
@@ -95,7 +93,7 @@ func AccountsPartial(system *daemon.ActorSystem, storage *localfs.Storage) func(
 }
 
 // CreateAccount creates new account
-func CreateAccount(system *daemon.ActorSystem, tenant string, w http.ResponseWriter, r *http.Request) {
+func CreateAccount(server *Server, tenant string, w http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
@@ -114,7 +112,7 @@ func CreateAccount(system *daemon.ActorSystem, tenant string, w http.ResponseWri
 		return
 	}
 
-	switch actor.CreateAccount(system, tenant, *req).(type) {
+	switch actor.CreateAccount(server.ActorSystem, tenant, *req).(type) {
 
 	case *model.AccountCreated:
 		resp, err := utils.JSON.Marshal(req)
@@ -146,8 +144,8 @@ func CreateAccount(system *daemon.ActorSystem, tenant string, w http.ResponseWri
 }
 
 // GetAccounts returns list of existing accounts
-func GetAccounts(storage *localfs.Storage, tenant string, w http.ResponseWriter, r *http.Request) {
-	accounts, err := persistence.LoadAccounts(storage, tenant)
+func GetAccounts(server *Server, tenant string, w http.ResponseWriter, r *http.Request) {
+	accounts, err := persistence.LoadAccounts(server.Storage, tenant)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -168,8 +166,8 @@ func GetAccounts(storage *localfs.Storage, tenant string, w http.ResponseWriter,
 }
 
 // GetAccount returns snapshot existing account
-func GetAccount(system *daemon.ActorSystem, tenant string, id string, w http.ResponseWriter, r *http.Request) {
-	switch result := actor.GetAccount(system, tenant, id).(type) {
+func GetAccount(server *Server, tenant string, id string, w http.ResponseWriter, r *http.Request) {
+	switch result := actor.GetAccount(server.ActorSystem, tenant, id).(type) {
 
 	case *model.AccountMissing:
 		w.Header().Set("Content-Type", "application/json")
