@@ -25,7 +25,6 @@ import (
 	"github.com/jancajthaml-openbank/vault-rest/utils"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
-	log "github.com/sirupsen/logrus"
 )
 
 // Application encapsulate initialized application
@@ -46,8 +45,6 @@ func Initialize() Application {
 	cfg := config.GetConfig()
 
 	utils.SetupLogger(cfg.LogLevel)
-
-	log.Infof(">>> Setup <<<")
 
 	systemControl := daemon.NewSystemControl(ctx, cfg)
 
