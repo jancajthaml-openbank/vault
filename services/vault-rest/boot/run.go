@@ -21,24 +21,23 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/jancajthaml-openbank/vault-rest/daemon"
 	"github.com/jancajthaml-openbank/vault-rest/utils"
 
 	log "github.com/sirupsen/logrus"
 )
 
 // Stop stops the application
-func (app Application) Stop() {
-	close(app.interrupt)
+func (prog Program) Stop() {
+	close(prog.interrupt)
 }
 
 // WaitReady wait for daemons to be ready
-func (app Application) WaitReady(deadline time.Duration) error {
+func (prog Program) WaitReady(deadline time.Duration) error {
 	errors := make([]error, 0)
 	mux := new(sync.Mutex)
 
 	var wg sync.WaitGroup
-	waitWithDeadline := func(support daemon.Daemon) {
+	waitWithDeadline := func(support utils.Daemon) {
 		go func() {
 			err := support.WaitReady(deadline)
 			if err != nil {
@@ -51,10 +50,10 @@ func (app Application) WaitReady(deadline time.Duration) error {
 	}
 
 	wg.Add(4)
-	waitWithDeadline(app.actorSystem)
-	waitWithDeadline(app.rest)
-	waitWithDeadline(app.systemControl)
-	waitWithDeadline(app.metrics)
+	waitWithDeadline(prog.actorSystem)
+	waitWithDeadline(prog.rest)
+	waitWithDeadline(prog.systemControl)
+	waitWithDeadline(prog.metrics)
 	wg.Wait()
 
 	if len(errors) > 0 {
@@ -65,45 +64,45 @@ func (app Application) WaitReady(deadline time.Duration) error {
 }
 
 // GreenLight daemons
-func (app Application) GreenLight() {
-	app.metrics.GreenLight()
-	app.actorSystem.GreenLight()
-	app.systemControl.GreenLight()
-	app.rest.GreenLight()
+func (prog Program) GreenLight() {
+	prog.metrics.GreenLight()
+	prog.actorSystem.GreenLight()
+	prog.systemControl.GreenLight()
+	prog.rest.GreenLight()
 }
 
 // WaitInterrupt wait for signal
-func (app Application) WaitInterrupt() {
-	<-app.interrupt
+func (prog Program) WaitInterrupt() {
+	<-prog.interrupt
 }
 
 // Run runs the application
-func (app Application) Run() {
+func (prog Program) Run() {
 	log.Info(">>> Start <<<")
 
-	go app.metrics.Start()
-	go app.actorSystem.Start()
-	go app.systemControl.Start()
-	go app.rest.Start()
+	go prog.metrics.Start()
+	go prog.actorSystem.Start()
+	go prog.systemControl.Start()
+	go prog.rest.Start()
 
-	if err := app.WaitReady(5 * time.Second); err != nil {
+	if err := prog.WaitReady(5 * time.Second); err != nil {
 		log.Errorf("Error when starting daemons: %+v", err)
 	} else {
 		log.Info(">>> Started <<<")
 		utils.NotifyServiceReady()
-		app.GreenLight()
-		signal.Notify(app.interrupt, syscall.SIGINT, syscall.SIGTERM)
-		app.WaitInterrupt()
+		prog.GreenLight()
+		signal.Notify(prog.interrupt, syscall.SIGINT, syscall.SIGTERM)
+		prog.WaitInterrupt()
 	}
 
 	log.Info(">>> Stopping <<<")
 	utils.NotifyServiceStopping()
 
-	app.rest.Stop()
-	app.actorSystem.Stop()
-	app.systemControl.Stop()
-	app.metrics.Stop()
-	app.cancel()
+	prog.rest.Stop()
+	prog.actorSystem.Stop()
+	prog.systemControl.Stop()
+	prog.metrics.Stop()
+	prog.cancel()
 
 	log.Info(">>> Stop <<<")
 }

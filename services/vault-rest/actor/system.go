@@ -12,33 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package daemon
+package actor
 
 import (
 	"context"
 	"fmt"
 	"time"
 
-	"github.com/jancajthaml-openbank/vault-unit/config"
+	"github.com/jancajthaml-openbank/vault-rest/metrics"
 
 	system "github.com/jancajthaml-openbank/actor-system"
-	localfs "github.com/jancajthaml-openbank/local-fs"
 )
 
 // ActorSystem represents actor system subroutine
 type ActorSystem struct {
 	system.Support
-	Storage *localfs.Storage
-	Metrics *Metrics
+	Metrics *metrics.Metrics
 }
 
 // NewActorSystem returns actor system fascade
-func NewActorSystem(ctx context.Context, cfg config.Configuration, metrics *Metrics, storage *localfs.Storage) ActorSystem {
-	return ActorSystem{
-		Support: system.NewSupport(ctx, "VaultUnit/"+cfg.Tenant, cfg.LakeHostname),
-		Storage: storage,
+func NewActorSystem(ctx context.Context, lakeEndpoint string, metrics *metrics.Metrics) ActorSystem {
+	result := ActorSystem{
+		Support: system.NewSupport(ctx, "VaultRest", lakeEndpoint),
 		Metrics: metrics,
 	}
+
+	result.Support.RegisterOnRemoteMessage(ProcessRemoteMessage(&result))
+
+	return result
 }
 
 // GreenLight daemon noop
@@ -63,7 +64,7 @@ func (system ActorSystem) WaitReady(deadline time.Duration) (err error) {
 
 	ticker := time.NewTicker(deadline)
 	select {
-	case <-system.IsReady:
+	case <-system.Support.IsReady:
 		ticker.Stop()
 		err = nil
 		return

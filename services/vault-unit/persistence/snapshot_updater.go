@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package daemon
+package persistence
 
 import (
 	"context"
@@ -20,7 +20,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jancajthaml-openbank/vault-unit/config"
+	"github.com/jancajthaml-openbank/vault-unit/metrics"
 	"github.com/jancajthaml-openbank/vault-unit/model"
 	"github.com/jancajthaml-openbank/vault-unit/utils"
 
@@ -31,23 +31,23 @@ import (
 
 // SnapshotUpdater represents journal saturation update subroutine
 type SnapshotUpdater struct {
-	Support
+	utils.DaemonSupport
 	callback            func(msg interface{}, to system.Coordinates, from system.Coordinates)
-	metrics             *Metrics
+	metrics             *metrics.Metrics
 	storage             *localfs.Storage
 	scanInterval        time.Duration
 	saturationThreshold int
 }
 
 // NewSnapshotUpdater returns snapshot updater fascade
-func NewSnapshotUpdater(ctx context.Context, cfg config.Configuration, metrics *Metrics, storage *localfs.Storage, callback func(msg interface{}, to system.Coordinates, from system.Coordinates)) SnapshotUpdater {
+func NewSnapshotUpdater(ctx context.Context, saturation int, scanInterval time.Duration, metrics *metrics.Metrics, storage *localfs.Storage, callback func(msg interface{}, to system.Coordinates, from system.Coordinates)) SnapshotUpdater {
 	return SnapshotUpdater{
-		Support:             NewDaemonSupport(ctx),
+		DaemonSupport:       utils.NewDaemonSupport(ctx),
 		callback:            callback,
 		metrics:             metrics,
 		storage:             storage,
-		scanInterval:        cfg.SnapshotScanInterval,
-		saturationThreshold: cfg.JournalSaturation,
+		scanInterval:        scanInterval,
+		saturationThreshold: saturation,
 	}
 }
 
@@ -144,7 +144,7 @@ func (updater SnapshotUpdater) Start() {
 	updater.MarkReady()
 
 	select {
-	case <-updater.canStart:
+	case <-updater.CanStart:
 		break
 	case <-updater.Done():
 		return

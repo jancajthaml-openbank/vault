@@ -1,14 +1,14 @@
-package daemon
+package persistence
 
 import (
 	"context"
 	"io/ioutil"
 	"os"
 	"testing"
+	"time"
 
-	"github.com/jancajthaml-openbank/vault-unit/config"
+	"github.com/jancajthaml-openbank/vault-unit/metrics"
 	"github.com/jancajthaml-openbank/vault-unit/model"
-	"github.com/jancajthaml-openbank/vault-unit/persistence"
 
 	system "github.com/jancajthaml-openbank/actor-system"
 	localfs "github.com/jancajthaml-openbank/local-fs"
@@ -28,13 +28,7 @@ func TestSnapshotUpdater(t *testing.T) {
 	require.Nil(t, err)
 	defer os.RemoveAll(tmpdir)
 
-	cfg := config.Configuration{
-		Tenant:            "tenant",
-		RootStorage:       tmpdir,
-		JournalSaturation: 1,
-	}
-
-	storage := localfs.NewStorage(cfg.RootStorage)
+	storage := localfs.NewStorage(tmpdir)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -50,18 +44,18 @@ func TestSnapshotUpdater(t *testing.T) {
 		callbackCalled++
 	}
 
-	metrics := NewMetrics(ctx, cfg)
-	su := NewSnapshotUpdater(ctx, cfg, &metrics, &storage, callback)
+	metrics := metrics.NewMetrics(ctx, "tenant", "", time.Hour)
+	su := NewSnapshotUpdater(ctx, 1, time.Hour, &metrics, &storage, callback)
 
-	s := persistence.CreateAccount(&storage, "account_1", "EUR", true)
+	s := CreateAccount(&storage, "account_1", "EUR", true)
 	require.NotNil(t, s)
-	require.True(t, persistence.PersistPromise(&storage, "account_1", 0, new(money.Dec), "transaction_1"))
-	s = persistence.UpdateAccount(&storage, "account_1", s)
-	require.True(t, persistence.PersistPromise(&storage, "account_1", 1, new(money.Dec), "transaction_2"))
-	require.True(t, persistence.PersistCommit(&storage, "account_1", 1, new(money.Dec), "transaction_2"))
+	require.True(t, PersistPromise(&storage, "account_1", 0, new(money.Dec), "transaction_1"))
+	s = UpdateAccount(&storage, "account_1", s)
+	require.True(t, PersistPromise(&storage, "account_1", 1, new(money.Dec), "transaction_2"))
+	require.True(t, PersistCommit(&storage, "account_1", 1, new(money.Dec), "transaction_2"))
 	require.NotNil(t, s)
 
-	require.NotNil(t, persistence.CreateAccount(&storage, "account_2", "EUR", true))
+	require.NotNil(t, CreateAccount(&storage, "account_2", "EUR", true))
 
 	t.Log("return valid accounts")
 	{

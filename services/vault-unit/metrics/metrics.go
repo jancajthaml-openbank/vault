@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package daemon
+package metrics
 
 import (
 	"context"
@@ -21,7 +21,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/jancajthaml-openbank/vault-unit/config"
 	"github.com/jancajthaml-openbank/vault-unit/utils"
 
 	metrics "github.com/rcrowley/go-metrics"
@@ -40,7 +39,7 @@ type Snapshot struct {
 
 // Metrics represents metrics subroutine
 type Metrics struct {
-	Support
+	utils.DaemonSupport
 	output              string
 	tenant              string
 	refreshRate         time.Duration
@@ -53,12 +52,12 @@ type Metrics struct {
 }
 
 // NewMetrics returns metrics fascade
-func NewMetrics(ctx context.Context, cfg config.Configuration) Metrics {
+func NewMetrics(ctx context.Context, tenant string, output string, refreshRate time.Duration) Metrics {
 	return Metrics{
-		Support:             NewDaemonSupport(ctx),
-		output:              cfg.MetricsOutput,
-		tenant:              cfg.Tenant,
-		refreshRate:         cfg.MetricsRefreshRate,
+		DaemonSupport:       utils.NewDaemonSupport(ctx),
+		output:              output,
+		tenant:              tenant,
+		refreshRate:         refreshRate,
 		promisesAccepted:    metrics.NewCounter(),
 		commitsAccepted:     metrics.NewCounter(),
 		rollbacksAccepted:   metrics.NewCounter(),
@@ -195,7 +194,7 @@ func (metrics Metrics) Start() {
 	metrics.MarkReady()
 
 	select {
-	case <-metrics.canStart:
+	case <-metrics.CanStart:
 		break
 	case <-metrics.Done():
 		return

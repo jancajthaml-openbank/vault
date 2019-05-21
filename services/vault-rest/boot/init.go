@@ -21,57 +21,47 @@ import (
 	"github.com/jancajthaml-openbank/vault-rest/actor"
 	"github.com/jancajthaml-openbank/vault-rest/api"
 	"github.com/jancajthaml-openbank/vault-rest/config"
-	"github.com/jancajthaml-openbank/vault-rest/daemon"
+	"github.com/jancajthaml-openbank/vault-rest/metrics"
+	"github.com/jancajthaml-openbank/vault-rest/systemd"
 	"github.com/jancajthaml-openbank/vault-rest/utils"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
-	log "github.com/sirupsen/logrus"
 )
 
-// Application encapsulate initialized application
-type Application struct {
+// Program encapsulate initialized application
+type Program struct {
 	cfg           config.Configuration
 	interrupt     chan os.Signal
-	actorSystem   daemon.ActorSystem
-	metrics       daemon.Metrics
-	rest          daemon.Server
-	systemControl daemon.SystemControl
+	actorSystem   actor.ActorSystem
+	metrics       metrics.Metrics
+	rest          api.Server
+	systemControl systemd.SystemControl
 	cancel        context.CancelFunc
 }
 
 // Initialize application
-func Initialize() Application {
+func Initialize() Program {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	cfg := config.GetConfig()
 
 	utils.SetupLogger(cfg.LogLevel)
 
-	log.Infof(">>> Setup <<<")
-
-	systemControl := daemon.NewSystemControl(ctx, cfg)
+	systemControlDaemon := systemd.NewSystemControl(ctx)
 
 	storage := localfs.NewStorage(cfg.RootStorage)
+	metricsDaemon := metrics.NewMetrics(ctx, cfg.MetricsOutput, cfg.MetricsRefreshRate)
 
-	metrics := daemon.NewMetrics(ctx, cfg)
+	actorSystemDaemon := actor.NewActorSystem(ctx, cfg.LakeHostname, &metricsDaemon)
+	restDaemon := api.NewServer(ctx, cfg.ServerPort, cfg.SecretsPath, &actorSystemDaemon, &systemControlDaemon, &storage)
 
-	actorSystem := daemon.NewActorSystem(ctx, cfg, &metrics)
-	actorSystem.Support.RegisterOnRemoteMessage(actor.ProcessRemoteMessage(&actorSystem))
-
-	rest := daemon.NewServer(ctx, cfg)
-	rest.HandleFunc("/health", api.HealtCheck, "GET", "HEAD")
-	rest.HandleFunc("/tenant/{tenant}", api.TenantPartial(&systemControl), "POST", "DELETE")
-	rest.HandleFunc("/tenant", api.TenantsPartial(&systemControl), "GET")
-	rest.HandleFunc("/account/{tenant}/{id}", api.AccountPartial(&actorSystem), "GET")
-	rest.HandleFunc("/account/{tenant}", api.AccountsPartial(&actorSystem, &storage), "POST", "GET")
-
-	return Application{
+	return Program{
 		cfg:           cfg,
 		interrupt:     make(chan os.Signal, 1),
-		metrics:       metrics,
-		actorSystem:   actorSystem,
-		rest:          rest,
-		systemControl: systemControl,
+		metrics:       metricsDaemon,
+		actorSystem:   actorSystemDaemon,
+		rest:          restDaemon,
+		systemControl: systemControlDaemon,
 		cancel:        cancel,
 	}
 }
