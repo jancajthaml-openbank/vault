@@ -27,8 +27,8 @@ import (
 	"github.com/jancajthaml-openbank/vault-unit/utils"
 )
 
-// Application encapsulate initialized application
-type Application struct {
+// Program encapsulate initialized application
+type Program struct {
 	cfg             config.Configuration
 	interrupt       chan os.Signal
 	metrics         metrics.Metrics
@@ -38,7 +38,7 @@ type Application struct {
 }
 
 // Initialize application
-func Initialize() Application {
+func Initialize() Program {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	cfg := config.GetConfig()
@@ -51,7 +51,7 @@ func Initialize() Application {
 	actorSystemDaemon := actor.NewActorSystem(ctx, cfg.Tenant, cfg.LakeHostname, &metricsDaemon, &storage)
 	snapshotUpdaterDaemon := persistence.NewSnapshotUpdater(ctx, cfg.JournalSaturation, cfg.SnapshotScanInterval, &metricsDaemon, &storage, actor.ProcessLocalMessage(&actorSystemDaemon))
 
-	return Application{
+	return Program{
 		cfg:             cfg,
 		interrupt:       make(chan os.Signal, 1),
 		metrics:         metricsDaemon,

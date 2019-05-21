@@ -25,8 +25,6 @@ import (
 	money "gopkg.in/inf.v0"
 )
 
-var nilCoordinates = system.Coordinates{}
-
 // ProcessLocalMessage processing of local message to this vault
 func ProcessLocalMessage(s *ActorSystem) system.ProcessLocalMessage {
 	return func(message interface{}, to system.Coordinates, from system.Coordinates) {
@@ -52,7 +50,7 @@ func asEnvelopes(s *ActorSystem, msg string) (system.Coordinates, system.Coordin
 	parts := strings.Split(msg, " ")
 
 	if len(parts) < 5 {
-		return nilCoordinates, nilCoordinates, nil, fmt.Errorf("invalid message received %+v", parts)
+		return system.Coordinates{}, system.Coordinates{}, nil, fmt.Errorf("invalid message received %+v", parts)
 	}
 
 	recieverRegion, senderRegion, receiverName, senderName := parts[0], parts[1], parts[2], parts[3]
