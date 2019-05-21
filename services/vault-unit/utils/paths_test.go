@@ -49,15 +49,6 @@ func TestSnapshotPath(t *testing.T) {
 	assert.Equal(t, expectedMax, pathMax)
 }
 
-func TestMetadataPath(t *testing.T) {
-	account := "account_4"
-
-	actual := MetadataPath(account)
-	expected := fmt.Sprintf("account/%s/meta", account)
-
-	assert.Equal(t, expected, actual)
-}
-
 func BenchmarkSnapshotPath(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
@@ -87,13 +78,5 @@ func BenchmarkEventsPath(b *testing.B) {
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
 		EventsPath("X")
-	}
-}
-
-func BenchmarkMetadataPath(b *testing.B) {
-	b.ResetTimer()
-	b.ReportAllocs()
-	for n := 0; n < b.N; n++ {
-		MetadataPath("X")
 	}
 }

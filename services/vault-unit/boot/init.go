@@ -19,7 +19,6 @@ import (
 	"os"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/jancajthaml-openbank/vault-unit/actor"
 	"github.com/jancajthaml-openbank/vault-unit/config"
@@ -44,8 +43,6 @@ func Initialize() Application {
 	cfg := config.GetConfig()
 
 	utils.SetupLogger(cfg.LogLevel)
-
-	log.Infof(">>> Setup <<<")
 
 	storage := localfs.NewStorage(cfg.RootStorage)
 

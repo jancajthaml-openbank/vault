@@ -44,8 +44,3 @@ func SnapshotPath(name string, version int) string {
 	value := strconv.Itoa(version)
 	return "account/" + name + "/snapshot/" + "0000000000"[0:10-len(value)] + value
 }
-
-// MetadataPath returns filepath for given metadata
-func MetadataPath(name string) string {
-	return "account/" + name + "/meta"
-}
