@@ -31,15 +31,11 @@ func loadConfFromEnv() Configuration {
 	lakeHostname := getEnvString("VAULT_LAKE_HOSTNAME", "")
 	snapshotScanInterval := getEnvDuration("VAULT_SNAPSHOT_SCANINTERVAL", time.Minute)
 	journalSaturation := getEnvInteger("VAULT_JOURNAL_SATURATION", 100)
-	metricsOutput := getEnvString("VAULT_METRICS_OUTPUT", "")
+	metricsOutput := getEnvFilename("VAULT_METRICS_OUTPUT", "/tmp")
 	metricsRefreshRate := getEnvDuration("VAULT_METRICS_REFRESHRATE", time.Second)
 
 	if tenant == "" || lakeHostname == "" || storage == "" {
 		log.Fatal("missing required parameter to run")
-	}
-
-	if metricsOutput != "" && os.MkdirAll(filepath.Dir(metricsOutput), os.ModePerm) != nil {
-		log.Fatal("unable to assert metrics output")
 	}
 
 	return Configuration{
@@ -48,10 +44,22 @@ func loadConfFromEnv() Configuration {
 		RootStorage:          storage + "/" + "t_" + tenant,
 		LogLevel:             logLevel,
 		MetricsRefreshRate:   metricsRefreshRate,
-		MetricsOutput:        metricsOutput,
+		MetricsOutput:        metricsOutput + "/metrics." + tenant + ".json",
 		JournalSaturation:    journalSaturation,
 		SnapshotScanInterval: snapshotScanInterval,
 	}
+}
+
+func getEnvFilename(key, fallback string) string {
+	var value = strings.TrimSpace(os.Getenv(key))
+	if value == "" {
+		return fallback
+	}
+	value = filepath.Clean(value)
+	if os.MkdirAll(value, os.ModePerm) != nil {
+		return fallback
+	}
+	return value
 }
 
 func getEnvString(key, fallback string) string {

@@ -1,5 +1,5 @@
 Package: vault
-Version: 1.2.6+single-app-struct
+Version: 1.2.7+hydrate-metrics
 Section: misc
 Priority: extra
 Architecture: amd64

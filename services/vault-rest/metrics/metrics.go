@@ -17,8 +17,6 @@ package metrics
 import (
 	"context"
 	"fmt"
-	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/jancajthaml-openbank/vault-rest/utils"
@@ -34,7 +32,6 @@ type Metrics struct {
 	refreshRate          time.Duration
 	getAccountLatency    metrics.Timer
 	createAccountLatency metrics.Timer
-	createdAccounts      metrics.Counter
 }
 
 // NewMetrics returns metrics fascade
@@ -48,65 +45,14 @@ func NewMetrics(ctx context.Context, output string, refreshRate time.Duration) M
 	}
 }
 
-// Snapshot holds metrics snapshot status
-type Snapshot struct {
-	GetAccountLatency    float64 `json:"getAccountLatency"`
-	CreateAccountLatency float64 `json:"createAccountLatency"`
-}
-
-// NewSnapshot returns metrics snapshot
-func NewSnapshot(metrics Metrics) Snapshot {
-	return Snapshot{
-		GetAccountLatency:    metrics.getAccountLatency.Percentile(0.95),
-		CreateAccountLatency: metrics.createAccountLatency.Percentile(0.95),
-	}
-}
-
 // TimeGetAccount measure execution of GetAccount
-func (metrics Metrics) TimeGetAccount(f func()) {
+func (metrics *Metrics) TimeGetAccount(f func()) {
 	metrics.getAccountLatency.Time(f)
 }
 
 // TimeCreateAccount measure execution of CreateAccount
-func (metrics Metrics) TimeCreateAccount(f func()) {
+func (metrics *Metrics) TimeCreateAccount(f func()) {
 	metrics.createAccountLatency.Time(f)
-}
-
-func (metrics Metrics) persist(filename string) {
-	tempFile := filename + "_temp"
-
-	data, err := utils.JSON.Marshal(NewSnapshot(metrics))
-	if err != nil {
-		log.Warnf("unable to create serialize metrics with error: %v", err)
-		return
-	}
-	f, err := os.OpenFile(tempFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.ModePerm)
-	if err != nil {
-		log.Warnf("unable to create file with error: %v", err)
-		return
-	}
-	defer f.Close()
-
-	if _, err := f.Write(data); err != nil {
-		log.Warnf("unable to write file with error: %v", err)
-		return
-	}
-
-	if err := os.Rename(tempFile, filename); err != nil {
-		log.Warnf("unable to move file with error: %v", err)
-		return
-	}
-
-	return
-}
-
-func getFilename(path string) string {
-	dirname := filepath.Dir(path)
-	ext := filepath.Ext(path)
-	filename := filepath.Base(path)
-	filename = filename[:len(filename)-len(ext)]
-
-	return dirname + "/" + filename + ext
 }
 
 // WaitReady wait for metrics to be ready
@@ -146,11 +92,12 @@ func (metrics Metrics) Start() {
 		return
 	}
 
-	metricsOutput := getFilename(metrics.output)
-
 	ticker := time.NewTicker(metrics.refreshRate)
 	defer ticker.Stop()
 
+	if err := metrics.Hydrate(); err != nil {
+		log.Warn(err.Error())
+	}
 	metrics.MarkReady()
 
 	select {
@@ -160,17 +107,17 @@ func (metrics Metrics) Start() {
 		return
 	}
 
-	log.Infof("Start metrics daemon, update each %v into %v", metrics.refreshRate, metricsOutput)
+	log.Infof("Start metrics daemon, update each %v into %v", metrics.refreshRate, metrics.output)
 
 	for {
 		select {
 		case <-metrics.Done():
 			log.Info("Stopping metrics daemon")
-			metrics.persist(metricsOutput)
+			metrics.Persist()
 			log.Info("Stop metrics daemon")
 			return
 		case <-ticker.C:
-			metrics.persist(metricsOutput)
+			metrics.Persist()
 		}
 	}
 }
