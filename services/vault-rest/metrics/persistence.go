@@ -15,6 +15,7 @@
 package metrics
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -26,7 +27,15 @@ import (
 
 // MarshalJSON serialises Metrics as json preserving uint64
 func (entity *Metrics) MarshalJSON() ([]byte, error) {
-	return []byte("{\"getAccountLatency\":" + strconv.FormatFloat(entity.getAccountLatency.Percentile(0.95), 'f', -1, 64) + ",\"createAccountLatency\":" + strconv.FormatFloat(entity.createAccountLatency.Percentile(0.95), 'f', -1, 64) + "}"), nil
+	var buffer bytes.Buffer
+
+	buffer.WriteString("{\"getAccountLatency\":")
+	buffer.WriteString(strconv.FormatFloat(entity.getAccountLatency.Percentile(0.95), 'f', -1, 64))
+	buffer.WriteString(",\"createAccountLatency\":")
+	buffer.WriteString(strconv.FormatFloat(entity.createAccountLatency.Percentile(0.95), 'f', -1, 64))
+	buffer.WriteString("}")
+
+	return buffer.Bytes(), nil
 }
 
 // UnmarshalJSON unmarshal json of Metrics entity
