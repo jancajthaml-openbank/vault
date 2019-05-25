@@ -115,13 +115,6 @@ func (metrics Metrics) WaitReady(deadline time.Duration) (err error) {
 func (metrics Metrics) Start() {
 	defer metrics.MarkDone()
 
-	if metrics.output == "" {
-		log.Warnf("no metrics output defined, skipping metrics persistence")
-		metrics.MarkReady()
-		return
-	}
-
-	//output := getFilename(metrics.output, metrics.tenant)
 	ticker := time.NewTicker(metrics.refreshRate)
 	defer ticker.Stop()
 

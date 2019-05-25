@@ -15,6 +15,7 @@
 package metrics
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -26,7 +27,23 @@ import (
 
 // MarshalJSON serialises Metrics as json preserving uint64
 func (entity *Metrics) MarshalJSON() ([]byte, error) {
-	return []byte("{\"snapshotCronLatency\":" + strconv.FormatFloat(entity.snapshotCronLatency.Percentile(0.95), 'f', -1, 64) + ",\"updatedSnapshots\":" + strconv.FormatInt(entity.updatedSnapshots.Count(), 10) + ",\"createdAccounts\":" + strconv.FormatInt(entity.createdAccounts.Count(), 10) + ",\"promisesAccepted\":" + strconv.FormatInt(entity.promisesAccepted.Count(), 10) + ",\"commitsAccepted\":" + strconv.FormatInt(entity.commitsAccepted.Count(), 10) + ",\"rollbacksAccepted\":" + strconv.FormatInt(entity.rollbacksAccepted.Count(), 10) + "}"), nil
+	var buffer bytes.Buffer
+
+	buffer.WriteString("{\"snapshotCronLatency\":")
+	buffer.WriteString(strconv.FormatFloat(entity.snapshotCronLatency.Percentile(0.95), 'f', -1, 64))
+	buffer.WriteString(",\"updatedSnapshots\":")
+	buffer.WriteString(strconv.FormatInt(entity.updatedSnapshots.Count(), 10))
+	buffer.WriteString(",\"createdAccounts\":")
+	buffer.WriteString(strconv.FormatInt(entity.createdAccounts.Count(), 10))
+	buffer.WriteString(",\"promisesAccepted\":")
+	buffer.WriteString(strconv.FormatInt(entity.promisesAccepted.Count(), 10))
+	buffer.WriteString(",\"commitsAccepted\":")
+	buffer.WriteString(strconv.FormatInt(entity.commitsAccepted.Count(), 10))
+	buffer.WriteString(",\"rollbacksAccepted\":")
+	buffer.WriteString(strconv.FormatInt(entity.rollbacksAccepted.Count(), 10))
+	buffer.WriteString("}")
+
+	return buffer.Bytes(), nil
 }
 
 // UnmarshalJSON unmarshal json of Metrics entity
