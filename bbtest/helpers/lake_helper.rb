@@ -27,7 +27,7 @@ module LakeMock
         break if self.poisonPill or self.pull_channel.nil?
         data = ""
         begin
-          Timeout.timeout(1) do
+          Timeout.timeout(3) do
             self.pull_channel.recv_string(data, 0)
           end
         rescue Timeout::Error => _
@@ -103,7 +103,11 @@ module LakeMock
   end
 
   def self.send(data)
-    self.pub_channel.send_string(data) unless self.pub_channel.nil?
+    if self.pub_channel.nil?
+      puts "cannot send channel already closed"
+      return
+    end
+    self.pub_channel.send_string(data)
   end
 
   def self.ack(data)

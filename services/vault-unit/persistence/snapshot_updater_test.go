@@ -49,10 +49,10 @@ func TestSnapshotUpdater(t *testing.T) {
 
 	s := CreateAccount(&storage, "account_1", "EUR", true)
 	require.NotNil(t, s)
-	require.True(t, PersistPromise(&storage, "account_1", 0, new(money.Dec), "transaction_1"))
+	require.Nil(t, PersistPromise(&storage, "account_1", 0, new(money.Dec), "transaction_1"))
 	s = UpdateAccount(&storage, "account_1", s)
-	require.True(t, PersistPromise(&storage, "account_1", 1, new(money.Dec), "transaction_2"))
-	require.True(t, PersistCommit(&storage, "account_1", 1, new(money.Dec), "transaction_2"))
+	require.Nil(t, PersistPromise(&storage, "account_1", 1, new(money.Dec), "transaction_2"))
+	require.Nil(t, PersistCommit(&storage, "account_1", 1, new(money.Dec), "transaction_2"))
 	require.NotNil(t, s)
 
 	require.NotNil(t, CreateAccount(&storage, "account_2", "EUR", true))
