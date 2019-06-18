@@ -1,5 +1,5 @@
 Package: vault
-Version: 1.2.7+better-metrics-part-2
+Version: 1.2.7+master
 Section: misc
 Priority: extra
 Architecture: amd64

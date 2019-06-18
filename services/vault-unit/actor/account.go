@@ -119,9 +119,9 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 			nextPromised := new(money.Dec).Add(state.Promised, msg.Amount)
 
 			if !state.IsBalanceCheck || new(money.Dec).Add(state.Balance, nextPromised).Sign() >= 0 {
-				if !persistence.PersistPromise(s.Storage, state.AccountName, state.Version, msg.Amount, msg.Transaction) {
+				if err := persistence.PersistPromise(s.Storage, state.AccountName, state.Version, msg.Amount, msg.Transaction); err != nil {
 					s.SendRemote(PromiseRejectedMessage(context, "STORAGE_ERROR"))
-					log.Warnf("%s ~ (Exist Promise) Error Could not Persist", state.AccountName)
+					log.Warnf("%s ~ (Exist Promise) Error Could not Persist %+v", state.AccountName, err)
 					return
 				}
 
@@ -158,9 +158,9 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 				return
 			}
 
-			if !persistence.PersistCommit(s.Storage, state.AccountName, state.Version, msg.Amount, msg.Transaction) {
+			if err := persistence.PersistCommit(s.Storage, state.AccountName, state.Version, msg.Amount, msg.Transaction); err != nil {
 				s.SendRemote(CommitRejectedMessage(context, "STORAGE_ERROR"))
-				log.Warnf("%s ~ (Exist Commit) Error Could not Persist", state.AccountName)
+				log.Warnf("%s ~ (Exist Commit) Error Could not Persist %+v", state.AccountName, err)
 				return
 			}
 
@@ -184,9 +184,9 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 				return
 			}
 
-			if !persistence.PersistRollback(s.Storage, state.AccountName, state.Version, msg.Amount, msg.Transaction) {
+			if err := persistence.PersistRollback(s.Storage, state.AccountName, state.Version, msg.Amount, msg.Transaction); err != nil {
 				s.SendRemote(RollbackRejectedMessage(context, "STORAGE_ERROR"))
-				log.Warnf("%s ~ (Exist Rollback) Error Could not Persist", state.AccountName)
+				log.Warnf("%s ~ (Exist Rollback) Error Could not Persist %+v", state.AccountName, err)
 				return
 			}
 

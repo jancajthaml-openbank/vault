@@ -115,31 +115,29 @@ func UpdateAccount(storage *localfs.Storage, name string, entity *model.Account)
 func PersistAccount(storage *localfs.Storage, name string, entity *model.Account) *model.Account {
 	data := entity.Serialise()
 	path := utils.SnapshotPath(name, entity.Version)
-
 	if storage.WriteFile(path, data) != nil {
 		return nil
 	}
-
 	return entity
 }
 
 // PersistPromise persists promise event
-func PersistPromise(storage *localfs.Storage, name string, version int, amount *money.Dec, transaction string) bool {
+func PersistPromise(storage *localfs.Storage, name string, version int, amount *money.Dec, transaction string) error {
 	event := model.EventPromise + "_" + amount.String() + "_" + transaction
 	fullPath := utils.EventPath(name, version) + "/" + event
-	return storage.TouchFile(fullPath) == nil
+	return storage.TouchFile(fullPath)
 }
 
 // PersistCommit persists commit event
-func PersistCommit(storage *localfs.Storage, name string, version int, amount *money.Dec, transaction string) bool {
+func PersistCommit(storage *localfs.Storage, name string, version int, amount *money.Dec, transaction string) error {
 	event := model.EventCommit + "_" + amount.String() + "_" + transaction
 	fullPath := utils.EventPath(name, version) + "/" + event
-	return storage.TouchFile(fullPath) == nil
+	return storage.TouchFile(fullPath)
 }
 
 // PersistRollback persists rollback event
-func PersistRollback(storage *localfs.Storage, name string, version int, amount *money.Dec, transaction string) bool {
+func PersistRollback(storage *localfs.Storage, name string, version int, amount *money.Dec, transaction string) error {
 	event := model.EventRollback + "_" + amount.String() + "_" + transaction
 	fullPath := utils.EventPath(name, version) + "/" + event
-	return storage.TouchFile(fullPath) == nil
+	return storage.TouchFile(fullPath)
 }
