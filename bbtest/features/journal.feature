@@ -18,6 +18,7 @@ Feature: Persistent journal
         "promiseBuffer": [],
         "accountName": "Euro",
         "isBalanceCheck": false,
+        "format": "TEST",
         "currency": "EUR"
       }
     """
@@ -32,6 +33,7 @@ Feature: Persistent journal
         "promiseBuffer": [],
         "accountName": "Ripple",
         "isBalanceCheck": true,
+        "format": "TEST",
         "currency": "XRP"
       }
     """

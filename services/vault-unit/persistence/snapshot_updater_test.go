@@ -47,7 +47,7 @@ func TestSnapshotUpdater(t *testing.T) {
 	metrics := metrics.NewMetrics(ctx, "", time.Hour)
 	su := NewSnapshotUpdater(ctx, 1, time.Hour, &metrics, &storage, callback)
 
-	s := CreateAccount(&storage, "account_1", "EUR", true)
+	s := CreateAccount(&storage, "account_1", "format", "EUR", true)
 	require.NotNil(t, s)
 	require.Nil(t, PersistPromise(&storage, "account_1", 0, new(money.Dec), "transaction_1"))
 	s = UpdateAccount(&storage, "account_1", s)
@@ -55,7 +55,7 @@ func TestSnapshotUpdater(t *testing.T) {
 	require.Nil(t, PersistCommit(&storage, "account_1", 1, new(money.Dec), "transaction_2"))
 	require.NotNil(t, s)
 
-	require.NotNil(t, CreateAccount(&storage, "account_2", "EUR", true))
+	require.NotNil(t, CreateAccount(&storage, "account_2", "format", "EUR", true))
 
 	t.Log("return valid accounts")
 	{

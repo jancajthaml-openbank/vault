@@ -1,5 +1,5 @@
 Package: vault
-Version: 1.2.7+master
+Version: 1.2.7+account-format
 Section: misc
 Priority: extra
 Architecture: amd64

@@ -15,6 +15,8 @@
 package actor
 
 import (
+	"github.com/jancajthaml-openbank/vault-unit/model"
+
 	system "github.com/jancajthaml-openbank/actor-system"
 )
 
@@ -104,12 +106,12 @@ func RollbackRejectedMessage(context system.Context, reason string) string {
 }
 
 // AccountStateMessage is reply message carrying account state
-func AccountStateMessage(context system.Context, currency string, balance string, promised string, isBalanceCheck bool) string {
-	if isBalanceCheck {
-		return context.Sender.Region + " " + context.Receiver.Region + " " + context.Sender.Name + " " + context.Receiver.Name + " " + RespAccountState + " " + currency + " t " + balance + " " + promised
+func AccountStateMessage(context system.Context, state model.Account) string {
+	if state.IsBalanceCheck {
+		return context.Sender.Region + " " + context.Receiver.Region + " " + context.Sender.Name + " " + context.Receiver.Name + " " + RespAccountState + " " + state.Format + " " + state.Currency + " t " + state.Balance.String() + " " + state.Promised.String()
 	}
 
-	return context.Sender.Region + " " + context.Receiver.Region + " " + context.Sender.Name + " " + context.Receiver.Name + " " + RespAccountState + " " + currency + " f " + balance + " " + promised
+	return context.Sender.Region + " " + context.Receiver.Region + " " + context.Sender.Name + " " + context.Receiver.Name + " " + RespAccountState + " " + state.Format + " " + state.Currency + " f " + state.Balance.String() + " " + state.Promised.String()
 }
 
 // AccountMissingMessage is reply message informing that account does not exist

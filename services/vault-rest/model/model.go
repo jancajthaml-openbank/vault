@@ -33,6 +33,7 @@ type AccountMissing struct{}
 // Account represents account
 type Account struct {
 	Name           string `json:"-"`
+	Format         string `json:"format"`
 	Currency       string `json:"currency"`
 	Balance        string `json:"balance"`
 	Blocking       string `json:"blocking"`
@@ -46,6 +47,7 @@ func (entity *Account) UnmarshalJSON(data []byte) error {
 	}
 	all := struct {
 		Name           string `json:"name"`
+		Format         string `json:"format"`
 		Currency       string `json:"currency"`
 		IsBalanceCheck *bool  `json:"isBalanceCheck"`
 	}{}
@@ -55,6 +57,9 @@ func (entity *Account) UnmarshalJSON(data []byte) error {
 	}
 	if all.Name == "" {
 		return fmt.Errorf("missing attribute \"name\"")
+	}
+	if all.Format == "" {
+		return fmt.Errorf("missing attribute \"format\"")
 	}
 	if all.Currency == "" {
 		return fmt.Errorf("missing attribute \"currency\"")
@@ -72,6 +77,7 @@ func (entity *Account) UnmarshalJSON(data []byte) error {
 	}
 
 	entity.Name = strings.Replace(all.Name, " ", "_", -1)
+	entity.Format = strings.Replace(all.Format, " ", "_", -1)
 	entity.Currency = all.Currency
 	return nil
 }

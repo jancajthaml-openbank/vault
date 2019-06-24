@@ -7,10 +7,12 @@ require 'date'
 step "snapshot :account version :count should be" do |account, version, expectation|
   (tenant, account) = account.split('/')
   actual = JournalHelper.account_snapshot(tenant, account, version)
+
   expectation = JSON.parse(expectation)
 
   expect(actual[:version]).to eq(expectation["version"])
   expect(actual[:balance]).to eq(expectation["balance"])
+  expect(actual[:format]).to eq(expectation["format"])
   expect(actual[:promised]).to eq(expectation["promised"])
   expect(actual[:account_name]).to eq(expectation["accountName"])
   expect(actual[:balance_check]).to eq(expectation["isBalanceCheck"])

@@ -14,6 +14,7 @@ step ":account should have data integrity" do |account|
   expected_response = {
     balance: "0",
     blocking: "0",
+    format: meta[:format],
     currency: meta[:currency],
     isBalanceCheck: (snapshot[:activity] || false)
   }.to_json
@@ -33,6 +34,7 @@ step ":activity :currency account :account is created" do |activity, currency, a
 
   payload = {
     name: account,
+    format: 'test',
     currency: currency,
     isBalanceCheck: activity
   }.to_json
@@ -44,6 +46,7 @@ step ":activity :currency account :account is created" do |activity, currency, a
 
   @accounts[account] = {
     :currency => currency,
+    :format => 'test',
     :activity => activity,
     :balance => '%g' % BigDecimal.new(0).to_s('F'),
     :promised => '%g' % BigDecimal.new(0).to_s('F'),

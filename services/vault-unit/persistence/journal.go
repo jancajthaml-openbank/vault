@@ -48,7 +48,7 @@ func LoadAccount(storage *localfs.Storage, name string) *model.Account {
 	}
 
 	result.Version = version
-	result.AccountName = name
+	result.Name = name
 	result.Deserialise(data)
 
 	events, err := storage.ListDirectory(utils.EventPath(name, result.Version), false)
@@ -82,13 +82,14 @@ func LoadAccount(storage *localfs.Storage, name string) *model.Account {
 }
 
 // CreateAccount persist account entity state to storage
-func CreateAccount(storage *localfs.Storage, name, currency string, isBalanceCheck bool) *model.Account {
+func CreateAccount(storage *localfs.Storage, name, format, currency string, isBalanceCheck bool) *model.Account {
 	return PersistAccount(storage, name, &model.Account{
 		Balance:        new(money.Dec),
 		Promised:       new(money.Dec),
 		PromiseBuffer:  model.NewTransactionSet(),
 		Version:        0,
-		AccountName:    name,
+		Name:           name,
+		Format:         format,
 		Currency:       currency,
 		IsBalanceCheck: isBalanceCheck,
 	})
@@ -106,7 +107,8 @@ func UpdateAccount(storage *localfs.Storage, name string, entity *model.Account)
 		PromiseBuffer:  entity.PromiseBuffer,
 		Version:        entity.Version + 1,
 		Currency:       entity.Currency,
-		AccountName:    entity.AccountName,
+		Name:           entity.Name,
+		Format:         entity.Format,
 		IsBalanceCheck: entity.IsBalanceCheck,
 	})
 }

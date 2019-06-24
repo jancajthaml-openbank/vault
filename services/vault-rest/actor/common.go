@@ -77,10 +77,11 @@ func ProcessRemoteMessage(s *ActorSystem) system.ProcessRemoteMessage {
 
 		case RespAccountState:
 			message = &model.Account{
-				Currency:       parts[5],
-				IsBalanceCheck: parts[6] != "f",
-				Balance:        parts[7],
-				Blocking:       parts[8],
+				Format:         parts[5],
+				Currency:       parts[6],
+				IsBalanceCheck: parts[7] != "f",
+				Balance:        parts[8],
+				Blocking:       parts[9],
 			}
 
 		case RespAccountMissing:
