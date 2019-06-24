@@ -23,11 +23,12 @@ func TestSnapshot_Update(t *testing.T) {
 
 	storage := localfs.NewStorage(tmpdir)
 
-	name := "account_2"
+	name := "account_name"
+	format := "account_format"
 	currency := "XRP"
 	isBalanceCheck := false
 
-	snapshotInitial := CreateAccount(&storage, name, currency, isBalanceCheck)
+	snapshotInitial := CreateAccount(&storage, name, format, currency, isBalanceCheck)
 	require.NotNil(t, snapshotInitial)
 
 	loadedInitial := LoadAccount(&storage, name)
@@ -70,6 +71,7 @@ func TestSnapshot_RefuseOverflow(t *testing.T) {
 	storage := localfs.NewStorage(tmpdir)
 
 	name := "xxx"
+	format := "format"
 	currency := "XxX"
 	isBalanceCheck := true
 
@@ -78,7 +80,8 @@ func TestSnapshot_RefuseOverflow(t *testing.T) {
 		Promised:       new(money.Dec),
 		PromiseBuffer:  model.NewTransactionSet(),
 		Version:        int(math.MaxInt32),
-		AccountName:    name,
+		Name:           name,
+		Format:         format,
 		Currency:       currency,
 		IsBalanceCheck: isBalanceCheck,
 	}
@@ -96,6 +99,7 @@ func TestSnapshot_PromiseBuffer(t *testing.T) {
 	storage := localfs.NewStorage(tmpdir)
 
 	name := "yyy"
+	format := "format"
 	currency := "yYy"
 	isBalanceCheck := false
 
@@ -106,7 +110,8 @@ func TestSnapshot_PromiseBuffer(t *testing.T) {
 		Promised:       new(money.Dec),
 		PromiseBuffer:  model.NewTransactionSet(),
 		Version:        0,
-		AccountName:    name,
+		Name:           name,
+		Format:         format,
 		Currency:       currency,
 		IsBalanceCheck: isBalanceCheck,
 	}
@@ -125,7 +130,8 @@ func TestSnapshot_PromiseBuffer(t *testing.T) {
 	assert.Equal(t, snapshot.Balance, loaded.Balance)
 	assert.Equal(t, snapshot.Promised, loaded.Promised)
 	assert.Equal(t, snapshot.Version, loaded.Version)
-	assert.Equal(t, snapshot.AccountName, loaded.AccountName)
+	assert.Equal(t, snapshot.Name, loaded.Name)
+	assert.Equal(t, snapshot.Format, loaded.Format)
 	assert.Equal(t, snapshot.Currency, loaded.Currency)
 	assert.Equal(t, snapshot.IsBalanceCheck, loaded.IsBalanceCheck)
 
@@ -142,7 +148,7 @@ func BenchmarkAccountLoad(b *testing.B) {
 
 	storage := localfs.NewStorage(tmpdir)
 
-	account := CreateAccount(&storage, "bench", "BNC", false)
+	account := CreateAccount(&storage, "bench", "format", "BNC", false)
 	require.NotNil(b, account)
 
 	b.ReportAllocs()

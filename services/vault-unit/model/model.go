@@ -22,7 +22,8 @@ import (
 
 // Account represents metadata of account entity
 type Account struct {
-	AccountName    string `json:"name"`
+	Name           string `json:"name"`
+	Format         string `json:"format"`
 	Currency       string `json:"currency"`
 	IsBalanceCheck bool   `json:"isBalanceCheck"`
 	Balance        *money.Dec
@@ -34,7 +35,8 @@ type Account struct {
 // Copy returns copy of Account
 func (entity Account) Copy() Account {
 	return Account{
-		AccountName:    entity.AccountName,
+		Name:           entity.Name,
+		Format:         entity.Format,
 		Currency:       entity.Currency,
 		IsBalanceCheck: entity.IsBalanceCheck,
 		Balance:        new(money.Dec).Set(entity.Balance),
@@ -46,7 +48,8 @@ func (entity Account) Copy() Account {
 
 // CreateAccount is inbound request for creation of new account
 type CreateAccount struct {
-	AccountName    string
+	Name           string
+	Format         string
 	Currency       string
 	IsBalanceCheck bool
 }
@@ -98,7 +101,8 @@ type Rollbacked struct {
 // NewAccount returns new Account
 func NewAccount(name string) Account {
 	return Account{
-		AccountName:    name,
+		Name:           name,
+		Format:         "???",
 		Currency:       "???",
 		IsBalanceCheck: true,
 		Balance:        new(money.Dec),
@@ -112,22 +116,31 @@ func NewAccount(name string) Account {
 func (entity Account) Serialise() []byte {
 	var buffer bytes.Buffer
 
-	if entity.IsBalanceCheck {
-		buffer.WriteString("T")
-	} else {
-		buffer.WriteString("F")
-	}
+	// [CURRENCY FORMAT_IS-CHECK]
+	// [BALANCE]
+	// [PROMISED]
+	// [...PROMISE-BUFFER]
 
 	buffer.WriteString("???"[0 : 3-len(entity.Currency)])
 	buffer.WriteString(entity.Currency)
+	buffer.WriteString(" ")
+
+	buffer.WriteString(entity.Format)
+	if entity.IsBalanceCheck {
+		buffer.WriteString("_T")
+	} else {
+		buffer.WriteString("_F")
+	}
+
 	buffer.WriteString("\n")
 
 	if entity.Balance == nil {
-		buffer.WriteString("0.0\n")
+		buffer.WriteString("0.0")
 	} else {
 		buffer.WriteString(entity.Balance.String())
-		buffer.WriteString("\n")
 	}
+
+	buffer.WriteString("\n")
 
 	if entity.Promised == nil {
 		buffer.WriteString("0.0")
@@ -150,21 +163,35 @@ func (entity *Account) Deserialise(data []byte) {
 	}
 
 	entity.PromiseBuffer = NewTransactionSet()
-	entity.IsBalanceCheck = string(data[0]) != "F"
-	entity.Currency = string(data[1:4])
+	entity.Currency = string(data[0:3])
 
 	var (
-		i = 5
-		j = bytes.IndexByte(data[5:], '\n') + 5
+		i = 4
+		j = bytes.IndexByte(data[4:], '\n') + 4
 	)
 
-	entity.Balance, _ = new(money.Dec).SetString(string(data[i:j]))
+	format := string(data[i:j])
+
+	entity.IsBalanceCheck = (format[len(format)-1:] != "F")
+	entity.Format = format[:len(format)-2]
 
 	i = j + 1
+
 	j = bytes.IndexByte(data[i:], '\n')
 	if j < 0 {
 		if len(data) > 0 {
-			entity.Promised, _ = new(money.Dec).SetString(string(data[i:]))
+			entity.Balance, _ = new(money.Dec).SetString(string(data[i]))
+		}
+		return
+	}
+	j += i
+	entity.Balance, _ = new(money.Dec).SetString(string(data[i:j]))
+	i = j + 1
+
+	j = bytes.IndexByte(data[i:], '\n')
+	if j < 0 {
+		if len(data) > 0 {
+			entity.Promised, _ = new(money.Dec).SetString(string(data[i]))
 		}
 		return
 	}

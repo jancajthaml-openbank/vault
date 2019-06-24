@@ -51,7 +51,7 @@ func CreateAccount(sys *ActorSystem, tenant string, account model.Account) (resu
 			ch <- context.Data
 		})
 
-		sys.SendRemote(CreateAccountMessage(tenant, envelope.Name, account.Name, account.Currency, account.IsBalanceCheck))
+		sys.SendRemote(CreateAccountMessage(tenant, envelope.Name, account.Name, account.Format, account.Currency, account.IsBalanceCheck))
 
 		select {
 

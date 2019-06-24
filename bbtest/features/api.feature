@@ -67,6 +67,7 @@ Feature: REST
     """
       {
         "name": "A",
+        "format": "test",
         "currency": "XXX",
         "isBalanceCheck": false
       }
@@ -80,6 +81,7 @@ Feature: REST
     """
       {
         "name": "yyy",
+        "format": "test",
         "currency": "XXX",
         "isBalanceCheck": false
       }
@@ -93,6 +95,7 @@ Feature: REST
     """
       {
         "name": "yyy",
+        "format": "test",
         "currency": "XXX",
         "isBalanceCheck": false
       }
@@ -106,6 +109,7 @@ Feature: REST
     """
       {
         "name": "B",
+        "format": "test",
         "currency": "XXX",
         "isBalanceCheck": false
       }
@@ -125,6 +129,7 @@ Feature: REST
     """
       {
         "name": "xxx",
+        "format": "test",
         "currency": "XXX",
         "isBalanceCheck": false
       }
@@ -135,6 +140,7 @@ Feature: REST
     Then curl responds with 200
     """
       {
+        "format": "TEST",
         "currency": "XXX",
         "balance": "0",
         "blocking": "0",

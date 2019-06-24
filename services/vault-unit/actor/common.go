@@ -122,11 +122,12 @@ func ProcessRemoteMessage(s *ActorSystem) system.ProcessRemoteMessage {
 			message = model.GetAccountState{}
 
 		case ReqCreateAccount:
-			if len(parts) == 7 {
+			if len(parts) == 8 {
 				message = model.CreateAccount{
-					AccountName:    to.Name,
-					Currency:       parts[5],
-					IsBalanceCheck: parts[6] != "f",
+					Name:           to.Name,
+					Format:         parts[5],
+					Currency:       parts[6],
+					IsBalanceCheck: parts[7] != "f",
 				}
 			}
 

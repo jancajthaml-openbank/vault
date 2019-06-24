@@ -13,8 +13,9 @@ module JournalHelper
       lines = data.split("\n").map(&:strip)
 
       {
-        :balance_check => lines[0][0] != 'F',
-        :currency => lines[0][1..3],
+        :balance_check => lines[0][lines[0].length-1..-1] != "F",
+        :format => lines[0][4...-2],
+        :currency => lines[0][0..2],
         :account_name => account,
         :version => version.to_i,
         :balance => '%g' % BigDecimal.new(lines[1]).to_s('F'),
@@ -40,8 +41,9 @@ module JournalHelper
       lines = data.split("\n").map(&:strip)
 
       {
-        :balance_check => lines[0][0] != 'F',
-        :currency => lines[0][1..3],
+        :balance_check => lines[0][lines[0].length-1..-1] != "F",
+        :format => lines[0][4...-2],
+        :currency => lines[0][0..2],
         :account_name => account,
         :version => snapshots[0].to_i,
         :balance => '%g' % BigDecimal.new(lines[1]).to_s('F'),

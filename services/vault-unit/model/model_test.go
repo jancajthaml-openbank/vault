@@ -14,7 +14,8 @@ func TestAccount_Serialise(t *testing.T) {
 	{
 		entity := new(Account)
 
-		entity.AccountName = "accountName"
+		entity.Name = "accountName"
+		entity.Format = "FOR"
 		entity.Currency = "CUR"
 		entity.IsBalanceCheck = false
 		entity.Version = 3
@@ -33,10 +34,10 @@ func TestAccount_Serialise(t *testing.T) {
 		data := entity.Serialise()
 		require.NotNil(t, data)
 
-		assert.Equal(t, "FCUR\n1.0\n2.0\nA\nB\nC\nD\nE\nF\nG\nH", string(data))
+		assert.Equal(t, "CUR FOR_F\n1.0\n2.0\nA\nB\nC\nD\nE\nF\nG\nH", string(data))
 
 		hydrated := new(Account)
-		hydrated.AccountName = entity.AccountName
+		hydrated.Name = entity.Name
 		hydrated.Version = entity.Version
 
 		hydrated.Deserialise(data)
@@ -48,30 +49,32 @@ func TestAccount_Serialise(t *testing.T) {
 	{
 		entity := new(Account)
 		entity.IsBalanceCheck = true
+		entity.Format = "FOR"
 		entity.Currency = "CUR"
 
 		data := entity.Serialise()
 		require.NotNil(t, data)
 
-		assert.Equal(t, data, []byte("TCUR\n0.0\n0.0"))
+		assert.Equal(t, data, []byte("CUR FOR_T\n0.0\n0.0"))
 	}
 
 	t.Log("serialized isBalanceCheck")
 	{
 		yes := new(Account)
 		yes.IsBalanceCheck = true
-		assert.Equal(t, yes.Serialise(), []byte("T???\n0.0\n0.0"))
+		assert.Equal(t, yes.Serialise(), []byte("??? _T\n0.0\n0.0"))
 
 		no := new(Account)
 		no.IsBalanceCheck = false
-		assert.Equal(t, no.Serialise(), []byte("F???\n0.0\n0.0"))
+		assert.Equal(t, no.Serialise(), []byte("??? _F\n0.0\n0.0"))
 	}
 }
 
 func BenchmarkAccount_Serialise(b *testing.B) {
 	entity := new(Account)
 
-	entity.AccountName = "accountName"
+	entity.Name = "accountName"
+	entity.Format = "accountFormat"
 	entity.Currency = "CUR"
 	entity.IsBalanceCheck = false
 	entity.Balance = new(money.Dec)
@@ -90,7 +93,8 @@ func BenchmarkAccount_Serialise(b *testing.B) {
 func BenchmarkAccount_Deserialise(b *testing.B) {
 	entity := new(Account)
 
-	entity.AccountName = "accountName"
+	entity.Name = "accountName"
+	entity.Format = "accountFormat"
 	entity.Currency = "CUR"
 	entity.IsBalanceCheck = false
 
