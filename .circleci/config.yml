@@ -471,10 +471,14 @@ jobs:
           name: Unit test vault-rest
           command: /home/circleci/project/dev/lifecycle/test --pkg vault-rest
           no_output_timeout: 5m
+      - store_test_results:
+          path: /home/circleci/project/reports/unit-tests-vault-rest
       - run:
           name: Unit test vault-unit
           command: /home/circleci/project/dev/lifecycle/test --pkg vault-unit
           no_output_timeout: 5m
+      - store_test_results:
+          path: /home/circleci/project/reports/unit-tests-vault-unit
 
   # -------------------------------------------------------------------------- #
 

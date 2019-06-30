@@ -1,5 +1,5 @@
 Package: vault
-Version: 1.2.8+pure-enable-services
+Version: 1.2.9+master
 Section: misc
 Priority: extra
 Architecture: amd64
