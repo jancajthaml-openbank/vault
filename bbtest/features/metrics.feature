@@ -1,6 +1,30 @@
 @metrics
 Feature: Metrics test
 
+  Scenario: metrics have expected keys
+    And   tenant M2 is onbdoarded
+    And   vault is reconfigured with
+    """
+      METRICS_REFRESHRATE=1s
+    """
+
+    Then metrics file /reports/metrics.M2.json should have following keys:
+    """
+      commitsAccepted
+      createdAccounts
+      promisesAccepted
+      rollbacksAccepted
+      snapshotCronLatency
+      updatedSnapshots
+    """
+    And metrics file /reports/metrics.M2.json has permissions -rw-r--r--
+    And metrics file /reports/metrics.json should have following keys:
+    """
+      createAccountLatency
+      getAccountLatency
+    """
+    And metrics file /reports/metrics.json has permissions -rw-r--r--
+
   Scenario: metrics report expected results
     Given tenant M1 is onbdoarded
     And vault is reconfigured with
@@ -19,28 +43,6 @@ Feature: Metrics test
       rollbacksAccepted 0
       snapshotCronLatency 0
       updatedSnapshots 0
-    """
-
-  Scenario: metrics have expected keys
-    And   tenant M2 is onbdoarded
-    And   vault is reconfigured with
-    """
-      METRICS_REFRESHRATE=1s
-    """
-
-    Then metrics file /reports/metrics.M2.json should have following keys:
-    """
-      commitsAccepted
-      createdAccounts
-      promisesAccepted
-      rollbacksAccepted
-      snapshotCronLatency
-      updatedSnapshots
-    """
-    And metrics file /reports/metrics.json should have following keys:
-    """
-      createAccountLatency
-      getAccountLatency
     """
 
   Scenario: metrics can remembers previous values after reboot
