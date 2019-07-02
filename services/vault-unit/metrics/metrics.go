@@ -15,44 +15,11 @@
 package metrics
 
 import (
-	"context"
 	"fmt"
 	"time"
 
-	"github.com/jancajthaml-openbank/vault-unit/utils"
-
-	metrics "github.com/rcrowley/go-metrics"
 	log "github.com/sirupsen/logrus"
 )
-
-// Metrics represents metrics subroutine
-type Metrics struct {
-	utils.DaemonSupport
-	output              string
-	tenant              string
-	refreshRate         time.Duration
-	promisesAccepted    metrics.Counter
-	commitsAccepted     metrics.Counter
-	rollbacksAccepted   metrics.Counter
-	createdAccounts     metrics.Counter
-	updatedSnapshots    metrics.Meter
-	snapshotCronLatency metrics.Timer
-}
-
-// NewMetrics returns metrics fascade
-func NewMetrics(ctx context.Context, output string, refreshRate time.Duration) Metrics {
-	return Metrics{
-		DaemonSupport:       utils.NewDaemonSupport(ctx),
-		output:              output,
-		refreshRate:         refreshRate,
-		promisesAccepted:    metrics.NewCounter(),
-		commitsAccepted:     metrics.NewCounter(),
-		rollbacksAccepted:   metrics.NewCounter(),
-		createdAccounts:     metrics.NewCounter(),
-		updatedSnapshots:    metrics.NewMeter(),
-		snapshotCronLatency: metrics.NewTimer(),
-	}
-}
 
 // TimeUpdateSaturatedSnapshots measures time of SaturatedSnapshots function run
 func (metrics *Metrics) TimeUpdateSaturatedSnapshots(f func()) {
