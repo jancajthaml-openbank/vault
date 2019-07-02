@@ -71,6 +71,26 @@ class UnitHelper
     raise "no package to install" unless File.file?('/etc/bbtest/packages/vault.deb')
   end
 
+  def prepare_config()
+    defaults = {
+      "STORAGE" => "/data",
+      "LOG_LEVEL" => "DEBUG",
+      "JOURNAL_SATURATION" => "10000",
+      "SNAPSHOT_SCANINTERVAL" => "1h",
+      "METRICS_REFRESHRATE" => "1h",
+      "METRICS_OUTPUT" => "/reports",
+      "LAKE_HOSTNAME" => "127.0.0.1",
+      "HTTP_PORT" => "4400",
+      "SECRETS" => "/opt/vault/secrets",
+    }
+
+    config = Array[defaults.map {|k,v| "VAULT_#{k}=#{v}"}]
+    config = config.join("\n").inspect.delete('\"')
+
+    %x(mkdir -p /etc/init)
+    %x(echo '#{config}' > /etc/init/vault.conf)
+  end
+
   def cleanup()
     %x(systemctl -t service --no-legend | awk '{ print $1 }' | sort -t @ -k 2 -g)
       .split("\n")

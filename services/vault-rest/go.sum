@@ -9,7 +9,6 @@ github.com/gorilla/mux v1.7.3 h1:gnP5JzjVOuiZD07fKKToCAOjS0yOpj/qPETTXCCS6hw=
 github.com/gorilla/mux v1.7.3/go.mod h1:1lud6UwP+6orDFRuTfBEV8e9/aOM/c4fVVCaMa2zaAs=
 github.com/jancajthaml-openbank/actor-system v1.0.0 h1:3Gt5eZ8ezph96tYZaBK6k2daYfZuWvgnMOugk4WoV5A=
 github.com/jancajthaml-openbank/actor-system v1.0.0/go.mod h1:KGSJEIJaKXLhrSjLiSNgnFryYaZJVROlO/OEzSzmTvw=
-github.com/jancajthaml-openbank/lake v1.1.9 h1:ldQVwWqiblubVoQgRaAjqFZ72HYYTH/SnbmUjMaJ/cs=
 github.com/jancajthaml-openbank/lake-client v1.0.0 h1:iLd87jkb+KjUgJZfn35ApPK6G6jjuoRAsY418meuIWg=
 github.com/jancajthaml-openbank/lake-client v1.0.0/go.mod h1:/0U6zI+wTgfQAaoP6F19WbIAYR+eKrLLE85rUPgJ9bM=
 github.com/jancajthaml-openbank/local-fs v1.0.3 h1:67l6aJaOrJL+3S69ntURPFloBJmHkliMY9hQv8nhT74=
