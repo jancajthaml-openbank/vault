@@ -1,5 +1,5 @@
 Package: vault
-Version: 1.2.9+prepare-config-at-start-of-bbtest
+Version: 1.2.9+jenkins-pipeline
 Section: misc
 Priority: extra
 Architecture: amd64

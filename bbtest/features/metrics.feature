@@ -8,7 +8,7 @@ Feature: Metrics test
       METRICS_REFRESHRATE=1s
     """
 
-    Then metrics file /reports/metrics.M2.json should have following keys:
+    Then metrics file /tmp/reports/metrics.M2.json should have following keys:
     """
       commitsAccepted
       createdAccounts
@@ -17,13 +17,13 @@ Feature: Metrics test
       snapshotCronLatency
       updatedSnapshots
     """
-    And metrics file /reports/metrics.M2.json has permissions -rw-r--r--
-    And metrics file /reports/metrics.json should have following keys:
+    And metrics file /tmp/reports/metrics.M2.json has permissions -rw-r--r--
+    And metrics file /tmp/reports/metrics.json should have following keys:
     """
       createAccountLatency
       getAccountLatency
     """
-    And metrics file /reports/metrics.json has permissions -rw-r--r--
+    And metrics file /tmp/reports/metrics.json has permissions -rw-r--r--
 
   Scenario: metrics report expected results
     Given tenant M1 is onbdoarded
@@ -35,7 +35,7 @@ Feature: Metrics test
     When active EUR account M1/ReplayCredit is created
     And  pasive EUR account M1/ReplayDebit is created
 
-    Then metrics file /reports/metrics.M1.json reports:
+    Then metrics file /tmp/reports/metrics.M1.json reports:
     """
       commitsAccepted 0
       createdAccounts 2
@@ -52,7 +52,7 @@ Feature: Metrics test
       METRICS_REFRESHRATE=1s
     """
 
-    Then metrics file /reports/metrics.M3.json reports:
+    Then metrics file /tmp/reports/metrics.M3.json reports:
     """
       commitsAccepted 0
       createdAccounts 0
@@ -63,7 +63,7 @@ Feature: Metrics test
     """
 
     When active EUR account M3/Account is created
-    Then metrics file /reports/metrics.M3.json reports:
+    Then metrics file /tmp/reports/metrics.M3.json reports:
     """
       commitsAccepted 0
       createdAccounts 1
@@ -74,7 +74,7 @@ Feature: Metrics test
     """
 
     When vault is restarted
-    Then metrics file /reports/metrics.M3.json reports:
+    Then metrics file /tmp/reports/metrics.M3.json reports:
     """
       commitsAccepted 0
       createdAccounts 1
