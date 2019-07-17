@@ -86,7 +86,7 @@ bbtest:
 		--tty \
 		--require /opt/bbtest/spec.rb \
 		--format documentation \
-		--format RspecJunitFormatter \
-		--out /tmp/reports/bbtest-junit.xml \
+		--format RSpec::JUnit \
+		--out /tmp/reports/blackbox-tests/results.xml \
 		--pattern /opt/bbtest/features/*.feature
 	@(docker rm -f $$(docker ps -a --filter="name=vault_bbtest_amd64" -q) &> /dev/null || :)
