@@ -5,6 +5,8 @@ ConditionPathExists=/etc/init/vault.conf
 
 [Path]
 PathChanged=/etc/init/vault.conf
+PathModified=/etc/init/vault.conf
+Unit=vault.service
 
 [Install]
 WantedBy=vault.service

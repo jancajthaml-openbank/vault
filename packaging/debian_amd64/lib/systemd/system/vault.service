@@ -5,7 +5,7 @@ ConditionPathExists=/etc/init/vault.conf
 
 [Service]
 Type=oneshot
-ExecStart=/bin/true
+ExecStart=/bin/echo start vault namespace
 RemainAfterExit=yes
 
 [Install]

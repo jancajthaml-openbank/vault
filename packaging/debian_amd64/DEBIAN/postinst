@@ -20,14 +20,14 @@ case "$1" in
 
   configure)
     if [ -f /etc/init/vault.conf ] ; then
-
       enable vault.path
       enable vault.service
       enable vault-rest.service
 
       if [ ${SYSTEMD_AVAIL} ] ; then
-        (systemctl daemon-reload || :)
-        (systemctl start vault.service >/dev/null || :)
+        systemctl daemon-reload
+        systemctl start vault.service
+        systemctl start vault.path
       fi
 
     else
