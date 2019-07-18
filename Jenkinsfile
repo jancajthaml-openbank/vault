@@ -69,9 +69,9 @@ pipeline {
                         returnStdout: true
                     ).trim()
 
-                    env.LICENSE = "Apache-2.0"                     // fixme read from sources
-                    env.PROJECT_NAME = "Vault"                      // fixme read from sources
-                    env.PROJECT_DESCRIPTION = "Account vault" // fixme read from sources
+                    env.LICENSE = "Apache-2.0"
+                    env.PROJECT_NAME = "openbank vault"
+                    env.PROJECT_DESCRIPTION = "OpenBanking vault service"
                     env.PROJECT_AUTHOR = "Jan Cajthaml <jan.cajthaml@gmail.com>"
                     env.HOME = "${WORKSPACE}"
                     env.GOPATH = "${WORKSPACE}/go"
@@ -131,14 +131,14 @@ pipeline {
                         --pkg vault-rest
                     """
                     sh """
-                        ${HOME}/dev/lifecycle/sec \
-                        --pkg vault-rest
+                        ${HOME}/dev/lifecycle/lint \
+                        --pkg vault-unit
                     """
                 }
                 dir(env.PROJECT_PATH) {
                     sh """
-                        ${HOME}/dev/lifecycle/lint \
-                        --pkg vault-unit
+                        ${HOME}/dev/lifecycle/sec \
+                        --pkg vault-rest
                     """
                     sh """
                         ${HOME}/dev/lifecycle/sec \
@@ -163,6 +163,8 @@ pipeline {
                         --pkg vault-rest \
                         --output ${HOME}/reports
                     """
+                }
+                dir(env.PROJECT_PATH) {
                     sh """
                         ${HOME}/dev/lifecycle/test \
                         --pkg vault-unit \
@@ -188,6 +190,8 @@ pipeline {
                         --arch linux/amd64 \
                         --output ${HOME}/packaging/bin
                     """
+                }
+                dir(env.PROJECT_PATH) {
                     sh """
                         ${HOME}/dev/lifecycle/package \
                         --pkg vault-unit \
@@ -264,14 +268,6 @@ pipeline {
             script {
                 archiveArtifacts(
                     allowEmptyArchive: true,
-                    artifacts: 'reports/graph_metrics.count_*.png'
-                )
-                archiveArtifacts(
-                    allowEmptyArchive: true,
-                    artifacts: 'reports/perf-*.log'
-                )
-                archiveArtifacts(
-                    allowEmptyArchive: true,
                     artifacts: 'reports/bbtest-*.log'
                 )
                 archiveArtifacts(
@@ -282,20 +278,20 @@ pipeline {
                     allowMissing: true,
                     alwaysLinkToLastBuild: false,
                     keepAll: true,
-                    reportDir: 'reports/unit-tests-vault-rest',
-                    reportFiles: 'coverage.html',
-                    reportName: 'Vault-Rest | Unit Test Coverage'
+                    reportDir: 'reports/unit-tests',
+                    reportFiles: 'vault-rest-coverage.html',
+                    reportName: 'Vault Rest | Unit Test Coverage'
                 ])
                 publishHTML(target: [
                     allowMissing: true,
                     alwaysLinkToLastBuild: false,
                     keepAll: true,
-                    reportDir: 'reports/unit-tests-vault-unit',
-                    reportFiles: 'coverage.html',
-                    reportName: 'Vault-Unit | Unit Test Coverage'
+                    reportDir: 'reports/unit-tests',
+                    reportFiles: 'vault-unit-coverage.html',
+                    reportName: 'Vault Unit | Unit Test Coverage'
                 ])
-                junit 'reports/unit-tests-vault-rest/results.xml'
-                junit 'reports/unit-tests-vault-unit/results.xml'
+                junit 'reports/unit-tests/vault-rest-results.xml'
+                junit 'reports/unit-tests/vault-unit-results.xml'
                 junit 'reports/blackbox-tests/results.xml'
             }
             cleanWs()
