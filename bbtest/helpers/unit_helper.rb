@@ -101,6 +101,7 @@ class UnitHelper
       .map(&:strip)
       .reject { |x| x.empty? || !x.start_with?("vault") }
       .each { |unit|
+        %x(journalctl -o short-precise -u #{unit} --no-pager > /tmp/reports/bbtest-#{unit.gsub('@','_').gsub('.','-')}.log 2>&1)
         %x(systemctl stop #{unit} 2>&1)
       }
   end
