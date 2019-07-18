@@ -89,7 +89,6 @@ end
 
 step "vault is reconfigured with" do |configuration|
   params = Hash[configuration.split("\n").map(&:strip).reject(&:empty?).map {|el| el.split '='}]
-
   config = Array[UnitHelper.default_config.merge(params).map { |k,v| "VAULT_#{k}=#{v}" }]
   config = config.join("\n").inspect.delete('\"')
 
