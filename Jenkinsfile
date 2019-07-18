@@ -252,8 +252,8 @@ pipeline {
     post {
         always {
             script {
-                sh "docker rmi -f registry.hub.docker.com/openbank/lake:amd64-${env.VERSION_MAIN}-${env.VERSION_META} || :"
-                sh "docker rmi -f lake:amd64-${env.GIT_COMMIT} || :"
+                sh "docker rmi -f registry.hub.docker.com/openbank/vault:amd64-${env.VERSION_MAIN}-${env.VERSION_META} || :"
+                sh "docker rmi -f vault:amd64-${env.GIT_COMMIT} || :"
                 sh """
                     docker images \
                         --no-trunc \
