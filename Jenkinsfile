@@ -290,9 +290,18 @@ pipeline {
                     reportFiles: 'vault-unit-coverage.html',
                     reportName: 'Vault Unit | Unit Test Coverage'
                 ])
-                junit 'reports/unit-tests/vault-rest-results.xml'
-                junit 'reports/unit-tests/vault-unit-results.xml'
-                junit 'reports/blackbox-tests/results.xml'
+                junit(
+                    allowEmptyResults: true,
+                    testResults: 'reports/unit-tests/vault-rest-results.xml'
+                )
+                junit(
+                    allowEmptyResults: true,
+                    testResults: 'reports/unit-tests/vault-unit-results.xml'
+                )
+                junit(
+                    allowEmptyResults: true,
+                    testResults: 'reports/blackbox-tests/results.xml'
+                )
             }
             cleanWs()
         }
