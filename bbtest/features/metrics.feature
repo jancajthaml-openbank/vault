@@ -1,85 +1,58 @@
-@metrics
 Feature: Metrics test
 
   Scenario: metrics have expected keys
-    And   tenant M2 is onbdoarded
-    And   vault is reconfigured with
-    """
-      METRICS_REFRESHRATE=1s
-    """
+    Given tenant M1 is onboarded
+    And   vault is configured with
+      | property            | value |
+      | METRICS_REFRESHRATE |    1s |
 
-    Then metrics file /tmp/reports/metrics.M2.json should have following keys:
-    """
-      commitsAccepted
-      createdAccounts
-      promisesAccepted
-      rollbacksAccepted
-      snapshotCronLatency
-      updatedSnapshots
-    """
-    And metrics file /tmp/reports/metrics.M2.json has permissions -rw-r--r--
-    And metrics file /tmp/reports/metrics.json should have following keys:
-    """
-      createAccountLatency
-      getAccountLatency
-    """
-    And metrics file /tmp/reports/metrics.json has permissions -rw-r--r--
+    Then metrics file /tmp/reports/blackbox-tests/metrics/metrics.M1.json should have following keys:
+      | key                 |
+      | commitsAccepted     |
+      | createdAccounts     |
+      | promisesAccepted    |
+      | rollbacksAccepted   |
+      | snapshotCronLatency |
+      | updatedSnapshots    |
+    And metrics file /tmp/reports/blackbox-tests/metrics/metrics.M1.json has permissions -rw-r--r--
 
-  Scenario: metrics report expected results
-    Given tenant M1 is onbdoarded
-    And vault is reconfigured with
-    """
-      METRICS_REFRESHRATE=1s
-    """
-
-    When active EUR account M1/ReplayCredit is created
-    And  pasive EUR account M1/ReplayDebit is created
-
-    Then metrics file /tmp/reports/metrics.M1.json reports:
-    """
-      commitsAccepted 0
-      createdAccounts 2
-      promisesAccepted 0
-      rollbacksAccepted 0
-      snapshotCronLatency 0
-      updatedSnapshots 0
-    """
+    And metrics file /tmp/reports/blackbox-tests/metrics/metrics.json should have following keys:
+      | key                  |
+      | createAccountLatency |
+      | getAccountLatency    |
+    And metrics file /tmp/reports/blackbox-tests/metrics/metrics.json has permissions -rw-r--r--
 
   Scenario: metrics can remembers previous values after reboot
-    And   tenant M3 is onbdoarded
-    And   vault is reconfigured with
-    """
-      METRICS_REFRESHRATE=1s
-    """
+    Given tenant M2 is onboarded
+    And   vault is configured with
+      | property            | value |
+      | METRICS_REFRESHRATE |    1s |
 
-    Then metrics file /tmp/reports/metrics.M3.json reports:
-    """
-      commitsAccepted 0
-      createdAccounts 0
-      promisesAccepted 0
-      rollbacksAccepted 0
-      snapshotCronLatency 0
-      updatedSnapshots 0
-    """
+    Then metrics file /tmp/reports/blackbox-tests/metrics/metrics.M2.json reports:
+      | key                 | value |
+      | commitsAccepted     |     0 |
+      | createdAccounts     |     0 |
+      | promisesAccepted    |     0 |
+      | rollbacksAccepted   |     0 |
+      | snapshotCronLatency |     0 |
+      | updatedSnapshots    |     0 |
 
-    When active EUR account M3/Account is created
-    Then metrics file /tmp/reports/metrics.M3.json reports:
-    """
-      commitsAccepted 0
-      createdAccounts 1
-      promisesAccepted 0
-      rollbacksAccepted 0
-      snapshotCronLatency 0
-      updatedSnapshots 0
-    """
+    When active EUR account M2/Credit is created
+    Then metrics file /tmp/reports/blackbox-tests/metrics/metrics.M2.json reports:
+      | key                 | value |
+      | commitsAccepted     |     0 |
+      | createdAccounts     |     1 |
+      | promisesAccepted    |     0 |
+      | rollbacksAccepted   |     0 |
+      | snapshotCronLatency |     0 |
+      | updatedSnapshots    |     0 |
 
-    When vault is restarted
-    Then metrics file /tmp/reports/metrics.M3.json reports:
-    """
-      commitsAccepted 0
-      createdAccounts 1
-      promisesAccepted 0
-      rollbacksAccepted 0
-      snapshotCronLatency 0
-      updatedSnapshots 0
-    """
+    When restart unit "vault-unit@M2.service"
+    Then metrics file /tmp/reports/blackbox-tests/metrics/metrics.M2.json reports:
+      | key                 | value |
+      | commitsAccepted     |     0 |
+      | createdAccounts     |     1 |
+      | promisesAccepted    |     0 |
+      | rollbacksAccepted   |     0 |
+      | snapshotCronLatency |     0 |
+      | updatedSnapshots    |     0 |
