@@ -1,149 +1,140 @@
 Feature: REST
 
   Scenario: Tenant API
-    Given vault is running
+    Given unit "vault-rest.service" is running
 
-    When I request curl GET https://127.0.0.1:4400/tenant
-    Then curl responds with 200
-    """
-      []
-    """
+    When I request HTTP https://127.0.0.1:4400/tenant
+      | key    | value |
+      | method | GET   |
+    Then HTTP response is
+      | key    | value |
+      | status | 200   |
+      | body   | []    |
 
-    When I request curl POST https://127.0.0.1:4400/tenant/APITESTA
-    Then curl responds with 200
-    """
-      {}
-    """
+    When I request HTTP https://127.0.0.1:4400/tenant/APITESTA
+      | key    | value |
+      | method | POST  |
+    Then HTTP response is
+      | key    | value |
+      | status | 200   |
+      | body   | {}    |
 
-    When I request curl POST https://127.0.0.1:4400/tenant/APITESTB
-    Then curl responds with 200
-    """
-      {}
-    """
+    When I request HTTP https://127.0.0.1:4400/tenant/APITESTB
+      | key    | value |
+      | method |  POST |
+    Then HTTP response is
+      | key    | value |
+      | status | 200   |
+      | body   | {}    |
 
-    When I request curl GET https://127.0.0.1:4400/tenant
-    Then curl responds with 200
-    """
-      [
-        "APITESTB"
-      ]
-    """
+    When I request HTTP https://127.0.0.1:4400/tenant
+      | key    | value |
+      | method | GET   |
+    Then HTTP response is
+      | key    | value        |
+      | status | 200          |
+      | body   | ["APITESTB"] |
 
-    When I request curl POST https://127.0.0.1:4400/tenant/APITESTC
-    Then curl responds with 200
-    """
-      {}
-    """
+    When I request HTTP https://127.0.0.1:4400/tenant/APITESTC
+      | key    | value |
+      | method | POST  |
+    Then HTTP response is
+      | key    | value |
+      | status | 200   |
+      | body   | {}    |
 
-    When I request curl DELETE https://127.0.0.1:4400/tenant/APITESTC
-    Then curl responds with 200
-    """
-      {}
-    """
+    When I request HTTP https://127.0.0.1:4400/tenant/APITESTC
+      | key    | value  |
+      | method | DELETE |
+    Then HTTP response is
+      | key    | value |
+      | status | 200   |
+      | body   | {}    |
+
 
   Scenario: Account API
-    Given vault is running
-    Given tenant API is onbdoarded
+    Given unit "vault-rest.service" is running
+    And   tenant API is onboarded
 
-    When I request curl GET https://127.0.0.1:4400/account/API
-    Then curl responds with 200
-    """
-      []
-    """
+    When I request HTTP https://127.0.0.1:4400/account/API
+      | key    | value |
+      | method | GET   |
+    Then HTTP response is
+      | key    | value |
+      | status | 200   |
+      | body   | []    |
 
-    When I request curl GET https://127.0.0.1:4400/account/API/xxx
-    Then curl responds with 404
-    """
-      {}
-    """
+    When I request HTTP https://127.0.0.1:4400/account/API/xxx
+      | key    | value |
+      | method | GET   |
+    Then HTTP response is
+      | key    | value |
+      | status | 404   |
 
-    When I request curl GET https://127.0.0.1:4400/account/nothing/xxx
-    Then curl responds with 504
-    """
-      {}
-    """
+    When I request HTTP https://127.0.0.1:4400/account/nothing/xxx
+      | key    | value |
+      | method | GET   |
+    Then HTTP response is
+      | key    | value |
+      | status | 504   |
 
-    When I request curl POST https://127.0.0.1:4400/account/API
-    """
-      {
-        "name": "A",
-        "format": "test",
-        "currency": "XXX",
-        "isBalanceCheck": false
-      }
-    """
-    Then curl responds with 200
-    """
-      {}
-    """
+    When I request HTTP https://127.0.0.1:4400/account/API
+      | key    | value                                                                |
+      | method | POST                                                                 |
+      | body   | {"name":"A","format":"test","currency":"XXX","isBalanceCheck":false} |
+    Then HTTP response is
+      | key    | value |
+      | status | 200   |
+      | body   | {}    |
 
-    When I request curl POST https://127.0.0.1:4400/account/API
-    """
-      {
-        "name": "yyy",
-        "format": "test",
-        "currency": "XXX",
-        "isBalanceCheck": false
-      }
-    """
-    Then curl responds with 200
-    """
-      {}
-    """
+    When I request HTTP https://127.0.0.1:4400/account/API
+      | key    | value                                                                  |
+      | method | POST                                                                   |
+      | body   | {"name":"yyy","format":"test","currency":"XXX","isBalanceCheck":false} |
+    Then HTTP response is
+      | key    | value |
+      | status |   200 |
+      | body   |    {} |
 
-    When I request curl POST https://127.0.0.1:4400/account/API
-    """
-      {
-        "name": "yyy",
-        "format": "test",
-        "currency": "XXX",
-        "isBalanceCheck": false
-      }
-    """
-    Then curl responds with 409
-    """
-      {}
-    """
+    When I request HTTP https://127.0.0.1:4400/account/API
+      | key    | value                                                                  |
+      | method | POST                                                                   |
+      | body   | {"name":"yyy","format":"test","currency":"XXX","isBalanceCheck":false} |
+    Then HTTP response is
+      | key    | value |
+      | status |   409 |
+      | body   |    {} |
 
-    When I request curl POST https://127.0.0.1:4400/account/API
-    """
-      {
-        "name": "B",
-        "format": "test",
-        "currency": "XXX",
-        "isBalanceCheck": false
-      }
-    """
-    Then curl responds with 200
+    When I request HTTP https://127.0.0.1:4400/account/API
+      | key    | value                                                                |
+      | method | POST                                                                 |
+      | body   | {"name":"B","format":"test","currency":"XXX","isBalanceCheck":false} |
+    Then HTTP response is
+      | key    | value |
+      | status | 200   |
+      | body   | {}    |
 
-    When I request curl GET https://127.0.0.1:4400/account/API
-    Then curl responds with 200
-    """
-      [
-        "A",
-        "B"
-      ]
-    """
+    When I request HTTP https://127.0.0.1:4400/account/API
+      | key    | value |
+      | method | GET   |
+    Then HTTP response is
+      | key    | value     |
+      | status | 200       |
+      | body   | ["A","B"] |
 
-    When I request curl POST https://127.0.0.1:4400/account/API
-    """
-      {
-        "name": "xxx",
-        "format": "test",
-        "currency": "XXX",
-        "isBalanceCheck": false
-      }
-    """
-    Then curl responds with 200
+    When I request HTTP https://127.0.0.1:4400/account/API
+      | key    | value                                                                  |
+      | method | POST                                                                   |
+      | body   | {"name":"xxx","format":"test","currency":"XXX","isBalanceCheck":false} |
+    Then HTTP response is
+      | key    | value |
+      | status | 200   |
+      | body   | {}    |
 
-    When I request curl GET https://127.0.0.1:4400/account/API/xxx
-    Then curl responds with 200
-    """
-      {
-        "format": "TEST",
-        "currency": "XXX",
-        "balance": "0",
-        "blocking": "0",
-        "isBalanceCheck": false
-      }
-    """
+    When I request HTTP https://127.0.0.1:4400/account/API/xxx
+      | key    | value |
+      | method | GET   |
+    Then HTTP response is
+      | key    | value                                                                                  |
+      | status | 200                                                                                    |
+      | body   | {"format":"TEST","currency":"XXX","balance":"0","blocking":"0","isBalanceCheck":false} |
