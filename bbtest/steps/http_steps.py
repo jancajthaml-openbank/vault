@@ -79,9 +79,9 @@ def perform_http_request(context, uri):
 
   request = urllib.request.Request(method=options['method'], url=uri)
   request.add_header('Accept', 'application/json')
-  if 'body' in options:
+  if context.text:
     request.add_header('Content-Type', 'application/json')
-    request.data = options['body'].encode('utf-8')
+    request.data = context.text.encode('utf-8')
 
   context.http_response = dict()
 
@@ -108,7 +108,7 @@ def check_http_response(context):
   if 'status' in options:
     assert response['status'] == options['status'], 'expected status {} actual {}'.format(options['status'], response['status'])
 
-  if 'body' in options:
+  if context.text:
     def diff(path, a, b):
       if type(a) == list:
         assert type(b) == list, 'types differ at {} expected: {} actual: {}'.format(path, list, type(b))
@@ -124,4 +124,4 @@ def check_http_response(context):
         assert type(a) == type(b), 'types differ at {} expected: {} actual: {}'.format(path, type(a), type(b))
         assert a == b, 'values differ at {} expected: {} actual: {}'.format(path, a, b)
 
-    diff('', json.loads(options['body']), json.loads(response['body']))
+    diff('', json.loads(context.text), json.loads(response['body']))

@@ -34,7 +34,7 @@ class UnitHelper(object):
       'armv8': 'arm64'
     }.get(platform.uname().machine, 'amd64')
 
-  def __init__(self):
+  def __init__(self, context):
     self.arch = self.get_arch()
 
     self.store = {}
@@ -43,6 +43,7 @@ class UnitHelper(object):
     self.units = {}
     self.services = []
     self.docker = docker.APIClient(base_url='unix://var/run/docker.sock')
+    self.context = context
 
   def download(self):
     try:
