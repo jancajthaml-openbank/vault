@@ -7,11 +7,12 @@ import time
 
 class ZMQHelper(threading.Thread):
 
-  def __init__(self):
+  def __init__(self, context):
     threading.Thread.__init__(self)
     self.__cancel = threading.Event()
     self.__mutex = threading.Lock()
     self.backlog = []
+    self.context = context
 
   def start(self):
     ctx = zmq.Context.instance()
