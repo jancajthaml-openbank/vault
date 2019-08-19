@@ -18,8 +18,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jancajthaml-openbank/vault-rest/model"
-
 	system "github.com/jancajthaml-openbank/actor-system"
 	log "github.com/sirupsen/logrus"
 )
@@ -76,7 +74,7 @@ func ProcessRemoteMessage(s *ActorSystem) system.ProcessRemoteMessage {
 			message = FatalError
 
 		case RespAccountState:
-			message = &model.Account{
+			message = &Account{
 				Format:         parts[5],
 				Currency:       parts[6],
 				IsBalanceCheck: parts[7] != "f",
@@ -85,10 +83,10 @@ func ProcessRemoteMessage(s *ActorSystem) system.ProcessRemoteMessage {
 			}
 
 		case RespAccountMissing:
-			message = new(model.AccountMissing)
+			message = new(AccountMissing)
 
 		case RespCreateAccount:
-			message = new(model.AccountCreated)
+			message = new(AccountCreated)
 
 		default:
 			log.Warnf("Deserialization of unsuported message [remote %v -> local %v] : %+v", from, to, msg)

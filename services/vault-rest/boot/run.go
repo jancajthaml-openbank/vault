@@ -49,10 +49,12 @@ func (prog Program) WaitReady(deadline time.Duration) error {
 		}()
 	}
 
-	wg.Add(4)
+	wg.Add(6)
 	waitWithDeadline(prog.actorSystem)
 	waitWithDeadline(prog.rest)
 	waitWithDeadline(prog.systemControl)
+	waitWithDeadline(prog.diskMonitor)
+	waitWithDeadline(prog.memoryMonitor)
 	waitWithDeadline(prog.metrics)
 	wg.Wait()
 
@@ -65,6 +67,8 @@ func (prog Program) WaitReady(deadline time.Duration) error {
 
 // GreenLight daemons
 func (prog Program) GreenLight() {
+	prog.diskMonitor.GreenLight()
+	prog.memoryMonitor.GreenLight()
 	prog.metrics.GreenLight()
 	prog.actorSystem.GreenLight()
 	prog.systemControl.GreenLight()
@@ -78,6 +82,8 @@ func (prog Program) WaitInterrupt() {
 
 // Run runs the application
 func (prog Program) Run() {
+	go prog.diskMonitor.Start()
+	go prog.memoryMonitor.Start()
 	go prog.metrics.Start()
 	go prog.actorSystem.Start()
 	go prog.systemControl.Start()
@@ -99,6 +105,8 @@ func (prog Program) Run() {
 	prog.rest.Stop()
 	prog.actorSystem.Stop()
 	prog.systemControl.Stop()
+	prog.diskMonitor.Stop()
+	prog.memoryMonitor.Stop()
 	prog.metrics.Stop()
 	prog.cancel()
 }
