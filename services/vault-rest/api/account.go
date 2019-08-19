@@ -19,7 +19,6 @@ import (
 	"net/http"
 
 	"github.com/jancajthaml-openbank/vault-rest/actor"
-	"github.com/jancajthaml-openbank/vault-rest/model"
 	"github.com/jancajthaml-openbank/vault-rest/persistence"
 	"github.com/jancajthaml-openbank/vault-rest/utils"
 
@@ -103,7 +102,7 @@ func CreateAccount(server *Server, tenant string, w http.ResponseWriter, r *http
 		return
 	}
 
-	var req = new(model.Account)
+	var req = new(actor.Account)
 	err = utils.JSON.Unmarshal(b, req)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
@@ -114,7 +113,7 @@ func CreateAccount(server *Server, tenant string, w http.ResponseWriter, r *http
 
 	switch actor.CreateAccount(server.ActorSystem, tenant, *req).(type) {
 
-	case *model.AccountCreated:
+	case *actor.AccountCreated:
 		resp, err := utils.JSON.Marshal(req)
 		if err != nil {
 			w.Header().Set("Content-Type", "application/json")
@@ -128,7 +127,7 @@ func CreateAccount(server *Server, tenant string, w http.ResponseWriter, r *http
 		w.Write(resp)
 		return
 
-	case *model.ReplyTimeout:
+	case *actor.ReplyTimeout:
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusGatewayTimeout)
 		w.Write(emptyJSONObject)
@@ -169,13 +168,13 @@ func GetAccounts(server *Server, tenant string, w http.ResponseWriter, r *http.R
 func GetAccount(server *Server, tenant string, id string, w http.ResponseWriter, r *http.Request) {
 	switch result := actor.GetAccount(server.ActorSystem, tenant, id).(type) {
 
-	case *model.AccountMissing:
+	case *actor.AccountMissing:
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
 		w.Write(emptyJSONObject)
 		return
 
-	case *model.Account:
+	case *actor.Account:
 		w.Header().Set("Content-Type", "application/json")
 		resp, err := utils.JSON.Marshal(result)
 		if err != nil {
@@ -187,7 +186,7 @@ func GetAccount(server *Server, tenant string, id string, w http.ResponseWriter,
 		}
 		return
 
-	case *model.ReplyTimeout:
+	case *actor.ReplyTimeout:
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusGatewayTimeout)
 		w.Write(emptyJSONObject)

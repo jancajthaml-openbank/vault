@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package systemd
+package system
 
 import (
 	"context"
@@ -71,13 +71,44 @@ func (sys SystemControl) ListUnits(prefix string) ([]string, error) {
 	return result, nil
 }
 
+// GetUnitsProperties return unit properties
+func (sys SystemControl) GetUnitsProperties(prefix string) (map[string]UnitStatus, error) {
+	log.Debugf("Getting units %+v status", prefix)
+
+	units, err := sys.underlying.ListUnits()
+	if err != nil {
+		return nil, err
+	}
+
+	var result = make(map[string]UnitStatus)
+	for _, unit := range units {
+		if !strings.HasPrefix(unit.Name, prefix) {
+			continue
+		}
+		properties, err := sys.underlying.GetUnitProperties(unit.Name)
+
+		if err != nil {
+			result[unit.Name] = UnitStatus{
+				Status:          unit.SubState,
+				StatusChangedAt: 0,
+			}
+		} else {
+			result[unit.Name] = UnitStatus{
+				Status:          unit.SubState,
+				StatusChangedAt: properties["StateChangeTimestamp"].(uint64),
+			}
+		}
+	}
+
+	return result, nil
+}
+
 // DisableUnit disables unit
 func (sys SystemControl) DisableUnit(name string) error {
 	log.Debugf("Disabling unit %s", name)
 
 	ch := make(chan string)
 
-	// FIXME
 	if _, err := sys.underlying.StopUnit(name, "replace", ch); err != nil {
 		return fmt.Errorf("unable to stop unit %s because %+v", name, err)
 	}
@@ -134,7 +165,7 @@ func (sys SystemControl) EnableUnit(name string) error {
 	return nil
 }
 
-// WaitReady wait for system to be ready
+// WaitReady wait for daemon to be ready
 func (sys SystemControl) WaitReady(deadline time.Duration) (err error) {
 	defer func() {
 		if e := recover(); e != nil {
@@ -161,7 +192,7 @@ func (sys SystemControl) WaitReady(deadline time.Duration) (err error) {
 	}
 }
 
-// Start handles everything needed to start http-server daemon
+// Start handles everything needed to start daemon
 func (sys SystemControl) Start() {
 	defer sys.MarkDone()
 

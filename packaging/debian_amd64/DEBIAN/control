@@ -1,5 +1,5 @@
 Package: vault
-Version: 1.2.9+improve-bbtests
+Version: 1.3.0+health-check-status
 Section: misc
 Priority: extra
 Architecture: amd64
