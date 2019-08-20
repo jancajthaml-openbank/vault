@@ -23,7 +23,7 @@ class UnitHelper(object):
       "METRICS_OUTPUT": "/tmp/reports/blackbox-tests/metrics",
       #"METRICS_CONTINUOUS": "true",  # fixme implement
       "LAKE_HOSTNAME": "127.0.0.1",
-      "HTTP_PORT": "4400",
+      "HTTP_PORT": "443",
       "SECRETS": "/opt/vault/secrets",
     }
 
