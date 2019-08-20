@@ -7,7 +7,7 @@ import time
 
 @then('{tenant}/{account} should exist')
 def account_exists(context, tenant, account):
-  uri = "https://127.0.0.1:4400/account/{}/{}".format(tenant, account)
+  uri = "https://127.0.0.1/account/{}/{}".format(tenant, account)
 
   ctx = ssl.create_default_context()
   ctx.check_hostname = False
@@ -23,7 +23,7 @@ def account_exists(context, tenant, account):
 
 @then('{tenant}/{account} should not exist')
 def account_not_exists(context, tenant, account):
-  uri = "https://127.0.0.1:4400/account/{}/{}".format(tenant, account)
+  uri = "https://127.0.0.1/account/{}/{}".format(tenant, account)
 
   ctx = ssl.create_default_context()
   ctx.check_hostname = False
@@ -47,7 +47,7 @@ def create_account(context, activity, currency, tenant, account):
     'isBalanceCheck': activity != 'pasive',
   }
 
-  uri = "https://127.0.0.1:4400/account/{}".format(tenant)
+  uri = "https://127.0.0.1/account/{}".format(tenant)
 
   ctx = ssl.create_default_context()
   ctx.check_hostname = False
