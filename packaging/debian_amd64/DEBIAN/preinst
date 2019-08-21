@@ -16,6 +16,8 @@ case "$1" in
       echo "VAULT_HTTP_PORT=4400" >> /etc/init/vault.conf
       echo "VAULT_SECRETS=/opt/vault/secrets" >> /etc/init/vault.conf
       echo "VAULT_LAKE_HOSTNAME=127.0.0.1" >> /etc/init/vault.conf
+      echo "VAULT_MEMORY_THRESHOLD=0" >> /etc/init/vault.conf
+      echo "VAULT_STORAGE_THRESHOLD=0" >> /etc/init/vault.conf
       echo "VAULT_METRICS_REFRESHRATE=1s" >> /etc/init/vault.conf
       echo "VAULT_METRICS_OUTPUT=/opt/vault/metrics" >> /etc/init/vault.conf
     fi

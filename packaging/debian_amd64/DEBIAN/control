@@ -1,5 +1,5 @@
 Package: vault
-Version: 1.3.0+health-check-status
+Version: 1.3.0+health-check-report-unavailable
 Section: misc
 Priority: extra
 Architecture: amd64

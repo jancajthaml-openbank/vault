@@ -19,12 +19,14 @@ class UnitHelper(object):
       "LOG_LEVEL": "DEBUG",
       "JOURNAL_SATURATION": "10000",
       "SNAPSHOT_SCANINTERVAL": "1h",
+      "MEMORY_THRESHOLD": 0,
+      "STORAGE_THRESHOLD": 0,
+      "LAKE_HOSTNAME": "127.0.0.1",
+      "HTTP_PORT": 443,
+      "SECRETS": "/opt/vault/secrets",
       "METRICS_REFRESHRATE": "1h",
       "METRICS_OUTPUT": "/tmp/reports/blackbox-tests/metrics",
       #"METRICS_CONTINUOUS": "true",  # fixme implement
-      "LAKE_HOSTNAME": "127.0.0.1",
-      "HTTP_PORT": "443",
-      "SECRETS": "/opt/vault/secrets",
     }
 
   def get_arch(self):
