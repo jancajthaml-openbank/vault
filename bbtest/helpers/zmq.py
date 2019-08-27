@@ -4,6 +4,8 @@
 import zmq
 import threading
 import time
+import os
+
 
 class ZMQHelper(threading.Thread):
 
@@ -13,6 +15,8 @@ class ZMQHelper(threading.Thread):
     self.__mutex = threading.Lock()
     self.backlog = []
     self.context = context
+    #threading.Thread.get_native_id(self)
+    #os.system("taskset -p -c %d %d" % ((i % os.cpu_count()), p.pid))
 
   def start(self):
     ctx = zmq.Context.instance()

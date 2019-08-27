@@ -71,6 +71,7 @@ bbtest:
 	@docker exec -t $$(\
 		docker run -d \
 			--name=vault_bbtest_amd64 \
+			--cpuset-cpus=1 \
 			-e IMAGE_VERSION="$(VERSION)-$(META)" \
 			-e UNIT_VERSION="$(VERSION)+$(META)" \
 			-e UNIT_ARCH=amd64 \
