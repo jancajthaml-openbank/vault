@@ -64,14 +64,31 @@ def step_impl(context):
 @then('unit "{unit}" is running')
 def unit_running(context, unit):
   @eventually(2)
-  def impl():
+  def wait_for_unit_state_change():
     (code, result, error) = execute([
       "systemctl", "show", "-p", "SubState", unit
     ])
 
     assert code == 0
     assert 'SubState=running' in result
-  impl()
+  #
+#  @eventually(2)
+#  def wait_for_service_healthy():
+#    uri = "https://127.0.0.1/health".format()
+#
+#    ctx = ssl.create_default_context()
+#    ctx.check_hostname = False
+#    ctx.verify_mode = ssl.CERT_NONE
+#
+#    request = urllib.request.Request(method='GET', url=uri)
+#    request.add_header('Accept', 'application/json')
+#
+#    response = urllib.request.urlopen(request, timeout=10, context=ctx)
+#
+#    assert response.status == 200
+  #
+  wait_for_unit_state_change()
+  #wait_for_service_healthy()
 
 
 @given('unit "{unit}" is not running')

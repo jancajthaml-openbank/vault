@@ -58,7 +58,7 @@ def check_account_integrity(context, tenant, account):
       'blocking': lines[2],
     })
 
-  uri = "https://127.0.0.1:4400/account/{}/{}".format(tenant, account)
+  uri = "https://127.0.0.1/account/{}/{}".format(tenant, account)
 
   ctx = ssl.create_default_context()
   ctx.check_hostname = False

@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -39,9 +40,15 @@ func TestMarshalJSON(t *testing.T) {
 
 		require.Nil(t, err)
 
-		data := []byte("{\"getAccountLatency\":1,\"createAccountLatency\":2}")
+		aux := &struct {
+			GetAccountLatency    float64 `json:"getAccountLatency"`
+			CreateAccountLatency float64 `json:"createAccountLatency"`
+		}{}
 
-		assert.Equal(t, data, actual)
+		require.Nil(t, json.Unmarshal(actual, &aux))
+
+		assert.Equal(t, float64(1), aux.GetAccountLatency)
+		assert.Equal(t, float64(2), aux.CreateAccountLatency)
 	}
 }
 
