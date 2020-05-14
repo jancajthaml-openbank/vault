@@ -19,17 +19,6 @@ package_service() {
 
   cd ${working_dir}
 
-  echo "A"
-  cat vendor/modules.txt
-
-  echo "B"
-  cat go.mod
-
-  #pwd
-
-  #ls -la
-  #ls -la vendor
-
   echo "[info] (${platform}/${arch}) cleaning"
   go clean
 
