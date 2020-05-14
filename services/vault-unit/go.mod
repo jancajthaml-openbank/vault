@@ -1,4 +1,6 @@
-module github.com/jancajthaml-openbank/vault/services/vault-unit
+module github.com/jancajthaml-openbank/vault-unit
+
+go 1.14
 
 require (
 	github.com/jancajthaml-openbank/actor-system v1.0.0
