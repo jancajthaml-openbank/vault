@@ -31,12 +31,19 @@ jobs:
 
     - name: Install static dependencies
       run: |
-        cd services/lake
+        cd services/vault-unit
+        GO111MODULE=on go mod verify
+        GO111MODULE=on go mod tidy
+        GO111MODULE=on go mod vendor
+        cd services/vault-rest
         GO111MODULE=on go mod verify
         GO111MODULE=on go mod tidy
         GO111MODULE=on go mod vendor
 
     - name: Unit Test
       run:  |
-        cd services/lake
+        cd services/vault-unit
         go test -v ./... -timeout=10s
+        cd services/vault-rest
+        go test -v ./... -timeout=10s
+
