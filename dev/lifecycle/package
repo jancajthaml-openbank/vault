@@ -19,9 +19,6 @@ package_service() {
 
   cd ${working_dir}
 
-  echo "[info] (${platform}/${arch}) cleaning"
-  go clean
-
   echo "[info] (${platform}/${arch}) packaging ${TARGET_PACKAGE}"
 
   case ${arch} in
