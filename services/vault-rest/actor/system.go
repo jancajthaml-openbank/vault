@@ -38,13 +38,17 @@ func NewActorSystem(ctx context.Context, lakeEndpoint string, metrics *metrics.M
 	}
 
 	result.Support.RegisterOnRemoteMessage(ProcessRemoteMessage(&result))
-
 	return result
 }
 
-// GreenLight daemon noop
-func (system ActorSystem) GreenLight() {
+// Start daemon noop
+func (system ActorSystem) Start() {
+	system.Support.Start()
+}
 
+// Stop daemon noop
+func (system ActorSystem) Stop() {
+	system.Support.Stop()
 }
 
 // WaitReady wait for system to be ready
@@ -69,7 +73,7 @@ func (system ActorSystem) WaitReady(deadline time.Duration) (err error) {
 		err = nil
 		return
 	case <-ticker.C:
-		err = fmt.Errorf("daemon was not ready within %v seconds", deadline)
+		err = fmt.Errorf("actor-system was not ready within %v seconds", deadline)
 		return
 	}
 }
