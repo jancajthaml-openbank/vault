@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2019, Jan Cajthaml <jan.cajthaml@gmail.com>
+// Copyright (c) 2016-2020, Jan Cajthaml <jan.cajthaml@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@ package persistence
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -42,7 +41,7 @@ type SnapshotUpdater struct {
 // NewSnapshotUpdater returns snapshot updater fascade
 func NewSnapshotUpdater(ctx context.Context, saturation int, scanInterval time.Duration, metrics *metrics.Metrics, storage *localfs.Storage, callback func(msg interface{}, to system.Coordinates, from system.Coordinates)) SnapshotUpdater {
 	return SnapshotUpdater{
-		DaemonSupport:       utils.NewDaemonSupport(ctx),
+		DaemonSupport:       utils.NewDaemonSupport(ctx, "snapshot-updater"),
 		callback:            callback,
 		metrics:             metrics,
 		storage:             storage,
@@ -105,39 +104,10 @@ func (updater SnapshotUpdater) getEvents(name string, version int) int {
 	return result
 }
 
-// WaitReady wait for snapshot updated to be ready
-func (updater SnapshotUpdater) WaitReady(deadline time.Duration) (err error) {
-	defer func() {
-		if e := recover(); e != nil {
-			switch x := e.(type) {
-			case string:
-				err = fmt.Errorf(x)
-			case error:
-				err = x
-			default:
-				err = fmt.Errorf("unknown panic")
-			}
-		}
-	}()
-
-	ticker := time.NewTicker(deadline)
-	select {
-	case <-updater.IsReady:
-		ticker.Stop()
-		err = nil
-		return
-	case <-ticker.C:
-		err = fmt.Errorf("daemon was not ready within %v seconds", deadline)
-		return
-	}
-}
-
 // Start handles everything needed to start snapshot updater daemon it runs scan
 // of accounts snapshots and events and orders accounts to update their snapshot
 // if number of events in given version is larger than threshold
 func (updater SnapshotUpdater) Start() {
-	defer updater.MarkDone()
-
 	ticker := time.NewTicker(updater.scanInterval)
 	defer ticker.Stop()
 
@@ -147,21 +117,27 @@ func (updater SnapshotUpdater) Start() {
 	case <-updater.CanStart:
 		break
 	case <-updater.Done():
+		updater.MarkDone()
 		return
 	}
 
-	log.Infof("Start snapshot updater daemon, scan each %v and update journals with at least %d events", updater.scanInterval, updater.saturationThreshold)
+	log.Infof("Start snapshot-updater daemon, scan each %v and update journals with at least %d events", updater.scanInterval, updater.saturationThreshold)
 
-	for {
-		select {
-		case <-updater.Done():
-			log.Info("Stopping snapshot updater daemon")
-			log.Info("Stop snapshot updater daemon")
-			return
-		case <-ticker.C:
-			updater.metrics.TimeUpdateSaturatedSnapshots(func() {
-				updater.updateSaturated()
-			})
+	go func() {
+		for {
+			select {
+			case <-updater.Done():
+				updater.MarkDone()
+				return
+			case <-ticker.C:
+				//monitor.CheckMemoryAllocation()
+				updater.metrics.TimeUpdateSaturatedSnapshots(func() {
+					updater.updateSaturated()
+				})
+			}
 		}
-	}
+	}()
+
+	<-updater.IsDone
+	log.Info("Stop snapshot-updater daemon")
 }

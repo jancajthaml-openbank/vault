@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2019, Jan Cajthaml <jan.cajthaml@gmail.com>
+// Copyright (c) 2016-2020, Jan Cajthaml <jan.cajthaml@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -38,13 +38,17 @@ func NewActorSystem(ctx context.Context, lakeEndpoint string, metrics *metrics.M
 	}
 
 	result.Support.RegisterOnRemoteMessage(ProcessRemoteMessage(&result))
-
 	return result
 }
 
-// GreenLight daemon noop
-func (system ActorSystem) GreenLight() {
+// Start daemon noop
+func (system ActorSystem) Start() {
+	system.Support.Start()
+}
 
+// Stop daemon noop
+func (system ActorSystem) Stop() {
+	system.Support.Stop()
 }
 
 // WaitReady wait for system to be ready
@@ -69,7 +73,7 @@ func (system ActorSystem) WaitReady(deadline time.Duration) (err error) {
 		err = nil
 		return
 	case <-ticker.C:
-		err = fmt.Errorf("daemon was not ready within %v seconds", deadline)
+		err = fmt.Errorf("actor-system was not ready within %v seconds", deadline)
 		return
 	}
 }
