@@ -79,8 +79,17 @@ func (prog Program) WaitInterrupt() {
 	<-prog.interrupt
 }
 
-// Run runs the application
-func (prog Program) Run() {
+// WaitStop wait for daemons to stop
+func (prog Program) WaitStop() {
+	<-prog.rest.IsDone
+	<-prog.systemControl.IsDone
+	<-prog.diskMonitor.IsDone
+	<-prog.memoryMonitor.IsDone
+	<-prog.metrics.IsDone
+}
+
+// Start runs the application
+func (prog Program) Start() {
 	go prog.actorSystem.Start()
 	go prog.diskMonitor.Start()
 	go prog.memoryMonitor.Start()
@@ -102,10 +111,5 @@ func (prog Program) Run() {
 	utils.NotifyServiceStopping()
 
 	prog.cancel()
-
-	<-prog.rest.IsDone
-	<-prog.systemControl.IsDone
-	<-prog.diskMonitor.IsDone
-	<-prog.memoryMonitor.IsDone
-	<-prog.metrics.IsDone
+	prog.WaitStop()
 }
