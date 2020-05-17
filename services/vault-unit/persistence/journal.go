@@ -24,6 +24,7 @@ import (
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
 	money "gopkg.in/inf.v0"
+	log "github.com/sirupsen/logrus"
 )
 
 // LoadAccount rehydrates account entity state from storage
@@ -95,7 +96,9 @@ func CreateAccount(storage *localfs.PlaintextStorage, name, format, currency str
 	}
 	data := entity.Serialise()
 	path := utils.SnapshotPath(name, entity.Version)
-	if storage.WriteFileExclusive(path, data) != nil {
+	err := storage.WriteFileExclusive(path, data)
+	if err != nil {
+		log.Errorf("Create Account Error %+v", err)
 		return nil
 	}
 	return entity
@@ -118,7 +121,9 @@ func UpdateAccount(storage *localfs.PlaintextStorage, name string, original *mod
 	}
 	data := entity.Serialise()
 	path := utils.SnapshotPath(name, entity.Version)
-	if storage.WriteFileExclusive(path, data) != nil {
+	err := storage.WriteFileExclusive(path, data)
+	if err != nil {
+		log.Errorf("Update Account Error %+v", err)
 		return nil
 	}
 	return entity
