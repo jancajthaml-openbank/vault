@@ -105,20 +105,18 @@ func TestSnapshot_PromiseBuffer(t *testing.T) {
 
 	expectedPromises := []string{"A", "B", "C", "D"}
 
-	snapshot := &model.Account{
+	var snapshot = &model.Account{
 		Balance:        new(money.Dec),
 		Promised:       new(money.Dec),
 		PromiseBuffer:  model.NewTransactionSet(),
-		Version:        0,
+		Version:        -1,
 		Name:           name,
 		Format:         format,
 		Currency:       currency,
 		IsBalanceCheck: isBalanceCheck,
 	}
-
 	snapshot.PromiseBuffer.Add(expectedPromises...)
-
-	CreateAccount(&storage, name, snapshot)
+	snapshot = UpdateAccount(&storage, name, snapshot)
 
 	loaded := LoadAccount(&storage, name)
 
