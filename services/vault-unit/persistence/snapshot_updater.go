@@ -33,13 +33,13 @@ type SnapshotUpdater struct {
 	utils.DaemonSupport
 	callback            func(msg interface{}, to system.Coordinates, from system.Coordinates)
 	metrics             *metrics.Metrics
-	storage             *localfs.Storage
+	storage             *localfs.PlaintextStorage
 	scanInterval        time.Duration
 	saturationThreshold int
 }
 
 // NewSnapshotUpdater returns snapshot updater fascade
-func NewSnapshotUpdater(ctx context.Context, saturation int, scanInterval time.Duration, metrics *metrics.Metrics, storage *localfs.Storage, callback func(msg interface{}, to system.Coordinates, from system.Coordinates)) SnapshotUpdater {
+func NewSnapshotUpdater(ctx context.Context, saturation int, scanInterval time.Duration, metrics *metrics.Metrics, storage *localfs.PlaintextStorage, callback func(msg interface{}, to system.Coordinates, from system.Coordinates)) SnapshotUpdater {
 	return SnapshotUpdater{
 		DaemonSupport:       utils.NewDaemonSupport(ctx, "snapshot-updater"),
 		callback:            callback,
@@ -55,7 +55,6 @@ func NewSnapshotUpdater(ctx context.Context, saturation int, scanInterval time.D
 func (updater SnapshotUpdater) updateSaturated() {
 	accounts := updater.getAccounts()
 	var numberOfSnapshotsUpdated int64
-
 	for _, name := range accounts {
 		version := updater.getVersion(name)
 		if version == -1 {
@@ -87,12 +86,10 @@ func (updater SnapshotUpdater) getVersion(name string) int {
 	if err != nil || len(result) == 0 {
 		return -1
 	}
-
 	version, err := strconv.Atoi(result[0])
 	if err != nil {
 		return -1
 	}
-
 	return version
 }
 

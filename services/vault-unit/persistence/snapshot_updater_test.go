@@ -28,7 +28,7 @@ func TestSnapshotUpdater(t *testing.T) {
 	require.Nil(t, err)
 	defer os.RemoveAll(tmpdir)
 
-	storage := localfs.NewStorage(tmpdir)
+	storage := localfs.NewPlaintextStorage(tmpdir)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

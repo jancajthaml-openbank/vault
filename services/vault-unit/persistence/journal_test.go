@@ -21,7 +21,7 @@ func TestSnapshot_Update(t *testing.T) {
 	require.Nil(t, err)
 	defer os.RemoveAll(tmpdir)
 
-	storage := localfs.NewStorage(tmpdir)
+	storage := localfs.NewPlaintextStorage(tmpdir)
 
 	name := "account_name"
 	format := "account_format"
@@ -68,7 +68,7 @@ func TestSnapshot_RefuseOverflow(t *testing.T) {
 	require.Nil(t, err)
 	defer os.RemoveAll(tmpdir)
 
-	storage := localfs.NewStorage(tmpdir)
+	storage := localfs.NewPlaintextStorage(tmpdir)
 
 	name := "xxx"
 	format := "format"
@@ -96,7 +96,7 @@ func TestSnapshot_PromiseBuffer(t *testing.T) {
 	require.Nil(t, err)
 	defer os.RemoveAll(tmpdir)
 
-	storage := localfs.NewStorage(tmpdir)
+	storage := localfs.NewPlaintextStorage(tmpdir)
 
 	name := "yyy"
 	format := "format"
@@ -105,20 +105,18 @@ func TestSnapshot_PromiseBuffer(t *testing.T) {
 
 	expectedPromises := []string{"A", "B", "C", "D"}
 
-	snapshot := &model.Account{
+	var snapshot = &model.Account{
 		Balance:        new(money.Dec),
 		Promised:       new(money.Dec),
 		PromiseBuffer:  model.NewTransactionSet(),
-		Version:        0,
+		Version:        -1,
 		Name:           name,
 		Format:         format,
 		Currency:       currency,
 		IsBalanceCheck: isBalanceCheck,
 	}
-
 	snapshot.PromiseBuffer.Add(expectedPromises...)
-
-	PersistAccount(&storage, name, snapshot)
+	snapshot = UpdateAccount(&storage, name, snapshot)
 
 	loaded := LoadAccount(&storage, name)
 
@@ -146,7 +144,7 @@ func BenchmarkAccountLoad(b *testing.B) {
 	require.Nil(b, err)
 	defer os.RemoveAll(tmpdir)
 
-	storage := localfs.NewStorage(tmpdir)
+	storage := localfs.NewPlaintextStorage(tmpdir)
 
 	account := CreateAccount(&storage, "bench", "format", "BNC", false)
 	require.NotNil(b, account)

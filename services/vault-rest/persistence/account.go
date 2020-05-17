@@ -21,7 +21,7 @@ import (
 )
 
 // LoadAccounts returns account names
-func LoadAccounts(storage *localfs.Storage, tenant string) ([]string, error) {
+func LoadAccounts(storage *localfs.PlaintextStorage, tenant string) ([]string, error) {
 	path := utils.AccountsPath(tenant)
 	ok, err := storage.Exists(path)
 	if err != nil || !ok {
