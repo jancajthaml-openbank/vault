@@ -102,22 +102,22 @@ func CreateAccount(storage *localfs.PlaintextStorage, name, format, currency str
 }
 
 // UpdateAccount persist account entity state with incremented version
-func UpdateAccount(storage *localfs.PlaintextStorage, name string, entity *model.Account) *model.Account {
-	if entity.Version == math.MaxInt32 {
-		return entity
+func UpdateAccount(storage *localfs.PlaintextStorage, name string, original *model.Account) *model.Account {
+	if original.Version == math.MaxInt32 {
+		return original
 	}
 	entity := &model.Account{
-		Balance:        entity.Balance,
-		Promised:       entity.Promised,
-		PromiseBuffer:  entity.PromiseBuffer,
-		Version:        entity.Version + 1,
-		Currency:       entity.Currency,
-		Name:           entity.Name,
-		Format:         entity.Format,
-		IsBalanceCheck: entity.IsBalanceCheck,
+		Balance:        original.Balance,
+		Promised:       original.Promised,
+		PromiseBuffer:  original.PromiseBuffer,
+		Version:        original.Version + 1,
+		Currency:       original.Currency,
+		Name:           original.Name,
+		Format:         original.Format,
+		IsBalanceCheck: original.IsBalanceCheck,
 	}
 	data := entity.Serialise()
-	path := utils.SnapshotPath(name, entity.Version + 1)
+	path := utils.SnapshotPath(name, entity.Version)
 	if storage.WriteFileExclusive(path, data) != nil {
 		return nil
 	}
