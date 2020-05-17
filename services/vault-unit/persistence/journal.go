@@ -21,7 +21,6 @@ import (
 
 	"github.com/jancajthaml-openbank/vault-unit/model"
 	"github.com/jancajthaml-openbank/vault-unit/utils"
-	log "github.com/sirupsen/logrus"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
 	money "gopkg.in/inf.v0"
@@ -117,9 +116,7 @@ func UpdateAccount(storage *localfs.PlaintextStorage, name string, entity *model
 func PersistAccount(storage *localfs.PlaintextStorage, name string, entity *model.Account) *model.Account {
 	data := entity.Serialise()
 	path := utils.SnapshotPath(name, entity.Version)
-	err := storage.WriteFile(path, data)
-	if err != nil {
-		log.Errorf("Error Persist Acount %+v", err)
+	if storage.WriteFile(path, data) != nil {
 		return nil
 	}
 	return entity
