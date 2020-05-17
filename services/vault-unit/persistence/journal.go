@@ -83,7 +83,7 @@ func LoadAccount(storage *localfs.PlaintextStorage, name string) *model.Account 
 
 // CreateAccount persist account entity state to storage
 func CreateAccount(storage *localfs.PlaintextStorage, name, format, currency string, isBalanceCheck bool) *model.Account {
-	return PersistAccount(storage, name, &model.Account{
+	entity := &model.Account{
 		Balance:        new(money.Dec),
 		Promised:       new(money.Dec),
 		PromiseBuffer:  model.NewTransactionSet(),
@@ -92,7 +92,13 @@ func CreateAccount(storage *localfs.PlaintextStorage, name, format, currency str
 		Format:         format,
 		Currency:       currency,
 		IsBalanceCheck: isBalanceCheck,
-	})
+	}
+	data := entity.Serialise()
+	path := utils.SnapshotPath(name, entity.Version)
+	if storage.WriteFileExclusive(path, data) != nil {
+		return nil
+	}
+	return entity
 }
 
 // UpdateAccount persist account entity state with incremented version
@@ -100,7 +106,7 @@ func UpdateAccount(storage *localfs.PlaintextStorage, name string, entity *model
 	if entity.Version == math.MaxInt32 {
 		return entity
 	}
-	return PersistAccount(storage, name, &model.Account{
+	entity := &model.Account{
 		Balance:        entity.Balance,
 		Promised:       entity.Promised,
 		PromiseBuffer:  entity.PromiseBuffer,
@@ -109,14 +115,10 @@ func UpdateAccount(storage *localfs.PlaintextStorage, name string, entity *model
 		Name:           entity.Name,
 		Format:         entity.Format,
 		IsBalanceCheck: entity.IsBalanceCheck,
-	})
-}
-
-// PersistAccount persist account entity state to storage
-func PersistAccount(storage *localfs.PlaintextStorage, name string, entity *model.Account) *model.Account {
+	}
 	data := entity.Serialise()
-	path := utils.SnapshotPath(name, entity.Version)
-	if storage.WriteFile(path, data) != nil {
+	path := utils.SnapshotPath(name, entity.Version + 1)
+	if storage.WriteFileExclusive(path, data) != nil {
 		return nil
 	}
 	return entity
