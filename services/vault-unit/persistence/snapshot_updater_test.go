@@ -24,7 +24,7 @@ type CallbackMessage struct {
 }
 
 func TestSnapshotUpdater(t *testing.T) {
-	tmpdir, err := ioutil.TempDir(os.TempDir(), "snapshot_test_storage")
+	tmpdir, err := ioutil.TempDir(".", "test_storage")
 	require.Nil(t, err)
 	defer os.RemoveAll(tmpdir)
 
