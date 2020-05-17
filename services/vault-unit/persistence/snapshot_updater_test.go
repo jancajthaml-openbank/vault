@@ -26,6 +26,7 @@ type CallbackMessage struct {
 func TestSnapshotUpdater(t *testing.T) {
 	tmpdir, err := ioutil.TempDir(".", "test_storage")
 	require.Nil(t, err)
+	os.Mkdir(tmpdir, 0777)
 	defer os.RemoveAll(tmpdir)
 
 	storage := localfs.NewPlaintextStorage(tmpdir)
