@@ -24,7 +24,7 @@ type CallbackMessage struct {
 }
 
 func TestSnapshotUpdater(t *testing.T) {
-	tmpdir, err := ioutil.TempDir(os.TempDir(), "test_storage")
+	tmpdir, err := ioutil.TempDir(os.TempDir(), "snapshot_test_storage")
 	require.Nil(t, err)
 	defer os.RemoveAll(tmpdir)
 
@@ -47,34 +47,34 @@ func TestSnapshotUpdater(t *testing.T) {
 	metrics := metrics.NewMetrics(ctx, "", time.Hour)
 	su := NewSnapshotUpdater(ctx, 1, time.Hour, &metrics, &storage, callback)
 
-	s := CreateAccount(&storage, "account_1", "format", "EUR", true)
+	s := CreateAccount(&storage, "s_account_1", "format", "EUR", true)
 	require.NotNil(t, s)
-	require.Nil(t, PersistPromise(&storage, "account_1", 0, new(money.Dec), "transaction_1"))
-	s = UpdateAccount(&storage, "account_1", s)
-	require.Nil(t, PersistPromise(&storage, "account_1", 1, new(money.Dec), "transaction_2"))
-	require.Nil(t, PersistCommit(&storage, "account_1", 1, new(money.Dec), "transaction_2"))
+	require.Nil(t, PersistPromise(&storage, "s_account_1", 0, new(money.Dec), "transaction_1"))
+	s = UpdateAccount(&storage, "s_account_1", s)
+	require.Nil(t, PersistPromise(&storage, "s_account_1", 1, new(money.Dec), "transaction_2"))
+	require.Nil(t, PersistCommit(&storage, "s_account_1", 1, new(money.Dec), "transaction_2"))
 	require.NotNil(t, s)
 
-	require.NotNil(t, CreateAccount(&storage, "account_2", "format", "EUR", true))
+	require.NotNil(t, CreateAccount(&storage, "s_account_2", "format", "EUR", true))
 
 	t.Log("return valid accounts")
 	{
-		assert.Equal(t, []string{"account_1", "account_2"}, su.getAccounts())
+		assert.Equal(t, []string{"s_account_1", "s_account_2"}, su.getAccounts())
 	}
 
 	t.Log("return valid version")
 	{
-		assert.Equal(t, 1, su.getVersion("account_1"))
-		assert.Equal(t, 0, su.getVersion("account_2"))
-		assert.Equal(t, -1, su.getVersion("account_3"))
+		assert.Equal(t, 1, su.getVersion("s_account_1"))
+		assert.Equal(t, 0, su.getVersion("s_account_2"))
+		assert.Equal(t, -1, su.getVersion("s_account_3"))
 	}
 
 	t.Log("return valid events")
 	{
-		assert.Equal(t, 1, su.getEvents("account_1", 0))
-		assert.Equal(t, 2, su.getEvents("account_1", 1))
-		assert.Equal(t, -1, su.getEvents("account_2", 0))
-		assert.Equal(t, -1, su.getEvents("account_3", 0))
+		assert.Equal(t, 1, su.getEvents("s_account_1", 0))
+		assert.Equal(t, 2, su.getEvents("s_account_1", 1))
+		assert.Equal(t, -1, su.getEvents("s_account_2", 0))
+		assert.Equal(t, -1, su.getEvents("s_account_3", 0))
 	}
 
 	t.Log("updates expected accounts")
@@ -84,7 +84,7 @@ func TestSnapshotUpdater(t *testing.T) {
 		assert.Equal(t, 1, len(callbackBacklog))
 
 		args := callbackBacklog[0]
-		assert.Equal(t, "account_1", args.account)
+		assert.Equal(t, "s_account_1", args.account)
 		switch m := args.msg.(type) {
 
 		case model.Update:
