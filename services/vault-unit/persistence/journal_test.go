@@ -118,7 +118,7 @@ func TestSnapshot_PromiseBuffer(t *testing.T) {
 
 	snapshot.PromiseBuffer.Add(expectedPromises...)
 
-	PersistAccount(&storage, name, snapshot)
+	CreateAccount(&storage, name, snapshot)
 
 	loaded := LoadAccount(&storage, name)
 
