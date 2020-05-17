@@ -17,8 +17,9 @@ import (
 )
 
 func TestSnapshot_Update(t *testing.T) {
-	tmpdir, err := ioutil.TempDir(".", "test_storage")
+	tmpdir, err := ioutil.TempDir(os.TempDir(), "test_storage")
 	require.Nil(t, err)
+	os.Mkdir(tmpdir, 0777)
 	defer os.RemoveAll(tmpdir)
 
 	storage := localfs.NewPlaintextStorage(tmpdir)
@@ -64,8 +65,9 @@ func TestSnapshot_Update(t *testing.T) {
 }
 
 func TestSnapshot_RefuseOverflow(t *testing.T) {
-	tmpdir, err := ioutil.TempDir(".", "test_storage")
+	tmpdir, err := ioutil.TempDir(os.TempDir(), "test_storage")
 	require.Nil(t, err)
+	os.Mkdir(tmpdir, 0777)
 	defer os.RemoveAll(tmpdir)
 
 	storage := localfs.NewPlaintextStorage(tmpdir)
@@ -94,6 +96,7 @@ func TestSnapshot_RefuseOverflow(t *testing.T) {
 func TestSnapshot_PromiseBuffer(t *testing.T) {
 	tmpdir, err := ioutil.TempDir(os.TempDir(), "test_storage")
 	require.Nil(t, err)
+	os.Mkdir(tmpdir, 0777)
 	defer os.RemoveAll(tmpdir)
 
 	storage := localfs.NewPlaintextStorage(tmpdir)
@@ -140,8 +143,9 @@ func TestSnapshot_PromiseBuffer(t *testing.T) {
 }
 
 func BenchmarkAccountLoad(b *testing.B) {
-	tmpdir, err := ioutil.TempDir(".", "test_storage")
+	tmpdir, err := ioutil.TempDir(os.TempDir(), "test_storage")
 	require.Nil(b, err)
+	os.Mkdir(tmpdir, 0777)
 	defer os.RemoveAll(tmpdir)
 
 	storage := localfs.NewPlaintextStorage(tmpdir)
