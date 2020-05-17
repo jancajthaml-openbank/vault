@@ -21,7 +21,7 @@ func TestSnapshot_Update(t *testing.T) {
 	require.Nil(t, err)
 	defer os.RemoveAll(tmpdir)
 
-	storage := localfs.NewStorage(tmpdir)
+	storage := localfs.NewPlaintextStorage(tmpdir)
 
 	name := "account_name"
 	format := "account_format"
@@ -68,7 +68,7 @@ func TestSnapshot_RefuseOverflow(t *testing.T) {
 	require.Nil(t, err)
 	defer os.RemoveAll(tmpdir)
 
-	storage := localfs.NewStorage(tmpdir)
+	storage := localfs.NewPlaintextStorage(tmpdir)
 
 	name := "xxx"
 	format := "format"
@@ -96,7 +96,7 @@ func TestSnapshot_PromiseBuffer(t *testing.T) {
 	require.Nil(t, err)
 	defer os.RemoveAll(tmpdir)
 
-	storage := localfs.NewStorage(tmpdir)
+	storage := localfs.NewPlaintextStorage(tmpdir)
 
 	name := "yyy"
 	format := "format"
@@ -146,7 +146,7 @@ func BenchmarkAccountLoad(b *testing.B) {
 	require.Nil(b, err)
 	defer os.RemoveAll(tmpdir)
 
-	storage := localfs.NewStorage(tmpdir)
+	storage := localfs.NewPlaintextStorage(tmpdir)
 
 	account := CreateAccount(&storage, "bench", "format", "BNC", false)
 	require.NotNil(b, account)

@@ -21,13 +21,14 @@ import (
 
 	"github.com/jancajthaml-openbank/vault-unit/model"
 	"github.com/jancajthaml-openbank/vault-unit/utils"
+	log "github.com/sirupsen/logrus"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
 	money "gopkg.in/inf.v0"
 )
 
 // LoadAccount rehydrates account entity state from storage
-func LoadAccount(storage *localfs.Storage, name string) *model.Account {
+func LoadAccount(storage *localfs.PlaintextStorage, name string) *model.Account {
 	allPath := utils.SnapshotsPath(name)
 
 	snapshots, err := storage.ListDirectory(allPath, false)
@@ -82,7 +83,7 @@ func LoadAccount(storage *localfs.Storage, name string) *model.Account {
 }
 
 // CreateAccount persist account entity state to storage
-func CreateAccount(storage *localfs.Storage, name, format, currency string, isBalanceCheck bool) *model.Account {
+func CreateAccount(storage *localfs.PlaintextStorage, name, format, currency string, isBalanceCheck bool) *model.Account {
 	return PersistAccount(storage, name, &model.Account{
 		Balance:        new(money.Dec),
 		Promised:       new(money.Dec),
@@ -96,11 +97,10 @@ func CreateAccount(storage *localfs.Storage, name, format, currency string, isBa
 }
 
 // UpdateAccount persist account entity state with incremented version
-func UpdateAccount(storage *localfs.Storage, name string, entity *model.Account) *model.Account {
+func UpdateAccount(storage *localfs.PlaintextStorage, name string, entity *model.Account) *model.Account {
 	if entity.Version == math.MaxInt32 {
 		return entity
 	}
-
 	return PersistAccount(storage, name, &model.Account{
 		Balance:        entity.Balance,
 		Promised:       entity.Promised,
@@ -114,31 +114,33 @@ func UpdateAccount(storage *localfs.Storage, name string, entity *model.Account)
 }
 
 // PersistAccount persist account entity state to storage
-func PersistAccount(storage *localfs.Storage, name string, entity *model.Account) *model.Account {
+func PersistAccount(storage *localfs.PlaintextStorage, name string, entity *model.Account) *model.Account {
 	data := entity.Serialise()
 	path := utils.SnapshotPath(name, entity.Version)
-	if storage.WriteFile(path, data) != nil {
+	err := storage.WriteFile(path, data)
+	if err != nil {
+		log.Errorf("Error Persist Acount %+v", err)
 		return nil
 	}
 	return entity
 }
 
 // PersistPromise persists promise event
-func PersistPromise(storage *localfs.Storage, name string, version int, amount *money.Dec, transaction string) error {
+func PersistPromise(storage *localfs.PlaintextStorage, name string, version int, amount *money.Dec, transaction string) error {
 	event := model.EventPromise + "_" + amount.String() + "_" + transaction
 	fullPath := utils.EventPath(name, version) + "/" + event
 	return storage.TouchFile(fullPath)
 }
 
 // PersistCommit persists commit event
-func PersistCommit(storage *localfs.Storage, name string, version int, amount *money.Dec, transaction string) error {
+func PersistCommit(storage *localfs.PlaintextStorage, name string, version int, amount *money.Dec, transaction string) error {
 	event := model.EventCommit + "_" + amount.String() + "_" + transaction
 	fullPath := utils.EventPath(name, version) + "/" + event
 	return storage.TouchFile(fullPath)
 }
 
 // PersistRollback persists rollback event
-func PersistRollback(storage *localfs.Storage, name string, version int, amount *money.Dec, transaction string) error {
+func PersistRollback(storage *localfs.PlaintextStorage, name string, version int, amount *money.Dec, transaction string) error {
 	event := model.EventRollback + "_" + amount.String() + "_" + transaction
 	fullPath := utils.EventPath(name, version) + "/" + event
 	return storage.TouchFile(fullPath)
