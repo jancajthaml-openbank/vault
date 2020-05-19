@@ -44,7 +44,7 @@ func TestSnapshotUpdater(t *testing.T) {
 		callbackCalled++
 	}
 
-	metrics := metrics.NewMetrics(ctx, "", time.Hour)
+	metrics := metrics.NewMetrics(ctx, "/tmp", "1", time.Hour)
 	su := NewSnapshotUpdater(ctx, 1, time.Hour, &metrics, &storage, callback)
 
 	s := CreateAccount(&storage, "s_account_1", "format", "EUR", true)

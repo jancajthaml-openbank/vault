@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 
 import docker
-from helpers.shell import execute
 import platform
 import tarfile
 import tempfile
 import errno
 import os
 import subprocess
+from helpers.shell import execute
+
 
 class UnitHelper(object):
 

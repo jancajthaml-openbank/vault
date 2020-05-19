@@ -15,32 +15,99 @@
 package metrics
 
 import (
+	"bytes"
 	"fmt"
-	"io"
-	"os"
-
 	"github.com/jancajthaml-openbank/vault-unit/utils"
+	"os"
+	"strconv"
+	"time"
 )
+
+// MarshalJSON serialises Metrics as json bytes
+func (metrics *Metrics) MarshalJSON() ([]byte, error) {
+	if metrics == nil {
+		return nil, fmt.Errorf("cannot marshall nil")
+	}
+
+	if metrics.promisesAccepted == nil || metrics.commitsAccepted == nil ||
+		metrics.rollbacksAccepted == nil || metrics.createdAccounts == nil ||
+		metrics.updatedSnapshots == nil || metrics.snapshotCronLatency == nil {
+		return nil, fmt.Errorf("cannot marshall nil references")
+	}
+
+	var buffer bytes.Buffer
+
+	buffer.WriteString("{\"snapshotCronLatency\":")
+	buffer.WriteString(strconv.FormatFloat(metrics.snapshotCronLatency.Percentile(0.95), 'f', -1, 64))
+	buffer.WriteString(",\"updatedSnapshots\":")
+	buffer.WriteString(strconv.FormatInt(metrics.updatedSnapshots.Count(), 10))
+	buffer.WriteString(",\"createdAccounts\":")
+	buffer.WriteString(strconv.FormatInt(metrics.createdAccounts.Count(), 10))
+	buffer.WriteString(",\"promisesAccepted\":")
+	buffer.WriteString(strconv.FormatInt(metrics.promisesAccepted.Count(), 10))
+	buffer.WriteString(",\"commitsAccepted\":")
+	buffer.WriteString(strconv.FormatInt(metrics.commitsAccepted.Count(), 10))
+	buffer.WriteString(",\"rollbacksAccepted\":")
+	buffer.WriteString(strconv.FormatInt(metrics.rollbacksAccepted.Count(), 10))
+	buffer.WriteString("}")
+
+	return buffer.Bytes(), nil
+}
+
+// UnmarshalJSON deserializes Metrics from json bytes
+func (metrics *Metrics) UnmarshalJSON(data []byte) error {
+	if metrics == nil {
+		return fmt.Errorf("cannot unmarshall to nil")
+	}
+
+	if metrics.promisesAccepted == nil || metrics.commitsAccepted == nil ||
+		metrics.rollbacksAccepted == nil || metrics.createdAccounts == nil ||
+		metrics.updatedSnapshots == nil || metrics.snapshotCronLatency == nil {
+		return fmt.Errorf("cannot unmarshall to nil references")
+	}
+
+	aux := &struct {
+		SnapshotCronLatency float64 `json:"snapshotCronLatency"`
+		UpdatedSnapshots    int64   `json:"updatedSnapshots"`
+		CreatedAccounts     int64   `json:"createdAccounts"`
+		PromisesAccepted    int64   `json:"promisesAccepted"`
+		CommitsAccepted     int64   `json:"commitsAccepted"`
+		RollbacksAccepted   int64   `json:"rollbacksAccepted"`
+	}{}
+
+	if err := utils.JSON.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	metrics.promisesAccepted.Clear()
+	metrics.promisesAccepted.Inc(aux.PromisesAccepted)
+	metrics.commitsAccepted.Clear()
+	metrics.commitsAccepted.Inc(aux.CommitsAccepted)
+	metrics.rollbacksAccepted.Clear()
+	metrics.rollbacksAccepted.Inc(aux.RollbacksAccepted)
+	metrics.createdAccounts.Clear()
+	metrics.createdAccounts.Inc(aux.CreatedAccounts)
+	metrics.updatedSnapshots.Mark(aux.UpdatedSnapshots)
+	metrics.snapshotCronLatency.Update(time.Duration(aux.SnapshotCronLatency))
+
+	return nil
+}
 
 // Persist saved metrics state to storage
 func (metrics *Metrics) Persist() error {
 	if metrics == nil {
 		return fmt.Errorf("cannot persist nil reference")
 	}
-	tempFile := metrics.output + "_temp"
 	data, err := utils.JSON.Marshal(metrics)
 	if err != nil {
 		return err
 	}
-	f, err := os.OpenFile(tempFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
+	err = metrics.storage.WriteFile("metrics."+metrics.tenant+".json", data)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
-	if _, err := f.Write(data); err != nil {
-		return err
-	}
-	if err := os.Rename(tempFile, metrics.output); err != nil {
+	err = os.Chmod(metrics.storage.Root+"/metrics."+metrics.tenant+".json", 0644)
+	if err != nil {
 		return err
 	}
 	return nil
@@ -51,24 +118,11 @@ func (metrics *Metrics) Hydrate() error {
 	if metrics == nil {
 		return fmt.Errorf("cannot hydrate nil reference")
 	}
-	fi, err := os.Stat(metrics.output)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil
-		}
-		return err
-	}
-	f, err := os.OpenFile(metrics.output, os.O_RDONLY, 0444)
+	data, err := metrics.storage.ReadFileFully("metrics." + metrics.tenant + ".json")
 	if err != nil {
 		return err
 	}
-	defer f.Close()
-	buf := make([]byte, fi.Size())
-	_, err = f.Read(buf)
-	if err != nil && err != io.EOF {
-		return err
-	}
-	err = utils.JSON.Unmarshal(buf, metrics)
+	err = utils.JSON.Unmarshal(data, metrics)
 	if err != nil {
 		return err
 	}

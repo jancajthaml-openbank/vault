@@ -127,7 +127,6 @@ func (updater SnapshotUpdater) Start() {
 				updater.MarkDone()
 				return
 			case <-ticker.C:
-				//monitor.CheckMemoryAllocation()
 				updater.metrics.TimeUpdateSaturatedSnapshots(func() {
 					updater.updateSaturated()
 				})
@@ -135,6 +134,6 @@ func (updater SnapshotUpdater) Start() {
 		}
 	}()
 
-	<-updater.IsDone
+	updater.WaitStop()
 	log.Info("Stop snapshot-updater daemon")
 }

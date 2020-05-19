@@ -47,7 +47,7 @@ type Server struct {
 	cert          []byte
 }
 
-type Endpoint func(*Server) func(http.ResponseWriter, *http.Request)
+type endpoint func(*Server) func(http.ResponseWriter, *http.Request)
 
 type tcpKeepAliveListener struct {
 	*net.TCPListener
@@ -134,7 +134,7 @@ func NewServer(ctx context.Context, port int, secretsPath string, actorSystem *a
 }
 
 // HandleFunc registers route
-func (server Server) HandleFunc(path string, handle Endpoint, methods ...string) *mux.Route {
+func (server Server) HandleFunc(path string, handle endpoint, methods ...string) *mux.Route {
 	log.Debugf("HTTP route %+v %+v registered", methods, path)
 	return server.router.HandleFunc(path, handle(&server)).Methods(methods...)
 }
@@ -193,6 +193,6 @@ func (server Server) Start() {
 		}
 	}()
 
-	<-server.IsDone
+	server.WaitStop()
 	log.Info("Stop http-server daemon")
 }
