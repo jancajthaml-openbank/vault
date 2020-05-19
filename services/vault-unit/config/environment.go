@@ -44,7 +44,7 @@ func loadConfFromEnv() Configuration {
 		RootStorage:          storage + "/" + "t_" + tenant,
 		LogLevel:             logLevel,
 		MetricsRefreshRate:   metricsRefreshRate,
-		MetricsOutput:        metricsOutput + "/metrics." + tenant + ".json",
+		MetricsOutput:        metricsOutput,
 		JournalSaturation:    journalSaturation,
 		SnapshotScanInterval: snapshotScanInterval,
 	}
