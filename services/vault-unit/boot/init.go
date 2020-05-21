@@ -44,7 +44,7 @@ func Initialize() Program {
 
 	storage := localfs.NewPlaintextStorage(
 		cfg.RootStorage,
-  )
+	)
 	metricsDaemon := metrics.NewMetrics(
 		ctx,
 		cfg.MetricsOutput,

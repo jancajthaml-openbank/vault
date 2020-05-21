@@ -59,29 +59,29 @@ func NonExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 			snaphostResult := persistence.CreateAccount(s.Storage, state.Name, format, currency, isBalanceCheck)
 
 			if snaphostResult == nil {
-				s.SendMessage(FatalErrorMessage(), context.Sender, context.Receiver)
+				s.SendMessage(FatalError, context.Sender, context.Receiver)
 				log.Debugf("%s ~ (NonExist CreateAccount) Error", state.Name)
 				return
 			}
 
 			s.Metrics.AccountCreated()
 
-			s.SendMessage(AccountCreatedMessage(), context.Sender, context.Receiver)
+			s.SendMessage(RespCreateAccount, context.Sender, context.Receiver)
 
 			context.Self.Become(*snaphostResult, ExistAccount(s))
 			log.Infof("New Account %s Created", state.Name)
 			log.Debugf("%s ~ (NonExist CreateAccount) OK", state.Name)
 
 		case model.Rollback:
-			s.SendMessage(RollbackAcceptedMessage(), context.Sender, context.Receiver)
+			s.SendMessage(RollbackAccepted, context.Sender, context.Receiver)
 			log.Debugf("%s ~ (NonExist Rollback) OK", state.Name)
 
 		case model.GetAccountState:
-			s.SendMessage(AccountMissingMessage(), context.Sender, context.Receiver)
+			s.SendMessage(RespAccountMissing, context.Sender, context.Receiver)
 			log.Debugf("%s ~ (NonExist GetAccountState) Error", state.Name)
 
 		default:
-			s.SendMessage(FatalErrorMessage(), context.Sender, context.Receiver)
+			s.SendMessage(FatalError, context.Sender, context.Receiver)
 			log.Debugf("%s ~ (NonExist Unknown Message) Error", state.Name)
 		}
 
@@ -101,18 +101,22 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 			log.Debugf("%s ~ (Exist GetAccountState) OK", state.Name)
 
 		case model.CreateAccount:
-			s.SendMessage(FatalErrorMessage(), context.Sender, context.Receiver)
+			s.SendMessage(FatalError, context.Sender, context.Receiver)
 			log.Debugf("%s ~ (Exist CreateAccount) Error", state.Name)
 
 		case model.Promise:
 			if state.PromiseBuffer.Contains(msg.Transaction) {
-				s.SendMessage(PromiseAcceptedMessage(), context.Sender, context.Receiver)
+				s.SendMessage(PromiseAccepted, context.Sender, context.Receiver)
 				log.Debugf("%s ~ (Exist Promise) OK Already Accepted", state.Name)
 				return
 			}
 
 			if state.Currency != msg.Currency {
-				s.SendMessage(PromiseRejectedMessage("CURRENCY_MISMATCH"), context.Sender, context.Receiver)
+				s.SendMessage(
+					PromiseRejected+" CURRENCY_MISMATCH",
+					context.Sender,
+					context.Receiver,
+				)
 				log.Warnf("%s ~ (Exist Promise) Error Currency Mismatch", state.Name)
 				return
 			}
@@ -121,7 +125,11 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 
 			if !state.IsBalanceCheck || new(money.Dec).Add(state.Balance, nextPromised).Sign() >= 0 {
 				if err := persistence.PersistPromise(s.Storage, state.Name, state.Version, msg.Amount, msg.Transaction); err != nil {
-					s.SendMessage(PromiseRejectedMessage("STORAGE_ERROR"), context.Sender, context.Receiver)
+					s.SendMessage(
+						PromiseRejected+" STORAGE_ERROR",
+						context.Sender,
+						context.Receiver,
+					)
 					log.Warnf("%s ~ (Exist Promise) Error Could not Persist %+v", state.Name, err)
 					return
 				}
@@ -132,7 +140,7 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 
 				s.Metrics.PromiseAccepted()
 
-				s.SendMessage(PromiseAcceptedMessage(), context.Sender, context.Receiver)
+				s.SendMessage(PromiseAccepted, context.Sender, context.Receiver)
 
 				context.Self.Become(next, ExistAccount(s))
 				log.Infof("Account %s Promised %s %s", state.Name, msg.Amount.String(), state.Currency)
@@ -141,26 +149,34 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 			}
 
 			if new(money.Dec).Sub(state.Balance, msg.Amount).Sign() < 0 {
-				s.SendMessage(PromiseRejectedMessage("INSUFFICIESNT_FUNDS"), context.Sender, context.Receiver)
+				s.SendMessage(
+					PromiseRejected+" INSUFFICIESNT_FUNDS",
+					context.Sender,
+					context.Receiver,
+				)
 				log.Debugf("%s ~ (Exist Promise) Error Insufficient Funds", state.Name)
 				return
 			}
 
 			// FIXME boucing not handled
-			s.SendMessage(FatalErrorMessage(), context.Sender, context.Receiver)
+			s.SendMessage(FatalError, context.Sender, context.Receiver)
 			log.Warnf("%s ~ (Exist Promise) Error ... (Bounce?)", state.Name)
 			return
 
 		case model.Commit:
 
 			if !state.PromiseBuffer.Contains(msg.Transaction) {
-				s.SendMessage(CommitAcceptedMessage(), context.Sender, context.Receiver)
+				s.SendMessage(CommitAccepted, context.Sender, context.Receiver)
 				log.Debugf("%s ~ (Exist Commit) OK Already Accepted", state.Name)
 				return
 			}
 
 			if err := persistence.PersistCommit(s.Storage, state.Name, state.Version, msg.Amount, msg.Transaction); err != nil {
-				s.SendMessage(CommitRejectedMessage("STORAGE_ERROR"), context.Sender, context.Receiver)
+				s.SendMessage(
+					CommitRejected+" STORAGE_ERROR",
+					context.Sender,
+					context.Receiver,
+				)
 				log.Warnf("%s ~ (Exist Commit) Error Could not Persist %+v", state.Name, err)
 				return
 			}
@@ -172,7 +188,7 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 
 			s.Metrics.CommitAccepted()
 
-			s.SendMessage(CommitAcceptedMessage(), context.Sender, context.Receiver)
+			s.SendMessage(CommitAccepted, context.Sender, context.Receiver)
 
 			context.Self.Become(next, ExistAccount(s))
 			log.Debugf("%s ~ (Exist Commit) OK", state.Name)
@@ -180,13 +196,17 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 
 		case model.Rollback:
 			if !state.PromiseBuffer.Contains(msg.Transaction) {
-				s.SendMessage(RollbackAcceptedMessage(), context.Sender, context.Receiver)
+				s.SendMessage(RollbackAccepted, context.Sender, context.Receiver)
 				log.Debugf("%s ~ (Exist Rollback) OK Already Accepted", state.Name)
 				return
 			}
 
 			if err := persistence.PersistRollback(s.Storage, state.Name, state.Version, msg.Amount, msg.Transaction); err != nil {
-				s.SendMessage(RollbackRejectedMessage("STORAGE_ERROR"), context.Sender, context.Receiver)
+				s.SendMessage(
+					RollbackRejected+" STORAGE_ERROR",
+					context.Sender,
+					context.Receiver,
+				)
 				log.Warnf("%s ~ (Exist Rollback) Error Could not Persist %+v", state.Name, err)
 				return
 			}
@@ -197,7 +217,7 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 
 			s.Metrics.RollbackAccepted()
 
-			s.SendMessage(RollbackAcceptedMessage(), context.Sender, context.Receiver)
+			s.SendMessage(RollbackAccepted, context.Sender, context.Receiver)
 
 			context.Self.Become(next, ExistAccount(s))
 			log.Infof("Account %s Rejected %s %s", state.Name, msg.Amount.String(), state.Currency)
@@ -227,7 +247,7 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 			log.Debugf("%s ~ (Exist Update) OK", state.Name)
 
 		default:
-			s.SendMessage(FatalErrorMessage(), context.Sender, context.Receiver)
+			s.SendMessage(FatalError, context.Sender, context.Receiver)
 			log.Warnf("%s ~ (Exist Unknown Message) Error", state.Name)
 
 		}

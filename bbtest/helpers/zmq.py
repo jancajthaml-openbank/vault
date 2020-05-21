@@ -35,6 +35,8 @@ class ZMQHelper(threading.Thread):
     while not self.__cancel.is_set():
       try:
         data = self.__pull.recv(zmq.NOBLOCK)
+        if not data:
+          continue
         self.__pub.send(data)
         if data[-1] != 93:
           self.__mutex.acquire()

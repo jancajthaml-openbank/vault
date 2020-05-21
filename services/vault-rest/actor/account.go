@@ -20,7 +20,6 @@ import (
 	"github.com/rs/xid"
 
 	system "github.com/jancajthaml-openbank/actor-system"
-	log "github.com/sirupsen/logrus"
 )
 
 // CreateAccount creates new account for target tenant vault
@@ -31,13 +30,6 @@ func CreateAccount(sys *ActorSystem, tenant string, account Account) (result int
 		// system in invalid state (and panics) -> fatal error
 		// timeout -> timeout
 		// account answer -> expected vs unexpected
-
-		defer func() {
-			if r := recover(); r != nil {
-				log.Errorf("CreateAccount recovered in %v", r)
-				result = nil
-			}
-		}()
 
 		ch := make(chan interface{})
 		defer close(ch)
@@ -83,13 +75,6 @@ func GetAccount(sys *ActorSystem, tenant string, name string) (result interface{
 		// timeout -> timeout
 		// account answer -> expected vs unexpected
 
-		defer func() {
-			if r := recover(); r != nil {
-				log.Errorf("GetAccount recovered in %v", r)
-				result = nil
-			}
-		}()
-
 		ch := make(chan interface{})
 		defer close(ch)
 
@@ -101,7 +86,7 @@ func GetAccount(sys *ActorSystem, tenant string, name string) (result interface{
 		})
 
 		sys.SendMessage(
-			GetAccountMessage(),
+			ReqAccountState,
 			system.Coordinates{
 				Region: "VaultUnit/" + tenant,
 				Name:   name,
