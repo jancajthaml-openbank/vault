@@ -36,8 +36,3 @@ func CreateAccountMessage(format string, currency string, isBalanceCheck bool) s
 	}
 	return ReqCreateAccount + " " + format + " " + currency + " f"
 }
-
-// GetAccountMessage is message for getting balance of account
-func GetAccountMessage() string {
-	return ReqAccountState
-}

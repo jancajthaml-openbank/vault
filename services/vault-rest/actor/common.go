@@ -24,7 +24,6 @@ import (
 // ProcessMessage processing of remote message
 func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 	return func(msg string, to system.Coordinates, from system.Coordinates) {
-		parts := strings.Split(msg, " ")
 
 		defer func() {
 			if r := recover(); r != nil {
@@ -38,6 +37,8 @@ func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 			log.Warnf("Deadletter received [remote %v -> local %v] : %+v", from, to, msg)
 			return
 		}
+
+		parts := strings.Split(msg, " ")
 
 		var message interface{}
 

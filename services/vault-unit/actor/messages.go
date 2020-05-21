@@ -17,7 +17,6 @@ package actor
 import (
 	"github.com/jancajthaml-openbank/vault-unit/model"
 	"strconv"
-	//system "github.com/jancajthaml-openbank/actor-system"
 )
 
 const (
@@ -64,61 +63,10 @@ func UpdateSnapshotMessage(version int64) string {
 	return UpdateSnapshot + " " + strconv.FormatInt(version, 10)
 }
 
-// FatalErrorMessage is reply message carrying failure
-func FatalErrorMessage() string {
-	return FatalError
-}
-
-// AccountCreatedMessage is reply message informing that account was created
-func AccountCreatedMessage() string {
-	return RespCreateAccount
-}
-
-// PromiseAcceptedMessage is reply message informing that transaction promise was
-// accepted
-func PromiseAcceptedMessage() string {
-	return PromiseAccepted
-}
-
-// PromiseRejectedMessage is reply message informing that transaction promise was
-// rejected
-func PromiseRejectedMessage(reason string) string {
-	return PromiseRejected + " " + reason
-}
-
-// CommitAcceptedMessage is reply message informing that transaction commit was
-// accepted
-func CommitAcceptedMessage() string {
-	return CommitAccepted
-}
-
-// CommitRejectedMessage is reply message informing that transaction commit was
-// rejected
-func CommitRejectedMessage(reason string) string {
-	return CommitRejected + " " + reason
-}
-
-// RollbackAcceptedMessage is reply message informing that transaction rollback
-// was accepted
-func RollbackAcceptedMessage() string {
-	return RollbackAccepted
-}
-
-// RollbackRejectedMessage is reply message informing that transaction rollback
-// was rejected
-func RollbackRejectedMessage(reason string) string {
-	return RollbackRejected + " " + reason
-}
-
 // AccountStateMessage is reply message carrying account state
 func AccountStateMessage(state model.Account) string {
 	if state.IsBalanceCheck {
 		return RespAccountState + " " + state.Format + " " + state.Currency + " t " + state.Balance.String() + " " + state.Promised.String()
 	}
 	return RespAccountState + " " + state.Format + " " + state.Currency + " f " + state.Balance.String() + " " + state.Promised.String()
-}
-
-// AccountMissingMessage is reply message informing that account does not exist
-func AccountMissingMessage() string {
-	return RespAccountMissing
 }

@@ -46,7 +46,7 @@ func Initialize() Program {
 
 	storage := localfs.NewPlaintextStorage(
 		cfg.RootStorage,
-  )
+	)
 	systemControlDaemon := system.NewSystemControl(
 		ctx,
 	)
