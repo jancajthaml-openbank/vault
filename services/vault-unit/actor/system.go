@@ -16,7 +16,6 @@ package actor
 
 import (
 	"context"
-	//"fmt"
 	"time"
 
 	"github.com/jancajthaml-openbank/vault-unit/metrics"
@@ -35,7 +34,7 @@ type ActorSystem struct {
 // NewActorSystem returns actor system fascade
 func NewActorSystem(ctx context.Context, tenant string, lakeEndpoint string, metrics *metrics.Metrics, storage *localfs.PlaintextStorage) ActorSystem {
 	result := ActorSystem{
-		System: system.NewSystem(ctx, "VaultUnit/"+tenant, lakeEndpoint),
+		System:  system.NewSystem(ctx, "VaultUnit/"+tenant, lakeEndpoint),
 		Storage: storage,
 		Metrics: metrics,
 	}

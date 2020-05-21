@@ -15,7 +15,6 @@
 package actor
 
 import (
-	//"fmt"
 	"strings"
 
 	system "github.com/jancajthaml-openbank/actor-system"

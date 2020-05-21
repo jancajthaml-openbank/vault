@@ -73,7 +73,7 @@ func NonExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 			log.Debugf("%s ~ (NonExist CreateAccount) OK", state.Name)
 
 		case model.Rollback:
-			s.SendMessage( RollbackAcceptedMessage(), context.Sender, context.Receiver)
+			s.SendMessage(RollbackAcceptedMessage(), context.Sender, context.Receiver)
 			log.Debugf("%s ~ (NonExist Rollback) OK", state.Name)
 
 		case model.GetAccountState:

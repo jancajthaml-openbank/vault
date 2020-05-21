@@ -52,12 +52,12 @@ func CreateAccount(sys *ActorSystem, tenant string, account Account) (result int
 		sys.SendMessage(
 			CreateAccountMessage(account.Format, account.Currency, account.IsBalanceCheck),
 			system.Coordinates{
-				Region: "VaultUnit/"+tenant,
-				Name: account.Name,
+				Region: "VaultUnit/" + tenant,
+				Name:   account.Name,
 			},
 			system.Coordinates{
 				Region: "VaultRest",
-				Name: envelope.Name,
+				Name:   envelope.Name,
 			},
 		)
 
@@ -103,12 +103,12 @@ func GetAccount(sys *ActorSystem, tenant string, name string) (result interface{
 		sys.SendMessage(
 			GetAccountMessage(),
 			system.Coordinates{
-				Region: "VaultUnit/"+tenant,
-				Name: name,
+				Region: "VaultUnit/" + tenant,
+				Name:   name,
 			},
 			system.Coordinates{
 				Region: "VaultRest",
-				Name: envelope.Name,
+				Name:   envelope.Name,
 			},
 		)
 

@@ -15,9 +15,8 @@
 package actor
 
 import (
-	"strconv"
 	"github.com/jancajthaml-openbank/vault-unit/model"
-
+	"strconv"
 	//system "github.com/jancajthaml-openbank/actor-system"
 )
 
@@ -60,7 +59,7 @@ const (
 	UpdateSnapshot = "US"
 )
 
-// FatalErrorMessage is reply message carrying failure
+// UpdateSnapshotMessage is request message for account to update its snapshot
 func UpdateSnapshotMessage(version int64) string {
 	return UpdateSnapshot + " " + strconv.FormatInt(version, 10)
 }
