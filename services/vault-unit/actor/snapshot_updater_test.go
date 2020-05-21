@@ -1,4 +1,4 @@
-package persistence
+package actor
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/jancajthaml-openbank/vault-unit/metrics"
-	"github.com/jancajthaml-openbank/vault-unit/model"
+	"github.com/jancajthaml-openbank/vault-unit/persistence"
 
 	system "github.com/jancajthaml-openbank/actor-system"
 	localfs "github.com/jancajthaml-openbank/local-fs"
@@ -36,7 +36,7 @@ func TestSnapshotUpdater(t *testing.T) {
 	callbackCalled := 0
 	callbackBacklog := make([]CallbackMessage, 0)
 
-	callback := func(msg interface{}, account system.Coordinates, sender system.Coordinates) {
+	callback := func(msg string, account system.Coordinates, sender system.Coordinates) {
 		callbackBacklog = append(callbackBacklog, CallbackMessage{
 			msg:     msg,
 			account: account.Name,
@@ -47,15 +47,15 @@ func TestSnapshotUpdater(t *testing.T) {
 	metrics := metrics.NewMetrics(ctx, "/tmp", "1", time.Hour)
 	su := NewSnapshotUpdater(ctx, 1, time.Hour, &metrics, &storage, callback)
 
-	s := CreateAccount(&storage, "s_account_1", "format", "EUR", true)
+	s := persistence.CreateAccount(&storage, "s_account_1", "format", "EUR", true)
 	require.NotNil(t, s)
-	require.Nil(t, PersistPromise(&storage, "s_account_1", 0, new(money.Dec), "transaction_1"))
-	s = UpdateAccount(&storage, "s_account_1", s)
-	require.Nil(t, PersistPromise(&storage, "s_account_1", 1, new(money.Dec), "transaction_2"))
-	require.Nil(t, PersistCommit(&storage, "s_account_1", 1, new(money.Dec), "transaction_2"))
+	require.Nil(t, persistence.PersistPromise(&storage, "s_account_1", 0, new(money.Dec), "transaction_1"))
+	s = persistence.UpdateAccount(&storage, "s_account_1", s)
+	require.Nil(t, persistence.PersistPromise(&storage, "s_account_1", 1, new(money.Dec), "transaction_2"))
+	require.Nil(t, persistence.PersistCommit(&storage, "s_account_1", 1, new(money.Dec), "transaction_2"))
 	require.NotNil(t, s)
 
-	require.NotNil(t, CreateAccount(&storage, "s_account_2", "format", "EUR", true))
+	require.NotNil(t, persistence.CreateAccount(&storage, "s_account_2", "format", "EUR", true))
 
 	t.Log("return valid accounts")
 	{
@@ -64,9 +64,9 @@ func TestSnapshotUpdater(t *testing.T) {
 
 	t.Log("return valid version")
 	{
-		assert.Equal(t, 1, su.getVersion("s_account_1"))
-		assert.Equal(t, 0, su.getVersion("s_account_2"))
-		assert.Equal(t, -1, su.getVersion("s_account_3"))
+		assert.Equal(t, int64(1), su.getVersion("s_account_1"))
+		assert.Equal(t, int64(0), su.getVersion("s_account_2"))
+		assert.Equal(t, int64(-1), su.getVersion("s_account_3"))
 	}
 
 	t.Log("return valid events")
@@ -85,14 +85,6 @@ func TestSnapshotUpdater(t *testing.T) {
 
 		args := callbackBacklog[0]
 		assert.Equal(t, "s_account_1", args.account)
-		switch m := args.msg.(type) {
-
-		case model.Update:
-			assert.Equal(t, 1, m.Version)
-
-		default:
-			t.Error("invalid message received in callback")
-
-		}
+		assert.Equal(t, "US 1", args.msg)
 	}
 }

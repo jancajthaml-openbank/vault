@@ -42,7 +42,7 @@ func LoadAccount(storage *localfs.PlaintextStorage, name string) *model.Account 
 
 	result := new(model.Account)
 
-	version, err := strconv.Atoi(snapshots[0])
+	version, err := strconv.ParseInt(snapshots[0], 10, 64)
 	if err != nil {
 		return nil
 	}
@@ -125,21 +125,21 @@ func UpdateAccount(storage *localfs.PlaintextStorage, name string, original *mod
 }
 
 // PersistPromise persists promise event
-func PersistPromise(storage *localfs.PlaintextStorage, name string, version int, amount *money.Dec, transaction string) error {
+func PersistPromise(storage *localfs.PlaintextStorage, name string, version int64, amount *money.Dec, transaction string) error {
 	event := model.EventPromise + "_" + amount.String() + "_" + transaction
 	fullPath := utils.EventPath(name, version) + "/" + event
 	return storage.TouchFile(fullPath)
 }
 
 // PersistCommit persists commit event
-func PersistCommit(storage *localfs.PlaintextStorage, name string, version int, amount *money.Dec, transaction string) error {
+func PersistCommit(storage *localfs.PlaintextStorage, name string, version int64, amount *money.Dec, transaction string) error {
 	event := model.EventCommit + "_" + amount.String() + "_" + transaction
 	fullPath := utils.EventPath(name, version) + "/" + event
 	return storage.TouchFile(fullPath)
 }
 
 // PersistRollback persists rollback event
-func PersistRollback(storage *localfs.PlaintextStorage, name string, version int, amount *money.Dec, transaction string) error {
+func PersistRollback(storage *localfs.PlaintextStorage, name string, version int64, amount *money.Dec, transaction string) error {
 	event := model.EventRollback + "_" + amount.String() + "_" + transaction
 	fullPath := utils.EventPath(name, version) + "/" + event
 	return storage.TouchFile(fullPath)

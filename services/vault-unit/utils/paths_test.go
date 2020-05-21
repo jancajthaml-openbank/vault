@@ -9,12 +9,8 @@ import (
 )
 
 func TestVersionString(t *testing.T) {
-	testPad := func(version int) string {
-		return fmt.Sprintf("%010d", version)
-	}
-
-	versionMin := testPad(0)
-	versionMax := testPad(math.MaxInt32)
+	versionMin := fmt.Sprintf("%010d", 0)
+	versionMax := fmt.Sprintf("%010d", math.MaxInt32)
 
 	assert.Equal(t, len(versionMin), len(versionMax))
 }
@@ -22,11 +18,11 @@ func TestVersionString(t *testing.T) {
 func TestEventPath(t *testing.T) {
 	account := "account_2"
 
-	versionMin := 0
+	versionMin := int64(0)
 	pathMin := EventPath(account, versionMin)
 	expectedMin := fmt.Sprintf("account/%s/events/%010d", account, versionMin)
 
-	versionMax := math.MaxInt32
+	versionMax := int64(math.MaxInt32)
 	pathMax := EventPath(account, versionMax)
 	expectedMax := fmt.Sprintf("account/%s/events/%010d", account, versionMax)
 
@@ -37,11 +33,11 @@ func TestEventPath(t *testing.T) {
 func TestSnapshotPath(t *testing.T) {
 	account := "account_3"
 
-	versionMin := 0
+	versionMin := int64(0)
 	pathMin := SnapshotPath(account, versionMin)
 	expectedMin := fmt.Sprintf("account/%s/snapshot/%010d", account, versionMin)
 
-	versionMax := math.MaxInt32
+	versionMax := int64(math.MaxInt32)
 	pathMax := SnapshotPath(account, versionMax)
 	expectedMax := fmt.Sprintf("account/%s/snapshot/%010d", account, versionMax)
 

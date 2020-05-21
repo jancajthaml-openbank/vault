@@ -10,14 +10,14 @@ def step_impl(context, package, operation):
     (code, result, error) = execute([
       "apt-get", "-y", "install", "-f", "/tmp/packages/{}.deb".format(package)
     ])
-    assert code == 0
+    assert code == 0, "unable to install with code {} and {} {}".format(code, result, error)
     assert os.path.isfile('/etc/init/vault.conf') is True
 
   elif operation == 'uninstalled':
     (code, result, error) = execute([
       "apt-get", "-y", "remove", package
     ])
-    assert code == 0
+    assert code == 0, "unable to uninstall with code {} and {} {}".format(code, result, error)
     assert os.path.isfile('/etc/init/vault.conf') is False
 
   else:
@@ -71,24 +71,7 @@ def unit_running(context, unit):
 
     assert code == 0
     assert 'SubState=running' in result
-  #
-#  @eventually(2)
-#  def wait_for_service_healthy():
-#    uri = "https://127.0.0.1/health".format()
-#
-#    ctx = ssl.create_default_context()
-#    ctx.check_hostname = False
-#    ctx.verify_mode = ssl.CERT_NONE
-#
-#    request = urllib.request.Request(method='GET', url=uri)
-#    request.add_header('Accept', 'application/json')
-#
-#    response = urllib.request.urlopen(request, timeout=10, context=ctx)
-#
-#    assert response.status == 200
-  #
   wait_for_unit_state_change()
-  #wait_for_service_healthy()
 
 
 @given('unit "{unit}" is not running')

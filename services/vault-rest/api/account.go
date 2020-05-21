@@ -23,11 +23,14 @@ import (
 	"github.com/jancajthaml-openbank/vault-rest/utils"
 
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 )
 
 // AccountPartial returns http handler for single account
 func AccountPartial(server *Server) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log.Debug("AccountPartial")
+
 		vars := mux.Vars(r)
 
 		tenant := vars["tenant"]
@@ -59,6 +62,8 @@ func AccountPartial(server *Server) func(w http.ResponseWriter, r *http.Request)
 // AccountsPartial returns http handler for accounts
 func AccountsPartial(server *Server) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log.Debug("AccountsPartial")
+
 		vars := mux.Vars(r)
 
 		tenant := vars["tenant"]
@@ -93,6 +98,8 @@ func AccountsPartial(server *Server) func(w http.ResponseWriter, r *http.Request
 
 // CreateAccount creates new account
 func CreateAccount(server *Server, tenant string, w http.ResponseWriter, r *http.Request) {
+	log.Debug("CreateAccount")
+
 	b, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
@@ -144,6 +151,8 @@ func CreateAccount(server *Server, tenant string, w http.ResponseWriter, r *http
 
 // GetAccounts returns list of existing accounts
 func GetAccounts(server *Server, tenant string, w http.ResponseWriter, r *http.Request) {
+	log.Debug("GetAccounts")
+
 	accounts, err := persistence.LoadAccounts(server.Storage, tenant)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
@@ -166,6 +175,8 @@ func GetAccounts(server *Server, tenant string, w http.ResponseWriter, r *http.R
 
 // GetAccount returns snapshot existing account
 func GetAccount(server *Server, tenant string, id string, w http.ResponseWriter, r *http.Request) {
+	log.Debug("GetAccount")
+
 	switch result := actor.GetAccount(server.ActorSystem, tenant, id).(type) {
 
 	case *actor.AccountMissing:
