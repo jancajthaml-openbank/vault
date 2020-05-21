@@ -49,8 +49,6 @@ func CreateAccount(sys *ActorSystem, tenant string, account Account) (result int
 			ch <- context.Data
 		})
 
-		log.Debugf("Requesting account %+v", account)
-
 		sys.SendMessage(
 			CreateAccountMessage(account.Format, account.Currency, account.IsBalanceCheck),
 			system.Coordinates{
@@ -66,11 +64,9 @@ func CreateAccount(sys *ActorSystem, tenant string, account Account) (result int
 		select {
 
 		case result = <-ch:
-			log.Debugf("Got response %+v", result)
 			return
 
 		case <-time.After(time.Second):
-			log.Debug("Timeout")
 			result = new(ReplyTimeout)
 			return
 		}

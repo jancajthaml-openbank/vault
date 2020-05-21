@@ -58,7 +58,7 @@ def create_account(context, activity, currency, tenant, account):
   request.add_header('Content-Type', 'application/json')
   request.data = json.dumps(payload).encode('utf-8')
 
-  response = urllib.request.urlopen(request, timeout=20, context=ctx)
+  response = urllib.request.urlopen(request, timeout=10, context=ctx)
 
   assert response.status == 200
 
