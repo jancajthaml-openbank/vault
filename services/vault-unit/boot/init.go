@@ -42,11 +42,30 @@ func Initialize() Program {
 
 	utils.SetupLogger(cfg.LogLevel)
 
-	storage := localfs.NewPlaintextStorage(cfg.RootStorage)
-
-	metricsDaemon := metrics.NewMetrics(ctx, cfg.MetricsOutput, cfg.Tenant, cfg.MetricsRefreshRate)
-	actorSystemDaemon := actor.NewActorSystem(ctx, cfg.Tenant, cfg.LakeHostname, &metricsDaemon, &storage)
-	snapshotUpdaterDaemon := actor.NewSnapshotUpdater(ctx, cfg.JournalSaturation, cfg.SnapshotScanInterval, &metricsDaemon, &storage, actor.ProcessMessage(&actorSystemDaemon))
+	storage := localfs.NewPlaintextStorage(
+		cfg.RootStorage,
+  )
+	metricsDaemon := metrics.NewMetrics(
+		ctx,
+		cfg.MetricsOutput,
+		cfg.Tenant,
+		cfg.MetricsRefreshRate,
+	)
+	actorSystemDaemon := actor.NewActorSystem(
+		ctx,
+		cfg.Tenant,
+		cfg.LakeHostname,
+		&metricsDaemon,
+		&storage,
+	)
+	snapshotUpdaterDaemon := actor.NewSnapshotUpdater(
+		ctx,
+		cfg.JournalSaturation,
+		cfg.SnapshotScanInterval,
+		&metricsDaemon,
+		&storage,
+		actor.ProcessMessage(&actorSystemDaemon),
+	)
 
 	var daemons = make([]utils.Daemon, 0)
 	daemons = append(daemons, metricsDaemon)
