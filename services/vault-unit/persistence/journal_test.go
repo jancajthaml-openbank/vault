@@ -79,7 +79,7 @@ func TestSnapshot_RefuseOverflow(t *testing.T) {
 		Balance:        new(money.Dec),
 		Promised:       new(money.Dec),
 		PromiseBuffer:  model.NewTransactionSet(),
-		Version:        int(math.MaxInt32),
+		Version:        int64(math.MaxInt32),
 		Name:           name,
 		Format:         format,
 		Currency:       currency,

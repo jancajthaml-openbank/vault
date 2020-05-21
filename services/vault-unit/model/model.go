@@ -29,7 +29,7 @@ type Account struct {
 	Balance        *money.Dec
 	Promised       *money.Dec
 	PromiseBuffer  TransactionSet
-	Version        int
+	Version        int64
 }
 
 // Copy returns copy of Account
@@ -60,7 +60,7 @@ type GetAccountState struct {
 
 // Update is inbound request to update snapshot
 type Update struct {
-	Version int
+	Version int64
 }
 
 // Promise is inbound request for transaction promise

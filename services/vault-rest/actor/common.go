@@ -15,43 +15,16 @@
 package actor
 
 import (
-	"fmt"
 	"strings"
 
 	system "github.com/jancajthaml-openbank/actor-system"
 	log "github.com/sirupsen/logrus"
 )
 
-func asEnvelopes(s *ActorSystem, msg string) (system.Coordinates, system.Coordinates, []string, error) {
-	parts := strings.Split(msg, " ")
-
-	if len(parts) < 5 {
-		return system.Coordinates{}, system.Coordinates{}, nil, fmt.Errorf("invalid message received %+v", parts)
-	}
-
-	recieverRegion, senderRegion, receiverName, senderName := parts[0], parts[1], parts[2], parts[3]
-
-	from := system.Coordinates{
-		Name:   senderName,
-		Region: senderRegion,
-	}
-
-	to := system.Coordinates{
-		Name:   receiverName,
-		Region: recieverRegion,
-	}
-
-	return from, to, parts, nil
-}
-
-// ProcessRemoteMessage processing of remote message to this wall
-func ProcessRemoteMessage(s *ActorSystem) system.ProcessRemoteMessage {
-	return func(msg string) {
-		from, to, parts, err := asEnvelopes(s, msg)
-		if err != nil {
-			log.Warn(err.Error())
-			return
-		}
+// ProcessMessage processing of remote message
+func ProcessMessage(s *ActorSystem) system.ProcessMessage {
+	return func(msg string, to system.Coordinates, from system.Coordinates) {
+		parts := strings.Split(msg, " ")
 
 		defer func() {
 			if r := recover(); r != nil {
@@ -68,18 +41,18 @@ func ProcessRemoteMessage(s *ActorSystem) system.ProcessRemoteMessage {
 
 		var message interface{}
 
-		switch parts[4] {
+		switch parts[0] {
 
 		case FatalError:
 			message = FatalError
 
 		case RespAccountState:
 			message = &Account{
-				Format:         parts[5],
-				Currency:       parts[6],
-				IsBalanceCheck: parts[7] != "f",
-				Balance:        parts[8],
-				Blocking:       parts[9],
+				Format:         parts[1],
+				Currency:       parts[2],
+				IsBalanceCheck: parts[3] != "f",
+				Balance:        parts[4],
+				Blocking:       parts[5],
 			}
 
 		case RespAccountMissing:

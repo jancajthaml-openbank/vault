@@ -15,7 +15,7 @@
 package actor
 
 import (
-	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/jancajthaml-openbank/vault-unit/model"
@@ -25,78 +25,28 @@ import (
 	money "gopkg.in/inf.v0"
 )
 
-// ProcessLocalMessage processing of local message to this vault
-func ProcessLocalMessage(s *ActorSystem) system.ProcessLocalMessage {
-	return func(message interface{}, to system.Coordinates, from system.Coordinates) {
-		if to.Region != "" && to.Region != s.Name {
-			log.Warnf("Invalid region received [local %s -> local %s]", from, to)
-			return
-		}
-		// FIXME check to.Region and if now for this region, relay
-		ref, err := s.ActorOf(to.Name)
-		if err != nil {
-			ref, err = spawnAccountActor(s, to.Name)
-		}
-
-		if err != nil {
-			log.Warnf("Actor not found [local %s]", to)
-			return
-		}
-		ref.Tell(message, to, from)
-	}
-}
-
-func asEnvelopes(s *ActorSystem, msg string) (system.Coordinates, system.Coordinates, []string, error) {
-	parts := strings.Split(msg, " ")
-
-	if len(parts) < 5 {
-		return system.Coordinates{}, system.Coordinates{}, nil, fmt.Errorf("invalid message received %+v", parts)
-	}
-
-	recieverRegion, senderRegion, receiverName, senderName := parts[0], parts[1], parts[2], parts[3]
-
-	from := system.Coordinates{
-		Name:   senderName,
-		Region: senderRegion,
-	}
-
-	to := system.Coordinates{
-		Name:   receiverName,
-		Region: recieverRegion,
-	}
-
-	return from, to, parts, nil
-}
-
 func spawnAccountActor(s *ActorSystem, name string) (*system.Envelope, error) {
 	envelope := system.NewEnvelope(name, model.NewAccount(name))
-
 	err := s.RegisterActor(envelope, NilAccount(s))
 	if err != nil {
 		log.Warnf("%s ~ Spawning Actor Error unable to register", name)
 		return nil, err
 	}
-
 	log.Debugf("%s ~ Actor Spawned", name)
 	return envelope, nil
 }
 
-// ProcessRemoteMessage processing of remote message to this vault
-func ProcessRemoteMessage(s *ActorSystem) system.ProcessRemoteMessage {
-	return func(msg string) {
-		from, to, parts, err := asEnvelopes(s, msg)
-		if err != nil {
-			log.Warn(err.Error())
-			return
-		}
+// ProcessMessage processing of remote message
+func ProcessMessage(s *ActorSystem) system.ProcessMessage {
+	return func(msg string, to system.Coordinates, from system.Coordinates) {
+		log.Debugf("Received message %+v from: %+v to: %+v", msg, from, to)
+
+		parts := strings.Split(msg, " ")
 
 		defer func() {
 			if r := recover(); r != nil {
 				log.Errorf("procesRemoteMessage recovered in [remote %v -> local %v] : %+v", from, to, r)
-				s.SendRemote(FatalErrorMessage(system.Context{
-					Receiver: to,
-					Sender:   from,
-				}))
+				s.SendMessage(FatalErrorMessage(), from, to)
 			}
 		}()
 
@@ -107,74 +57,77 @@ func ProcessRemoteMessage(s *ActorSystem) system.ProcessRemoteMessage {
 
 		if err != nil {
 			log.Warnf("Actor not found [remote %v -> local %v]", from, to)
-			s.SendRemote(FatalErrorMessage(system.Context{
-				Receiver: to,
-				Sender:   from,
-			}))
+			s.SendMessage(FatalErrorMessage(), from, to)
 			return
 		}
 
 		var message interface{}
 
-		switch parts[4] {
+		switch parts[0] {
 
 		case ReqAccountState:
 			message = model.GetAccountState{}
 
+		case UpdateSnapshot:
+			if len(parts) == 2 {
+				if version, err := strconv.ParseInt(parts[1], 10, 64); err == nil {
+					message = model.Update{
+						Version: version,
+					}
+				}
+			}
+
 		case ReqCreateAccount:
-			if len(parts) == 8 {
+			if len(parts) == 4 {
 				message = model.CreateAccount{
 					Name:           to.Name,
-					Format:         parts[5],
-					Currency:       parts[6],
-					IsBalanceCheck: parts[7] != "f",
+					Format:         parts[1],
+					Currency:       parts[2],
+					IsBalanceCheck: parts[3] != "f",
 				}
 			}
 
 		case PromiseOrder:
-			if len(parts) == 8 {
-				if amount, ok := new(money.Dec).SetString(parts[6]); ok {
+			if len(parts) == 4 {
+				if amount, ok := new(money.Dec).SetString(parts[2]); ok {
 					message = model.Promise{
-						Transaction: parts[5],
+						Transaction: parts[1],
 						Amount:      amount,
-						Currency:    parts[7],
+						Currency:    parts[3],
 					}
 				}
 			}
 
 		case CommitOrder:
-			if len(parts) == 8 {
-				if amount, ok := new(money.Dec).SetString(parts[6]); ok {
+			if len(parts) == 4 {
+				if amount, ok := new(money.Dec).SetString(parts[2]); ok {
 					message = model.Commit{
-						Transaction: parts[5],
+						Transaction: parts[1],
 						Amount:      amount,
-						Currency:    parts[7],
+						Currency:    parts[3],
 					}
 				}
 			}
 
 		case RollbackOrder:
-			if len(parts) == 8 {
-				if amount, ok := new(money.Dec).SetString(parts[6]); ok {
+			if len(parts) == 4 {
+				if amount, ok := new(money.Dec).SetString(parts[2]); ok {
 					message = model.Rollback{
-						Transaction: parts[5],
+						Transaction: parts[1],
 						Amount:      amount,
-						Currency:    parts[7],
+						Currency:    parts[3],
 					}
 				}
 			}
-
 		}
 
 		if message == nil {
 			log.Warnf("Deserialization of unsuported message [remote %v -> local %v] : %+v", from, to, parts)
-			s.SendRemote(FatalErrorMessage(system.Context{
-				Receiver: to,
-				Sender:   from,
-			}))
+			s.SendMessage(FatalErrorMessage(), from, to)
 			return
 		}
 
+		log.Debugf("Sending mesage to actor %+v message %+v", ref, message)
 		ref.Tell(message, to, from)
 	}
 }

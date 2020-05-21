@@ -49,7 +49,6 @@ func NewSystemControl(ctx context.Context) SystemControl {
 
 // ListUnits returns list of unit names
 func (sys SystemControl) ListUnits(prefix string) ([]string, error) {
-	log.Debugf("Listing units %+v", prefix)
 
 	units, err := sys.underlying.ListUnits()
 	if err != nil {
@@ -73,7 +72,6 @@ func (sys SystemControl) ListUnits(prefix string) ([]string, error) {
 
 // GetUnitsProperties return unit properties
 func (sys SystemControl) GetUnitsProperties(prefix string) (map[string]UnitStatus, error) {
-	log.Debugf("Getting units %+v status", prefix)
 
 	units, err := sys.underlying.ListUnits()
 	if err != nil {
@@ -105,7 +103,6 @@ func (sys SystemControl) GetUnitsProperties(prefix string) (map[string]UnitStatu
 
 // DisableUnit disables unit
 func (sys SystemControl) DisableUnit(name string) error {
-	log.Debugf("Disabling unit %s", name)
 
 	ch := make(chan string)
 
@@ -136,7 +133,6 @@ func (sys SystemControl) DisableUnit(name string) error {
 
 // EnableUnit enables unit
 func (sys SystemControl) EnableUnit(name string) error {
-	log.Debugf("Enabling units %s", name)
 
 	if _, _, err := sys.underlying.EnableUnitFiles([]string{name}, false, false); err != nil {
 		return fmt.Errorf("unable to enable unit %s because %+v", name, err)

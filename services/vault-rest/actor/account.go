@@ -49,7 +49,17 @@ func CreateAccount(sys *ActorSystem, tenant string, account Account) (result int
 			ch <- context.Data
 		})
 
-		sys.SendRemote(CreateAccountMessage(tenant, envelope.Name, account.Name, account.Format, account.Currency, account.IsBalanceCheck))
+		sys.SendMessage(
+			CreateAccountMessage(account.Format, account.Currency, account.IsBalanceCheck),
+			system.Coordinates{
+				Region: "VaultUnit/" + tenant,
+				Name:   account.Name,
+			},
+			system.Coordinates{
+				Region: "VaultRest",
+				Name:   envelope.Name,
+			},
+		)
 
 		select {
 
@@ -90,7 +100,17 @@ func GetAccount(sys *ActorSystem, tenant string, name string) (result interface{
 			ch <- context.Data
 		})
 
-		sys.SendRemote(GetAccountMessage(tenant, envelope.Name, name))
+		sys.SendMessage(
+			GetAccountMessage(),
+			system.Coordinates{
+				Region: "VaultUnit/" + tenant,
+				Name:   name,
+			},
+			system.Coordinates{
+				Region: "VaultRest",
+				Name:   envelope.Name,
+			},
+		)
 
 		select {
 

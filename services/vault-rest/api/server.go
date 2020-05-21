@@ -169,7 +169,7 @@ func (server Server) Start() {
 	}
 
 	go func() {
-		log.Infof("Start http-server daemon, listening on :%d", ln.Addr().(*net.TCPAddr).Port)
+		log.Infof("Start http-server daemon, listening on 127.0.0.1:%d", ln.Addr().(*net.TCPAddr).Port)
 		tlsListener := tls.NewListener(tcpKeepAliveListener{ln.(*net.TCPListener)}, config)
 		err := server.underlying.Serve(tlsListener)
 		if err != nil && err != http.ErrServerClosed {
@@ -183,7 +183,6 @@ func (server Server) Start() {
 		for {
 			select {
 			case <-server.Done():
-				log.Info("Stopping http-server daemon")
 				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 				server.underlying.Shutdown(ctx)
 				cancel()

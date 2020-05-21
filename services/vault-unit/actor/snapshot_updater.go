@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package persistence
+package actor
 
 import (
 	"context"
@@ -20,8 +20,9 @@ import (
 	"time"
 
 	"github.com/jancajthaml-openbank/vault-unit/metrics"
-	"github.com/jancajthaml-openbank/vault-unit/model"
+	//"github.com/jancajthaml-openbank/vault-unit/model"
 	"github.com/jancajthaml-openbank/vault-unit/utils"
+	//"github.com/jancajthaml-openbank/vault-unit/actor"
 
 	system "github.com/jancajthaml-openbank/actor-system"
 	localfs "github.com/jancajthaml-openbank/local-fs"
@@ -31,7 +32,7 @@ import (
 // SnapshotUpdater represents journal saturation update subroutine
 type SnapshotUpdater struct {
 	utils.DaemonSupport
-	callback            func(msg interface{}, to system.Coordinates, from system.Coordinates)
+	callback            func(msg string, to system.Coordinates, from system.Coordinates)
 	metrics             *metrics.Metrics
 	storage             *localfs.PlaintextStorage
 	scanInterval        time.Duration
@@ -39,7 +40,7 @@ type SnapshotUpdater struct {
 }
 
 // NewSnapshotUpdater returns snapshot updater fascade
-func NewSnapshotUpdater(ctx context.Context, saturation int, scanInterval time.Duration, metrics *metrics.Metrics, storage *localfs.PlaintextStorage, callback func(msg interface{}, to system.Coordinates, from system.Coordinates)) SnapshotUpdater {
+func NewSnapshotUpdater(ctx context.Context, saturation int, scanInterval time.Duration, metrics *metrics.Metrics, storage *localfs.PlaintextStorage, callback func(msg string, to system.Coordinates, from system.Coordinates)) SnapshotUpdater {
 	return SnapshotUpdater{
 		DaemonSupport:       utils.NewDaemonSupport(ctx, "snapshot-updater"),
 		callback:            callback,
@@ -62,11 +63,9 @@ func (updater SnapshotUpdater) updateSaturated() {
 		}
 		if updater.getEvents(name, version) >= updater.saturationThreshold {
 			log.Debugf("Request %v to update snapshot version from %d to %d", name, version, version+1)
-			msg := model.Update{Version: version}
 			to := system.Coordinates{Name: name}
 			from := system.Coordinates{Name: "snapshot_saturation_cron"}
-			updater.callback(msg, to, from)
-
+			updater.callback(UpdateSnapshotMessage(version), to, from)
 			numberOfSnapshotsUpdated++
 		}
 	}
@@ -81,19 +80,19 @@ func (updater SnapshotUpdater) getAccounts() []string {
 	return result
 }
 
-func (updater SnapshotUpdater) getVersion(name string) int {
+func (updater SnapshotUpdater) getVersion(name string) int64 {
 	result, err := updater.storage.ListDirectory(utils.SnapshotsPath(name), false)
 	if err != nil || len(result) == 0 {
 		return -1
 	}
-	version, err := strconv.Atoi(result[0])
+	version, err := strconv.ParseInt(result[0], 10, 64)
 	if err != nil {
 		return -1
 	}
 	return version
 }
 
-func (updater SnapshotUpdater) getEvents(name string, version int) int {
+func (updater SnapshotUpdater) getEvents(name string, version int64) int {
 	result, err := updater.storage.CountFiles(utils.EventPath(name, version))
 	if err != nil {
 		return -1

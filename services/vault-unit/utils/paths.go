@@ -34,13 +34,13 @@ func SnapshotsPath(name string) string {
 }
 
 // EventPath returns filepath for given event
-func EventPath(name string, version int) string {
-	value := strconv.Itoa(version)
+func EventPath(name string, version int64) string {
+	value := strconv.FormatInt(version, 10)
 	return "account/" + name + "/events/" + "0000000000"[0:10-len(value)] + value
 }
 
 // SnapshotPath returns filepath for given snapshot
-func SnapshotPath(name string, version int) string {
-	value := strconv.Itoa(version)
+func SnapshotPath(name string, version int64) string {
+	value := strconv.FormatInt(version, 10)
 	return "account/" + name + "/snapshot/" + "0000000000"[0:10-len(value)] + value
 }

@@ -23,7 +23,6 @@ import (
 	"github.com/jancajthaml-openbank/vault-unit/actor"
 	"github.com/jancajthaml-openbank/vault-unit/config"
 	"github.com/jancajthaml-openbank/vault-unit/metrics"
-	"github.com/jancajthaml-openbank/vault-unit/persistence"
 	"github.com/jancajthaml-openbank/vault-unit/utils"
 )
 
@@ -44,10 +43,10 @@ func Initialize() Program {
 	utils.SetupLogger(cfg.LogLevel)
 
 	storage := localfs.NewPlaintextStorage(cfg.RootStorage)
-	metricsDaemon := metrics.NewMetrics(ctx, cfg.MetricsOutput, cfg.Tenant, cfg.MetricsRefreshRate)
 
+	metricsDaemon := metrics.NewMetrics(ctx, cfg.MetricsOutput, cfg.Tenant, cfg.MetricsRefreshRate)
 	actorSystemDaemon := actor.NewActorSystem(ctx, cfg.Tenant, cfg.LakeHostname, &metricsDaemon, &storage)
-	snapshotUpdaterDaemon := persistence.NewSnapshotUpdater(ctx, cfg.JournalSaturation, cfg.SnapshotScanInterval, &metricsDaemon, &storage, actor.ProcessLocalMessage(&actorSystemDaemon))
+	snapshotUpdaterDaemon := actor.NewSnapshotUpdater(ctx, cfg.JournalSaturation, cfg.SnapshotScanInterval, &metricsDaemon, &storage, actor.ProcessMessage(&actorSystemDaemon))
 
 	var daemons = make([]utils.Daemon, 0)
 	daemons = append(daemons, metricsDaemon)

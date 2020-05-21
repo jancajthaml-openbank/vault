@@ -5,62 +5,51 @@ import (
 
 	"github.com/jancajthaml-openbank/vault-unit/model"
 
-	system "github.com/jancajthaml-openbank/actor-system"
+	//system "github.com/jancajthaml-openbank/actor-system"
 	money "gopkg.in/inf.v0"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMessagesIntegrity(t *testing.T) {
-	context := system.Context{
-		Sender: system.Coordinates{
-			Name:   "FROM_NAME",
-			Region: "FROM_REGION",
-		},
-		Receiver: system.Coordinates{
-			Name:   "TO_NAME",
-			Region: "TO_REGION",
-		},
-	}
-
 	t.Log("FatalErrorMessage")
 	{
-		assert.Equal(t, "FROM_REGION TO_REGION FROM_NAME TO_NAME EE", FatalErrorMessage(context))
+		assert.Equal(t, "EE", FatalErrorMessage())
 	}
 
 	t.Log("AccountCreatedMessage")
 	{
-		assert.Equal(t, "FROM_REGION TO_REGION FROM_NAME TO_NAME AN", AccountCreatedMessage(context))
+		assert.Equal(t, "AN", AccountCreatedMessage())
 	}
 
 	t.Log("PromiseAcceptedMessage")
 	{
-		assert.Equal(t, "FROM_REGION TO_REGION FROM_NAME TO_NAME P1", PromiseAcceptedMessage(context))
+		assert.Equal(t, "P1", PromiseAcceptedMessage())
 	}
 
 	t.Log("PromiseRejectedMessage")
 	{
-		assert.Equal(t, "FROM_REGION TO_REGION FROM_NAME TO_NAME P2 REASON", PromiseRejectedMessage(context, "REASON"))
+		assert.Equal(t, "P2 REASON", PromiseRejectedMessage("REASON"))
 	}
 
 	t.Log("CommitAcceptedMessage")
 	{
-		assert.Equal(t, "FROM_REGION TO_REGION FROM_NAME TO_NAME C1", CommitAcceptedMessage(context))
+		assert.Equal(t, "C1", CommitAcceptedMessage())
 	}
 
 	t.Log("CommitRejectedMessage")
 	{
-		assert.Equal(t, "FROM_REGION TO_REGION FROM_NAME TO_NAME C2 REASON", CommitRejectedMessage(context, "REASON"))
+		assert.Equal(t, "C2 REASON", CommitRejectedMessage("REASON"))
 	}
 
 	t.Log("RollbackAcceptedMessage")
 	{
-		assert.Equal(t, "FROM_REGION TO_REGION FROM_NAME TO_NAME R1", RollbackAcceptedMessage(context))
+		assert.Equal(t, "R1", RollbackAcceptedMessage())
 	}
 
 	t.Log("RollbackRejectedMessage")
 	{
-		assert.Equal(t, "FROM_REGION TO_REGION FROM_NAME TO_NAME R2 REASON", RollbackRejectedMessage(context, "REASON"))
+		assert.Equal(t, "R2 REASON", RollbackRejectedMessage("REASON"))
 	}
 
 	t.Log("AccountStateMessage")
@@ -76,7 +65,7 @@ func TestMessagesIntegrity(t *testing.T) {
 			Promised:       promised,
 		}
 
-		assert.Equal(t, "FROM_REGION TO_REGION FROM_NAME TO_NAME S0 FORMAT CURRENCY t 1.0 2.0", AccountStateMessage(context, a))
+		assert.Equal(t, "S0 FORMAT CURRENCY t 1.0 2.0", AccountStateMessage(a))
 
 		b := model.Account{
 			Format:         "FORMAT",
@@ -86,6 +75,6 @@ func TestMessagesIntegrity(t *testing.T) {
 			Promised:       promised,
 		}
 
-		assert.Equal(t, "FROM_REGION TO_REGION FROM_NAME TO_NAME S0 FORMAT CURRENCY f 1.0 2.0", AccountStateMessage(context, b))
+		assert.Equal(t, "S0 FORMAT CURRENCY f 1.0 2.0", AccountStateMessage(b))
 	}
 }
