@@ -39,9 +39,6 @@ func spawnAccountActor(s *ActorSystem, name string) (*system.Envelope, error) {
 // ProcessMessage processing of remote message
 func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 	return func(msg string, to system.Coordinates, from system.Coordinates) {
-		log.Debugf("Received message %+v from: %+v to: %+v", msg, from, to)
-
-		parts := strings.Split(msg, " ")
 
 		defer func() {
 			if r := recover(); r != nil {
@@ -60,6 +57,8 @@ func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 			s.SendMessage(FatalErrorMessage(), from, to)
 			return
 		}
+
+		parts := strings.Split(msg, " ")
 
 		var message interface{}
 
