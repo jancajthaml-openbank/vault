@@ -25,12 +25,6 @@ import (
 // CreateAccount creates new account for target tenant vault
 func CreateAccount(sys *ActorSystem, tenant string, account Account) (result interface{}) {
 	sys.Metrics.TimeCreateAccount(func() {
-		// FIXME properly determine fail states
-		// input validation -> input error
-		// system in invalid state (and panics) -> fatal error
-		// timeout -> timeout
-		// account answer -> expected vs unexpected
-
 		ch := make(chan interface{})
 		defer close(ch)
 
@@ -58,7 +52,7 @@ func CreateAccount(sys *ActorSystem, tenant string, account Account) (result int
 		case result = <-ch:
 			return
 
-		case <-time.After(time.Second):
+		case <-time.After(30 * time.Second):
 			result = new(ReplyTimeout)
 			return
 		}
@@ -69,12 +63,6 @@ func CreateAccount(sys *ActorSystem, tenant string, account Account) (result int
 // GetAccount retrives account state from target tenant vault
 func GetAccount(sys *ActorSystem, tenant string, name string) (result interface{}) {
 	sys.Metrics.TimeGetAccount(func() {
-		// FIXME properly determine fail states
-		// input validation -> input error
-		// system in invalid state (and panics) -> fatal error
-		// timeout -> timeout
-		// account answer -> expected vs unexpected
-
 		ch := make(chan interface{})
 		defer close(ch)
 
@@ -102,7 +90,7 @@ func GetAccount(sys *ActorSystem, tenant string, name string) (result interface{
 		case result = <-ch:
 			return
 
-		case <-time.After(time.Second):
+		case <-time.After(30 * time.Second):
 			result = new(ReplyTimeout)
 			return
 		}
