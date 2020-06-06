@@ -102,7 +102,7 @@ def offboard_unit(context, tenant):
   (code, result, error) = execute([
     'journalctl', '-o', 'cat', '-t', 'vault-unit', '-u', 'vault-unit@{}.service'.format(tenant), '--no-pager'
   ])
-  if code != 0 or not result:
+  if code == 0 and result:
     with open('/tmp/reports/blackbox-tests/logs/vault-unit.{}.log'.format(tenant), 'w') as f:
       f.write(result)
 
@@ -113,7 +113,7 @@ def offboard_unit(context, tenant):
   (code, result, error) = execute([
     'journalctl', '-o', 'cat', '-t', 'vault-unit', '-u', 'vault-unit@{}.service'.format(tenant), '--no-pager'
   ])
-  if code != 0 or not result:
+  if code == 0 and result:
     with open('/tmp/reports/blackbox-tests/logs/vault-unit.{}.log'.format(tenant), 'w') as f:
       f.write(result)
 
