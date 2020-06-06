@@ -22,8 +22,6 @@ import (
 	"time"
 
 	"github.com/jancajthaml-openbank/vault-unit/utils"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // WaitReady wait for daemons to be ready
@@ -90,14 +88,14 @@ func (prog Program) Start() {
 	if err := prog.WaitReady(5 * time.Second); err != nil {
 		log.Errorf("Error when starting daemons: %+v", err)
 	} else {
-		log.Info(">>> Started <<<")
+		log.Info("Program Started")
 		utils.NotifyServiceReady()
 		prog.GreenLight()
 		signal.Notify(prog.interrupt, syscall.SIGINT, syscall.SIGTERM)
 		prog.WaitInterrupt()
 	}
 
-	log.Info(">>> Stopping <<<")
+	log.Info("Program Stopping")
 	utils.NotifyServiceStopping()
 
 	prog.cancel()

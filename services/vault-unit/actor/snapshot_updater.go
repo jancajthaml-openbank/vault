@@ -20,13 +20,10 @@ import (
 	"time"
 
 	"github.com/jancajthaml-openbank/vault-unit/metrics"
-	//"github.com/jancajthaml-openbank/vault-unit/model"
 	"github.com/jancajthaml-openbank/vault-unit/utils"
-	//"github.com/jancajthaml-openbank/vault-unit/actor"
 
 	system "github.com/jancajthaml-openbank/actor-system"
 	localfs "github.com/jancajthaml-openbank/local-fs"
-	log "github.com/sirupsen/logrus"
 )
 
 // SnapshotUpdater represents journal saturation update subroutine

@@ -24,6 +24,7 @@ import (
 	"github.com/jancajthaml-openbank/vault-unit/config"
 	"github.com/jancajthaml-openbank/vault-unit/metrics"
 	"github.com/jancajthaml-openbank/vault-unit/utils"
+	"github.com/jancajthaml-openbank/vault-unit/logging"
 )
 
 // Program encapsulate initialized application
@@ -40,7 +41,7 @@ func Initialize() Program {
 
 	cfg := config.GetConfig()
 
-	utils.SetupLogger(cfg.LogLevel)
+	logging.SetupLogger(cfg.LogLevel)
 
 	storage := localfs.NewPlaintextStorage(
 		cfg.RootStorage,

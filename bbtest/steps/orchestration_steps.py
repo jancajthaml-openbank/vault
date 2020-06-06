@@ -100,9 +100,9 @@ def operation_unit(context, operation, unit):
 @given('tenant {tenant} is offboarded')
 def offboard_unit(context, tenant):
   (code, result, error) = execute([
-    'journalctl', '-o', 'short-precise', '-t', 'vault-unit', '-u', 'vault-unit@{}.service'.format(tenant), '--no-pager'
+    'journalctl', '-o', 'cat', '-t', 'vault-unit', '-u', 'vault-unit@{}.service'.format(tenant), '--no-pager'
   ])
-  if code == 0:
+  if code == 0 and result:
     with open('/tmp/reports/blackbox-tests/logs/vault-unit.{}.log'.format(tenant), 'w') as f:
       f.write(result)
 
@@ -111,9 +111,9 @@ def offboard_unit(context, tenant):
   ])
 
   (code, result, error) = execute([
-    'journalctl', '-o', 'short-precise', '-t', 'vault-unit', '-u', 'vault-unit@{}.service'.format(tenant), '--no-pager'
+    'journalctl', '-o', 'cat', '-t', 'vault-unit', '-u', 'vault-unit@{}.service'.format(tenant), '--no-pager'
   ])
-  if code != 0:
+  if code == 0 and result:
     with open('/tmp/reports/blackbox-tests/logs/vault-unit.{}.log'.format(tenant), 'w') as f:
       f.write(result)
 

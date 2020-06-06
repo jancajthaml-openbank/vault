@@ -21,7 +21,6 @@ import (
 	"github.com/jancajthaml-openbank/vault-unit/model"
 
 	system "github.com/jancajthaml-openbank/actor-system"
-	log "github.com/sirupsen/logrus"
 	money "gopkg.in/inf.v0"
 )
 
@@ -126,7 +125,6 @@ func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 			return
 		}
 
-		log.Debugf("Sending mesage to actor %+v message %+v", ref, message)
 		ref.Tell(message, to, from)
 	}
 }
