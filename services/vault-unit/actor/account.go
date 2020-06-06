@@ -21,7 +21,6 @@ import (
 	"github.com/jancajthaml-openbank/vault-unit/persistence"
 
 	system "github.com/jancajthaml-openbank/actor-system"
-	log "github.com/sirupsen/logrus"
 	money "gopkg.in/inf.v0"
 )
 
