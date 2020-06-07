@@ -7,13 +7,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestTransactionSet_New(t *testing.T) {
-	s := NewTransactionSet()
+func TestPromises_New(t *testing.T) {
+	s := NewPromises()
 	assert.Equal(t, s.Size(), 0)
 }
 
-func TestTransactionSet_Add(t *testing.T) {
-	s := NewTransactionSet()
+func TestPromises_Add(t *testing.T) {
+	s := NewPromises()
 	s.Add("A", "B", "C", "D", "X", "Y", "E", "F")
 	s.Add("G")
 	actualOutput := s.Values()
@@ -21,8 +21,8 @@ func TestTransactionSet_Add(t *testing.T) {
 	assert.Equal(t, expectedOutput, actualOutput)
 }
 
-func TestTransactionSet_Remove(t *testing.T) {
-	s := NewTransactionSet()
+func TestPromises_Remove(t *testing.T) {
+	s := NewPromises()
 	s.Add("A", "B", "C", "D", "X", "Y", "E", "F")
 	s.Add("G")
 
@@ -39,8 +39,8 @@ func TestTransactionSet_Remove(t *testing.T) {
 	assert.Equal(t, expectedOutput, actualOutput)
 }
 
-func TestTransactionSet_Contains(t *testing.T) {
-	s := NewTransactionSet()
+func TestPromises_Contains(t *testing.T) {
+	s := NewPromises()
 	s.Add("A", "B", "C", "D", "X", "Y", "E", "F")
 	s.Add("G")
 
@@ -58,8 +58,8 @@ func TestTransactionSet_Contains(t *testing.T) {
 	}
 }
 
-func TestTransactionSet_Values(t *testing.T) {
-	s := NewTransactionSet()
+func TestPromises_Values(t *testing.T) {
+	s := NewPromises()
 	s.Add("A", "B", "C", "D", "X", "Y", "E", "F")
 	s.Add("G")
 
@@ -69,8 +69,8 @@ func TestTransactionSet_Values(t *testing.T) {
 	assert.Equal(t, expectedOutput, actualOutput)
 }
 
-func TestTransactionSet_Size(t *testing.T) {
-	s := NewTransactionSet()
+func TestPromises_Size(t *testing.T) {
+	s := NewPromises()
 	require.Equal(t, s.Size(), 0)
 
 	s.Add("A", "B", "C", "D", "X", "Y", "E", "F")
@@ -83,8 +83,8 @@ func TestTransactionSet_Size(t *testing.T) {
 	assert.Equal(t, s.Size(), 0)
 }
 
-func BenchmarkTransactionSet_Add(b *testing.B) {
-	s := NewTransactionSet()
+func BenchmarkPromises_Add(b *testing.B) {
+	s := NewPromises()
 
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -93,8 +93,8 @@ func BenchmarkTransactionSet_Add(b *testing.B) {
 	}
 }
 
-func BenchmarkTransactionSet_Remove(b *testing.B) {
-	s := NewTransactionSet()
+func BenchmarkPromises_Remove(b *testing.B) {
+	s := NewPromises()
 	for i := 0; i < 10000; i++ {
 		s.Add(string(i))
 	}
@@ -106,8 +106,8 @@ func BenchmarkTransactionSet_Remove(b *testing.B) {
 	}
 }
 
-func BenchmarkTransactionSet_Contains(b *testing.B) {
-	s := NewTransactionSet()
+func BenchmarkPromises_Contains(b *testing.B) {
+	s := NewPromises()
 	for i := 0; i < 10000; i++ {
 		s.Add(string(i))
 	}
@@ -119,8 +119,8 @@ func BenchmarkTransactionSet_Contains(b *testing.B) {
 	}
 }
 
-func BenchmarkTransactionSet_Size(b *testing.B) {
-	s := NewTransactionSet()
+func BenchmarkPromises_Size(b *testing.B) {
+	s := NewPromises()
 	for i := 0; i < 10000; i++ {
 		s.Add(string(i))
 	}
@@ -132,8 +132,8 @@ func BenchmarkTransactionSet_Size(b *testing.B) {
 	}
 }
 
-func BenchmarkTransactionSet_Values(b *testing.B) {
-	s := NewTransactionSet()
+func BenchmarkPromises_Values(b *testing.B) {
+	s := NewPromises()
 	for i := 0; i < 10000; i++ {
 		s.Add(string(i))
 	}
@@ -145,8 +145,8 @@ func BenchmarkTransactionSet_Values(b *testing.B) {
 	}
 }
 
-func BenchmarkTransactionSet_String(b *testing.B) {
-	s := NewTransactionSet()
+func BenchmarkPromises_String(b *testing.B) {
+	s := NewPromises()
 	for i := 0; i < 10000; i++ {
 		s.Add(string(i))
 	}

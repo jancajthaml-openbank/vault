@@ -50,7 +50,7 @@ func NonExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 
 		switch msg := context.Data.(type) {
 
-		case model.CreateAccount:
+		case CreateAccount:
 			currency := strings.ToUpper(msg.Currency)
 			isBalanceCheck := msg.IsBalanceCheck
 			format := strings.ToUpper(msg.Format)
@@ -71,11 +71,11 @@ func NonExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 			log.Infof("New Account %s Created", state.Name)
 			log.Debugf("%s ~ (NonExist CreateAccount) OK", state.Name)
 
-		case model.Rollback:
+		case Rollback:
 			s.SendMessage(RollbackAccepted, context.Sender, context.Receiver)
 			log.Debugf("%s ~ (NonExist Rollback) OK", state.Name)
 
-		case model.GetAccountState:
+		case GetAccountState:
 			s.SendMessage(RespAccountMissing, context.Sender, context.Receiver)
 			log.Debugf("%s ~ (NonExist GetAccountState) Error", state.Name)
 
@@ -95,16 +95,16 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 
 		switch msg := context.Data.(type) {
 
-		case model.GetAccountState:
+		case GetAccountState:
 			s.SendMessage(AccountStateMessage(state), context.Sender, context.Receiver)
 			log.Debugf("%s ~ (Exist GetAccountState) OK", state.Name)
 
-		case model.CreateAccount:
+		case CreateAccount:
 			s.SendMessage(FatalError, context.Sender, context.Receiver)
 			log.Debugf("%s ~ (Exist CreateAccount) Error", state.Name)
 
-		case model.Promise:
-			if state.PromiseBuffer.Contains(msg.Transaction) {
+		case Promise:
+			if state.Promises.Contains(msg.Transaction) {
 				s.SendMessage(PromiseAccepted, context.Sender, context.Receiver)
 				log.Debugf("%s ~ (Exist Promise) OK Already Accepted", state.Name)
 				return
@@ -135,7 +135,7 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 
 				next := state.Copy()
 				next.Promised = nextPromised
-				next.PromiseBuffer.Add(msg.Transaction)
+				next.Promises.Add(msg.Transaction)
 
 				s.Metrics.PromiseAccepted()
 
@@ -162,9 +162,9 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 			log.Warnf("%s ~ (Exist Promise) Error ... (Bounce?)", state.Name)
 			return
 
-		case model.Commit:
+		case Commit:
 
-			if !state.PromiseBuffer.Contains(msg.Transaction) {
+			if !state.Promises.Contains(msg.Transaction) {
 				s.SendMessage(CommitAccepted, context.Sender, context.Receiver)
 				log.Debugf("%s ~ (Exist Commit) OK Already Accepted", state.Name)
 				return
@@ -183,7 +183,7 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 			next := state.Copy()
 			next.Balance = new(money.Dec).Add(state.Balance, msg.Amount)
 			next.Promised = new(money.Dec).Sub(state.Promised, msg.Amount)
-			next.PromiseBuffer.Remove(msg.Transaction)
+			next.Promises.Remove(msg.Transaction)
 
 			s.Metrics.CommitAccepted()
 
@@ -193,8 +193,8 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 			log.Debugf("%s ~ (Exist Commit) OK", state.Name)
 			return
 
-		case model.Rollback:
-			if !state.PromiseBuffer.Contains(msg.Transaction) {
+		case Rollback:
+			if !state.Promises.Contains(msg.Transaction) {
 				s.SendMessage(RollbackAccepted, context.Sender, context.Receiver)
 				log.Debugf("%s ~ (Exist Rollback) OK Already Accepted", state.Name)
 				return
@@ -212,7 +212,7 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 
 			next := state.Copy()
 			next.Promised = new(money.Dec).Sub(state.Promised, msg.Amount)
-			next.PromiseBuffer.Remove(msg.Transaction)
+			next.Promises.Remove(msg.Transaction)
 
 			s.Metrics.RollbackAccepted()
 
@@ -223,7 +223,7 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 			log.Debugf("%s ~ (Exist Rollback) OK", state.Name)
 			return
 
-		case model.Update:
+		case RequestUpdate:
 			if msg.Version != state.Version {
 				log.Debugf("%s ~ (Exist Update) Error Already Updated", state.Name)
 				return

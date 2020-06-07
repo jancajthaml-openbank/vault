@@ -61,17 +61,17 @@ func LoadAccount(storage *localfs.PlaintextStorage, name string) *model.Account 
 
 			switch kind {
 
-			case model.EventPromise:
-				result.PromiseBuffer.Add(transaction)
+			case EventPromise:
+				result.Promises.Add(transaction)
 				result.Promised = new(money.Dec).Add(result.Promised, amount)
 
-			case model.EventCommit:
-				result.PromiseBuffer.Remove(transaction)
+			case EventCommit:
+				result.Promises.Remove(transaction)
 				result.Promised = new(money.Dec).Sub(result.Promised, amount)
 				result.Balance = new(money.Dec).Add(result.Balance, amount)
 
-			case model.EventRollback:
-				result.PromiseBuffer.Remove(transaction)
+			case EventRollback:
+				result.Promises.Remove(transaction)
 				result.Promised = new(money.Dec).Sub(result.Promised, amount)
 
 			}
@@ -83,10 +83,11 @@ func LoadAccount(storage *localfs.PlaintextStorage, name string) *model.Account 
 
 // CreateAccount persist account entity state to storage
 func CreateAccount(storage *localfs.PlaintextStorage, name, format, currency string, isBalanceCheck bool) *model.Account {
+	// FIXME use NewAccount
 	entity := &model.Account{
 		Balance:        new(money.Dec),
 		Promised:       new(money.Dec),
-		PromiseBuffer:  model.NewTransactionSet(),
+		Promises:       model.NewPromises(),
 		Version:        0,
 		Name:           name,
 		Format:         format,
@@ -109,7 +110,7 @@ func UpdateAccount(storage *localfs.PlaintextStorage, name string, original *mod
 	entity := &model.Account{
 		Balance:        original.Balance,
 		Promised:       original.Promised,
-		PromiseBuffer:  original.PromiseBuffer,
+		Promises:       original.Promises,
 		Version:        original.Version + 1,
 		Currency:       original.Currency,
 		Name:           original.Name,
@@ -126,21 +127,21 @@ func UpdateAccount(storage *localfs.PlaintextStorage, name string, original *mod
 
 // PersistPromise persists promise event
 func PersistPromise(storage *localfs.PlaintextStorage, name string, version int64, amount *money.Dec, transaction string) error {
-	event := model.EventPromise + "_" + amount.String() + "_" + transaction
+	event := EventPromise + "_" + amount.String() + "_" + transaction
 	fullPath := utils.EventPath(name, version) + "/" + event
 	return storage.TouchFile(fullPath)
 }
 
 // PersistCommit persists commit event
 func PersistCommit(storage *localfs.PlaintextStorage, name string, version int64, amount *money.Dec, transaction string) error {
-	event := model.EventCommit + "_" + amount.String() + "_" + transaction
+	event := EventCommit + "_" + amount.String() + "_" + transaction
 	fullPath := utils.EventPath(name, version) + "/" + event
 	return storage.TouchFile(fullPath)
 }
 
 // PersistRollback persists rollback event
 func PersistRollback(storage *localfs.PlaintextStorage, name string, version int64, amount *money.Dec, transaction string) error {
-	event := model.EventRollback + "_" + amount.String() + "_" + transaction
+	event := EventRollback + "_" + amount.String() + "_" + transaction
 	fullPath := utils.EventPath(name, version) + "/" + event
 	return storage.TouchFile(fullPath)
 }

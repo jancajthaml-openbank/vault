@@ -64,12 +64,12 @@ func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 		switch parts[0] {
 
 		case ReqAccountState:
-			message = model.GetAccountState{}
+			message = GetAccountState{}
 
 		case UpdateSnapshot:
 			if len(parts) == 2 {
 				if version, err := strconv.ParseInt(parts[1], 10, 64); err == nil {
-					message = model.Update{
+					message = RequestUpdate{
 						Version: version,
 					}
 				}
@@ -77,7 +77,7 @@ func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 
 		case ReqCreateAccount:
 			if len(parts) == 4 {
-				message = model.CreateAccount{
+				message = CreateAccount{
 					Name:           to.Name,
 					Format:         parts[1],
 					Currency:       parts[2],
@@ -88,7 +88,7 @@ func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 		case PromiseOrder:
 			if len(parts) == 4 {
 				if amount, ok := new(money.Dec).SetString(parts[2]); ok {
-					message = model.Promise{
+					message = Promise{
 						Transaction: parts[1],
 						Amount:      amount,
 						Currency:    parts[3],
@@ -99,7 +99,7 @@ func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 		case CommitOrder:
 			if len(parts) == 4 {
 				if amount, ok := new(money.Dec).SetString(parts[2]); ok {
-					message = model.Commit{
+					message = Commit{
 						Transaction: parts[1],
 						Amount:      amount,
 						Currency:    parts[3],
@@ -110,7 +110,7 @@ func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 		case RollbackOrder:
 			if len(parts) == 4 {
 				if amount, ok := new(money.Dec).SetString(parts[2]); ok {
-					message = model.Rollback{
+					message = Rollback{
 						Transaction: parts[1],
 						Amount:      amount,
 						Currency:    parts[3],
