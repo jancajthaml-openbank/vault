@@ -18,13 +18,14 @@ import (
 	"context"
 	"os"
 
-	localfs "github.com/jancajthaml-openbank/local-fs"
-
 	"github.com/jancajthaml-openbank/vault-unit/actor"
 	"github.com/jancajthaml-openbank/vault-unit/config"
 	"github.com/jancajthaml-openbank/vault-unit/metrics"
 	"github.com/jancajthaml-openbank/vault-unit/utils"
 	"github.com/jancajthaml-openbank/vault-unit/logging"
+
+	system "github.com/jancajthaml-openbank/actor-system"
+	localfs "github.com/jancajthaml-openbank/local-fs"
 )
 
 // Program encapsulate initialized application
@@ -65,7 +66,18 @@ func Initialize() Program {
 		cfg.SnapshotScanInterval,
 		&metricsDaemon,
 		&storage,
-		actor.ProcessMessage(&actorSystemDaemon),
+		func(account string, version int64) {
+			actorSystemDaemon.SendMessage(actor.UpdateSnapshotMessage(version),
+				system.Coordinates{
+					Region: actorSystemDaemon.Name,
+					Name: account,
+				},
+				system.Coordinates{
+					Region: actorSystemDaemon.Name,
+					Name: "snapshot_updater_cron",
+				},
+			)
+		},
 	)
 
 	var daemons = make([]utils.Daemon, 0)

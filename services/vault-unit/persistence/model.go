@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package model
+package persistence
 
 const (
-	// EventPromise represents promise prefix
-	EventPromise = "0"
-	// EventCommit represents commit prefix
-	EventCommit = "1"
-	// EventRollback represents rollback prefix
-	EventRollback = "2"
+  // EventPromise represents promise prefix
+  EventPromise = "0"
+  // EventCommit represents commit prefix
+  EventCommit = "1"
+  // EventRollback represents rollback prefix
+  EventRollback = "2"
 )

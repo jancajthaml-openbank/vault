@@ -38,7 +38,7 @@ func TestSnapshot_Update(t *testing.T) {
 	{
 		assert.Equal(t, snapshotInitial.Balance, loadedInitial.Balance)
 		assert.Equal(t, snapshotInitial.Promised, loadedInitial.Promised)
-		assert.Equal(t, snapshotInitial.PromiseBuffer, loadedInitial.PromiseBuffer)
+		assert.Equal(t, snapshotInitial.Promises, loadedInitial.Promises)
 		assert.Equal(t, snapshotInitial.Version, loadedInitial.Version)
 	}
 
@@ -52,7 +52,7 @@ func TestSnapshot_Update(t *testing.T) {
 	{
 		assert.Equal(t, snapshotVersion1.Balance, loadedVersion1.Balance)
 		assert.Equal(t, snapshotVersion1.Promised, loadedVersion1.Promised)
-		assert.Equal(t, snapshotVersion1.PromiseBuffer, loadedVersion1.PromiseBuffer)
+		assert.Equal(t, snapshotVersion1.Promises, loadedVersion1.Promises)
 		assert.Equal(t, snapshotVersion1.Version, loadedVersion1.Version)
 	}
 
@@ -78,7 +78,7 @@ func TestSnapshot_RefuseOverflow(t *testing.T) {
 	snapshotLast := &model.Account{
 		Balance:        new(money.Dec),
 		Promised:       new(money.Dec),
-		PromiseBuffer:  model.NewTransactionSet(),
+		Promises:       model.NewPromises(),
 		Version:        int64(math.MaxInt32),
 		Name:           name,
 		Format:         format,
@@ -91,7 +91,7 @@ func TestSnapshot_RefuseOverflow(t *testing.T) {
 	assert.Equal(t, snapshotLast.Version, snapshotNext.Version)
 }
 
-func TestSnapshot_PromiseBuffer(t *testing.T) {
+func TestSnapshot_Promises(t *testing.T) {
 	tmpdir, err := ioutil.TempDir(os.TempDir(), "test_storage")
 	require.Nil(t, err)
 	defer os.RemoveAll(tmpdir)
@@ -108,14 +108,14 @@ func TestSnapshot_PromiseBuffer(t *testing.T) {
 	var snapshot = &model.Account{
 		Balance:        new(money.Dec),
 		Promised:       new(money.Dec),
-		PromiseBuffer:  model.NewTransactionSet(),
+		Promises:       model.NewPromises(),
 		Version:        -1,
 		Name:           name,
 		Format:         format,
 		Currency:       currency,
 		IsBalanceCheck: isBalanceCheck,
 	}
-	snapshot.PromiseBuffer.Add(expectedPromises...)
+	snapshot.Promises.Add(expectedPromises...)
 	snapshot = UpdateAccount(&storage, name, snapshot)
 
 	loaded := LoadAccount(&storage, name)
@@ -133,9 +133,9 @@ func TestSnapshot_PromiseBuffer(t *testing.T) {
 	assert.Equal(t, snapshot.Currency, loaded.Currency)
 	assert.Equal(t, snapshot.IsBalanceCheck, loaded.IsBalanceCheck)
 
-	require.Equal(t, len(expectedPromises), loaded.PromiseBuffer.Size())
+	require.Equal(t, len(expectedPromises), loaded.Promises.Size())
 	for _, v := range expectedPromises {
-		assert.True(t, snapshot.PromiseBuffer.Contains(v))
+		assert.True(t, snapshot.Promises.Contains(v))
 	}
 }
 

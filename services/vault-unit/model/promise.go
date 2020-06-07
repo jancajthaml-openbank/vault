@@ -16,17 +16,17 @@ package model
 
 import "bytes"
 
-// TransactionSet is set datastructure for transaction Ids
-type TransactionSet struct {
+// Promises is set datastructure for promised transaction Ids
+type Promises struct {
 	keys   []int
 	values map[int]string
 	index  map[string]int
 	tail   int
 }
 
-// NewTransactionSet returns empty set
-func NewTransactionSet() TransactionSet {
-	return TransactionSet{
+// NewPromises returns a fascade for promises datastructure
+func NewPromises() Promises {
+	return Promises{
 		index:  make(map[string]int),
 		keys:   make([]int, 0),
 		values: make(map[int]string),
@@ -34,7 +34,7 @@ func NewTransactionSet() TransactionSet {
 }
 
 // Add adds items to set if not already present
-func (s *TransactionSet) Add(items ...string) {
+func (s *Promises) Add(items ...string) {
 	for _, item := range items {
 		if _, found := s.index[item]; found {
 			continue
@@ -47,7 +47,7 @@ func (s *TransactionSet) Add(items ...string) {
 }
 
 // Contains returns true if all items are present in set
-func (s *TransactionSet) Contains(items ...string) bool {
+func (s *Promises) Contains(items ...string) bool {
 	for _, item := range items {
 		if _, found := s.index[item]; !found {
 			return false
@@ -57,7 +57,7 @@ func (s *TransactionSet) Contains(items ...string) bool {
 }
 
 // Remove removes items from set
-func (s *TransactionSet) Remove(items ...string) {
+func (s *Promises) Remove(items ...string) {
 	for _, item := range items {
 		idx, found := s.index[item]
 		if !found {
@@ -77,7 +77,7 @@ func (s *TransactionSet) Remove(items ...string) {
 }
 
 // Values returns slice of items in order or insertion
-func (s *TransactionSet) Values() []string {
+func (s *Promises) Values() []string {
 	values := make([]string, len(s.values))
 	for i, k := range s.keys {
 		values[i] = s.values[k]
@@ -86,11 +86,11 @@ func (s *TransactionSet) Values() []string {
 }
 
 // Size returns number of items in set
-func (s *TransactionSet) Size() int {
+func (s *Promises) Size() int {
 	return len(s.values)
 }
 
-func (s *TransactionSet) String() string {
+func (s *Promises) String() string {
 	var buffer bytes.Buffer
 
 	buffer.WriteString("[")

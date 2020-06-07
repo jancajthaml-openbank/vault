@@ -10,7 +10,6 @@ import (
 	"github.com/jancajthaml-openbank/vault-unit/metrics"
 	"github.com/jancajthaml-openbank/vault-unit/persistence"
 
-	system "github.com/jancajthaml-openbank/actor-system"
 	localfs "github.com/jancajthaml-openbank/local-fs"
 	money "gopkg.in/inf.v0"
 
@@ -19,8 +18,8 @@ import (
 )
 
 type CallbackMessage struct {
-	msg     interface{}
 	account string
+	version int64
 }
 
 func TestSnapshotUpdater(t *testing.T) {
@@ -36,10 +35,10 @@ func TestSnapshotUpdater(t *testing.T) {
 	callbackCalled := 0
 	callbackBacklog := make([]CallbackMessage, 0)
 
-	callback := func(msg string, account system.Coordinates, sender system.Coordinates) {
+	callback := func(account string, version int64) {
 		callbackBacklog = append(callbackBacklog, CallbackMessage{
-			msg:     msg,
-			account: account.Name,
+			account: account,
+			version: version,
 		})
 		callbackCalled++
 	}
@@ -85,6 +84,6 @@ func TestSnapshotUpdater(t *testing.T) {
 
 		args := callbackBacklog[0]
 		assert.Equal(t, "s_account_1", args.account)
-		assert.Equal(t, "US 1", args.msg)
+		assert.Equal(t, int64(1), args.version)
 	}
 }

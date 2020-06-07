@@ -22,14 +22,13 @@ import (
 	"github.com/jancajthaml-openbank/vault-unit/metrics"
 	"github.com/jancajthaml-openbank/vault-unit/utils"
 
-	system "github.com/jancajthaml-openbank/actor-system"
 	localfs "github.com/jancajthaml-openbank/local-fs"
 )
 
 // SnapshotUpdater represents journal saturation update subroutine
 type SnapshotUpdater struct {
 	utils.DaemonSupport
-	callback            func(msg string, to system.Coordinates, from system.Coordinates)
+	callback            func(account string, version int64)
 	metrics             *metrics.Metrics
 	storage             *localfs.PlaintextStorage
 	scanInterval        time.Duration
@@ -37,7 +36,7 @@ type SnapshotUpdater struct {
 }
 
 // NewSnapshotUpdater returns snapshot updater fascade
-func NewSnapshotUpdater(ctx context.Context, saturation int, scanInterval time.Duration, metrics *metrics.Metrics, storage *localfs.PlaintextStorage, callback func(msg string, to system.Coordinates, from system.Coordinates)) SnapshotUpdater {
+func NewSnapshotUpdater(ctx context.Context, saturation int, scanInterval time.Duration, metrics *metrics.Metrics, storage *localfs.PlaintextStorage, callback func(account string, version int64)) SnapshotUpdater {
 	return SnapshotUpdater{
 		DaemonSupport:       utils.NewDaemonSupport(ctx, "snapshot-updater"),
 		callback:            callback,
@@ -60,9 +59,7 @@ func (updater SnapshotUpdater) updateSaturated() {
 		}
 		if updater.getEvents(name, version) >= updater.saturationThreshold {
 			log.Debugf("Request %v to update snapshot version from %d to %d", name, version, version+1)
-			to := system.Coordinates{Name: name}
-			from := system.Coordinates{Name: "snapshot_saturation_cron"}
-			updater.callback(UpdateSnapshotMessage(version), to, from)
+			updater.callback(name, version)
 			numberOfSnapshotsUpdated++
 		}
 	}
