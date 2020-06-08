@@ -52,7 +52,7 @@ func CreateAccount(sys *ActorSystem, tenant string, account Account) (result int
 		case result = <-ch:
 			return
 
-		case <-time.After(30 * time.Second):
+		case <-time.After(10 * time.Second):
 			result = new(ReplyTimeout)
 			return
 		}

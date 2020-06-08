@@ -16,7 +16,6 @@ package actor
 
 import (
 	"github.com/jancajthaml-openbank/vault-unit/model"
-	"strconv"
 )
 
 const (
@@ -54,14 +53,7 @@ const (
 
 	// FatalError vault message response code for "Error"
 	FatalError = "EE"
-	// UpdateSnapshot vault message request code for "Update Snapshot"
-	UpdateSnapshot = "US"
 )
-
-// UpdateSnapshotMessage is request message for account to update its snapshot
-func UpdateSnapshotMessage(version int64) string {
-	return UpdateSnapshot + " " + strconv.FormatInt(version, 10)
-}
 
 // AccountStateMessage is reply message carrying account state
 func AccountStateMessage(state model.Account) string {

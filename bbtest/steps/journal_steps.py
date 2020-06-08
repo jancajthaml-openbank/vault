@@ -31,7 +31,7 @@ def check_account_snapshot(context, tenant, account, version):
 
   for row in context.table:
     assert row['key'] in actual
-    assert actual[row['key']] == row['value']
+    assert actual[row['key']] == row['value'], "value {} differs, actual: {}, expected: {}".format(row['key'], actual[row['key']], row['value'])
 
 
 @then('{tenant}/{account} should have data integrity')

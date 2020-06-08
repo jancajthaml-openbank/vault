@@ -67,7 +67,14 @@ func Initialize() Program {
 		&metricsDaemon,
 		&storage,
 		func(account string, version int64) {
-			actorSystemDaemon.SendMessage(actor.UpdateSnapshotMessage(version),
+			ref, err := actor.NewAccountActor(&actorSystemDaemon, account)
+			if err != nil {
+				return
+			}
+			ref.Tell(
+				actor.RequestUpdate{
+					Version: version,
+				},
 				system.Coordinates{
 					Region: actorSystemDaemon.Name,
 					Name: account,

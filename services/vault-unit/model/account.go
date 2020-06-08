@@ -69,8 +69,19 @@ func (entity Account) Serialise() []byte {
   // [PROMISED]
   // [...PROMISE-BUFFER]
 
-  buffer.WriteString("???"[0 : 3-len(entity.Currency)])
-  buffer.WriteString(entity.Currency)
+  switch len(entity.Currency) {
+    case 0:
+      buffer.WriteString("???")
+    case 1:
+      buffer.WriteString("??")
+      buffer.WriteString(entity.Currency)
+    case 2:
+      buffer.WriteString("?")
+      buffer.WriteString(entity.Currency)
+    default:
+      buffer.WriteString(entity.Currency[0 : 3])
+  }
+
   buffer.WriteString(" ")
 
   buffer.WriteString(entity.Format)

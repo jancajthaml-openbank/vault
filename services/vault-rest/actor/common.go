@@ -33,7 +33,6 @@ func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 		ref, err := s.ActorOf(to.Name)
 		if err != nil {
 			// FIXME forward into deadletter receiver and finish whatever has started
-			log.Warnf("Deadletter received [remote %v -> local %v] : %+v", from, to, msg)
 			return
 		}
 
@@ -47,12 +46,14 @@ func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 			message = FatalError
 
 		case RespAccountState:
-			message = &Account{
-				Format:         parts[1],
-				Currency:       parts[2],
-				IsBalanceCheck: parts[3] != "f",
-				Balance:        parts[4],
-				Blocking:       parts[5],
+			if len(parts) == 6 {
+				message = &Account{
+					Format:         parts[1],
+					Currency:       parts[2],
+					IsBalanceCheck: parts[3] != "f",
+					Balance:        parts[4],
+					Blocking:       parts[5],
+				}
 			}
 
 		case RespAccountMissing:
