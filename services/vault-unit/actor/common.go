@@ -15,7 +15,6 @@
 package actor
 
 import (
-	"strconv"
 	"strings"
 
 	"github.com/jancajthaml-openbank/vault-unit/model"
@@ -23,17 +22,6 @@ import (
 	system "github.com/jancajthaml-openbank/actor-system"
 	money "gopkg.in/inf.v0"
 )
-
-func spawnAccountActor(s *ActorSystem, name string) (*system.Envelope, error) {
-	envelope := system.NewEnvelope(name, model.NewAccount(name))
-	err := s.RegisterActor(envelope, NilAccount(s))
-	if err != nil {
-		log.Warnf("%s ~ Spawning Actor Error unable to register", name)
-		return nil, err
-	}
-	log.Debugf("%s ~ Actor Spawned", name)
-	return envelope, nil
-}
 
 // ProcessMessage processing of remote message
 func ProcessMessage(s *ActorSystem) system.ProcessMessage {
@@ -48,7 +36,7 @@ func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 
 		ref, err := s.ActorOf(to.Name)
 		if err != nil {
-			ref, err = spawnAccountActor(s, to.Name)
+			ref, err = NewAccountActor(s, to.Name)
 		}
 
 		if err != nil {
@@ -65,15 +53,6 @@ func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 
 		case ReqAccountState:
 			message = GetAccountState{}
-
-		case UpdateSnapshot:
-			if len(parts) == 2 {
-				if version, err := strconv.ParseInt(parts[1], 10, 64); err == nil {
-					message = RequestUpdate{
-						Version: version,
-					}
-				}
-			}
 
 		case ReqCreateAccount:
 			if len(parts) == 4 {
@@ -127,4 +106,15 @@ func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 
 		ref.Tell(message, to, from)
 	}
+}
+
+func NewAccountActor(s *ActorSystem, name string) (*system.Envelope, error) {
+	envelope := system.NewEnvelope(name, model.NewAccount(name))
+	err := s.RegisterActor(envelope, NilAccount(s))
+	if err != nil {
+		log.Warnf("%s ~ Spawning Actor Error unable to register", name)
+		return nil, err
+	}
+	log.Debugf("%s ~ Actor Spawned", name)
+	return envelope, nil
 }

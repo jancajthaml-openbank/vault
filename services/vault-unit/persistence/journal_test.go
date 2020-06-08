@@ -28,10 +28,12 @@ func TestSnapshot_Update(t *testing.T) {
 	currency := "XRP"
 	isBalanceCheck := false
 
-	snapshotInitial := CreateAccount(&storage, name, format, currency, isBalanceCheck)
+	snapshotInitial, err := CreateAccount(&storage, name, format, currency, isBalanceCheck)
+	require.Nil(t, err)
 	require.NotNil(t, snapshotInitial)
 
-	loadedInitial := LoadAccount(&storage, name)
+	loadedInitial, err := LoadAccount(&storage, name)
+	require.Nil(t, err)
 	require.NotNil(t, loadedInitial)
 
 	t.Log("Initial matches loaded")
@@ -42,10 +44,12 @@ func TestSnapshot_Update(t *testing.T) {
 		assert.Equal(t, snapshotInitial.Version, loadedInitial.Version)
 	}
 
-	snapshotVersion1 := UpdateAccount(&storage, name, snapshotInitial)
+	snapshotVersion1, err := UpdateAccount(&storage, name, snapshotInitial)
+	require.Nil(t, err)
 	require.NotNil(t, snapshotVersion1)
 
-	loadedVersion1 := LoadAccount(&storage, name)
+	loadedVersion1, err := LoadAccount(&storage, name)
+	require.Nil(t, err)
 	require.NotNil(t, loadedVersion1)
 
 	t.Log("Updated matches loaded")
@@ -86,7 +90,9 @@ func TestSnapshot_RefuseOverflow(t *testing.T) {
 		IsBalanceCheck: isBalanceCheck,
 	}
 
-	snapshotNext := UpdateAccount(&storage, name, snapshotLast)
+	snapshotNext, err := UpdateAccount(&storage, name, snapshotLast)
+	require.Nil(t, err)
+	require.NotNil(t, snapshotNext)
 
 	assert.Equal(t, snapshotLast.Version, snapshotNext.Version)
 }
@@ -116,9 +122,12 @@ func TestSnapshot_Promises(t *testing.T) {
 		IsBalanceCheck: isBalanceCheck,
 	}
 	snapshot.Promises.Add(expectedPromises...)
-	snapshot = UpdateAccount(&storage, name, snapshot)
 
-	loaded := LoadAccount(&storage, name)
+	snapshot, err = UpdateAccount(&storage, name, snapshot)
+	require.Nil(t, err)
+
+	loaded, err := LoadAccount(&storage, name)
+	require.Nil(t, err)
 
 	if loaded == nil {
 		t.Errorf("Expected to load snapshot got nil instead")
@@ -146,7 +155,8 @@ func BenchmarkAccountLoad(b *testing.B) {
 
 	storage := localfs.NewPlaintextStorage(tmpdir)
 
-	account := CreateAccount(&storage, "bench", "format", "BNC", false)
+	account, err := CreateAccount(&storage, "bench", "format", "BNC", false)
+	require.Nil(b, err)
 	require.NotNil(b, account)
 
 	b.ReportAllocs()
