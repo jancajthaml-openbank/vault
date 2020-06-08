@@ -46,15 +46,18 @@ func TestSnapshotUpdater(t *testing.T) {
 	metrics := metrics.NewMetrics(ctx, "/tmp", "1", time.Hour)
 	su := NewSnapshotUpdater(ctx, 1, time.Hour, &metrics, &storage, callback)
 
-	s := persistence.CreateAccount(&storage, "s_account_1", "format", "EUR", true)
+	s, err := persistence.CreateAccount(&storage, "s_account_1", "format", "EUR", true)
+	require.Nil(t, err)
 	require.NotNil(t, s)
 	require.Nil(t, persistence.PersistPromise(&storage, "s_account_1", 0, new(money.Dec), "transaction_1"))
-	s = persistence.UpdateAccount(&storage, "s_account_1", s)
+	s, err = persistence.UpdateAccount(&storage, "s_account_1", s)
+	require.Nil(t, err)
+	require.NotNil(t, s)
 	require.Nil(t, persistence.PersistPromise(&storage, "s_account_1", 1, new(money.Dec), "transaction_2"))
 	require.Nil(t, persistence.PersistCommit(&storage, "s_account_1", 1, new(money.Dec), "transaction_2"))
+	s, err = persistence.CreateAccount(&storage, "s_account_2", "format", "EUR", true)
+	require.Nil(t, err)
 	require.NotNil(t, s)
-
-	require.NotNil(t, persistence.CreateAccount(&storage, "s_account_2", "format", "EUR", true))
 
 	t.Log("return valid accounts")
 	{
