@@ -27,24 +27,24 @@ import (
 )
 
 // LoadAccount rehydrates account entity state from storage
-func LoadAccount(storage *localfs.PlaintextStorage, name string) *model.Account {
+func LoadAccount(storage *localfs.PlaintextStorage, name string) (*model.Account, error) {
 	allPath := utils.SnapshotsPath(name)
 
 	snapshots, err := storage.ListDirectory(allPath, false)
 	if err != nil || len(snapshots) == 0 {
-		return nil
+		return nil, err
 	}
 
 	data, err := storage.ReadFileFully(allPath + "/" + snapshots[0])
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	result := new(model.Account)
 
 	version, err := strconv.ParseInt(snapshots[0], 10, 64)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	result.Version = version
@@ -78,34 +78,28 @@ func LoadAccount(storage *localfs.PlaintextStorage, name string) *model.Account 
 		}
 	}
 
-	return result
+	return result, nil
 }
 
 // CreateAccount persist account entity state to storage
-func CreateAccount(storage *localfs.PlaintextStorage, name, format, currency string, isBalanceCheck bool) *model.Account {
-	// FIXME use NewAccount
-	entity := &model.Account{
-		Balance:        new(money.Dec),
-		Promised:       new(money.Dec),
-		Promises:       model.NewPromises(),
-		Version:        0,
-		Name:           name,
-		Format:         format,
-		Currency:       currency,
-		IsBalanceCheck: isBalanceCheck,
-	}
+func CreateAccount(storage *localfs.PlaintextStorage, name string, format string, currency string, isBalanceCheck bool) (*model.Account, error) {
+	entity := model.NewAccount(name)
+	entity.Format = strings.ToUpper(format)
+	entity.Currency = strings.ToUpper(currency)
+	entity.IsBalanceCheck = isBalanceCheck
 	data := entity.Serialise()
 	path := utils.SnapshotPath(name, entity.Version)
-	if storage.WriteFileExclusive(path, data) != nil {
-		return nil
+	err := storage.WriteFileExclusive(path, data)
+	if err != nil {
+		return nil, err
 	}
-	return entity
+	return &entity, nil
 }
 
 // UpdateAccount persist account entity state with incremented version
-func UpdateAccount(storage *localfs.PlaintextStorage, name string, original *model.Account) *model.Account {
+func UpdateAccount(storage *localfs.PlaintextStorage, name string, original *model.Account) (*model.Account, error) {
 	if original.Version == math.MaxInt32 {
-		return original
+		return original, nil
 	}
 	entity := &model.Account{
 		Balance:        original.Balance,
@@ -119,10 +113,11 @@ func UpdateAccount(storage *localfs.PlaintextStorage, name string, original *mod
 	}
 	data := entity.Serialise()
 	path := utils.SnapshotPath(name, entity.Version)
-	if storage.WriteFileExclusive(path, data) != nil {
-		return nil
+	err := storage.WriteFileExclusive(path, data)
+	if err != nil {
+		return nil, err
 	}
-	return entity
+	return entity, nil
 }
 
 // PersistPromise persists promise event
