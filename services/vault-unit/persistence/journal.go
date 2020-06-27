@@ -50,6 +50,7 @@ func LoadAccount(storage *localfs.PlaintextStorage, name string) (*model.Account
 	result.SnapshotVersion = version
 	result.Name = name
 	result.Deserialise(data)
+	result.EventCounter = 0
 
 	events, err := storage.ListDirectory(utils.EventPath(name, result.SnapshotVersion), false)
 	if err == nil {
@@ -75,23 +76,21 @@ func LoadAccount(storage *localfs.PlaintextStorage, name string) (*model.Account
 				result.Promised = new(money.Dec).Sub(result.Promised, amount)
 
 			}
-		}
-	}
 
-	if len(events) > 0 {
-		eventData, err := storage.ReadFileFully(utils.EventPath(name, result.SnapshotVersion) + "/" + events[len(events)-1])
-		if err != nil {
-			return nil, err
-		}
+			eventData, err := storage.ReadFileFully(utils.EventPath(name, result.SnapshotVersion) + "/" + event)
+			if err != nil {
+				return nil, err
+			}
 
-		eventCounter, err := strconv.ParseInt(string(eventData), 10, 64)
-		if err != nil {
-			return nil, err
-		}
+			eventCounter, err := strconv.ParseInt(string(eventData), 10, 64)
+			if err != nil {
+				return nil, err
+			}
 
-		result.EventCounter = eventCounter
-	} else {
-		result.EventCounter = 0
+			if eventCounter > result.EventCounter {
+				result.EventCounter = eventCounter
+			}
+		}
 	}
 
 	return result, nil
