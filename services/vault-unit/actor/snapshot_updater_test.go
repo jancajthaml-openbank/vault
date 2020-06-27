@@ -9,6 +9,7 @@ import (
 
 	"github.com/jancajthaml-openbank/vault-unit/metrics"
 	"github.com/jancajthaml-openbank/vault-unit/persistence"
+	"github.com/jancajthaml-openbank/vault-unit/model"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
 	money "gopkg.in/inf.v0"
@@ -43,18 +44,20 @@ func TestSnapshotUpdater(t *testing.T) {
 		callbackCalled++
 	}
 
+	var account = model.NewAccount("s_account_1")
 	metrics := metrics.NewMetrics(ctx, "/tmp", "1", time.Hour)
 	su := NewSnapshotUpdater(ctx, 1, time.Hour, &metrics, &storage, callback)
 
 	s, err := persistence.CreateAccount(&storage, "s_account_1", "format", "EUR", true)
 	require.Nil(t, err)
 	require.NotNil(t, s)
-	require.Nil(t, persistence.PersistPromise(&storage, "s_account_1", 0, new(money.Dec), "transaction_1"))
+	require.Nil(t, persistence.PersistPromise(&storage, account, new(money.Dec), "transaction_1"))
 	s, err = persistence.UpdateAccount(&storage, "s_account_1", s)
 	require.Nil(t, err)
 	require.NotNil(t, s)
-	require.Nil(t, persistence.PersistPromise(&storage, "s_account_1", 1, new(money.Dec), "transaction_2"))
-	require.Nil(t, persistence.PersistCommit(&storage, "s_account_1", 1, new(money.Dec), "transaction_2"))
+	account.SnapshotVersion += 1
+	require.Nil(t, persistence.PersistPromise(&storage, account, new(money.Dec), "transaction_2"))
+	require.Nil(t, persistence.PersistCommit(&storage, account, new(money.Dec), "transaction_2"))
 	s, err = persistence.CreateAccount(&storage, "s_account_2", "format", "EUR", true)
 	require.Nil(t, err)
 	require.NotNil(t, s)

@@ -20,9 +20,9 @@ import (
 
 	"github.com/jancajthaml-openbank/vault-unit/actor"
 	"github.com/jancajthaml-openbank/vault-unit/config"
+	"github.com/jancajthaml-openbank/vault-unit/logging"
 	"github.com/jancajthaml-openbank/vault-unit/metrics"
 	"github.com/jancajthaml-openbank/vault-unit/utils"
-	"github.com/jancajthaml-openbank/vault-unit/logging"
 
 	system "github.com/jancajthaml-openbank/actor-system"
 	localfs "github.com/jancajthaml-openbank/local-fs"
@@ -77,11 +77,11 @@ func Initialize() Program {
 				},
 				system.Coordinates{
 					Region: actorSystemDaemon.Name,
-					Name: account,
+					Name:   account,
 				},
 				system.Coordinates{
 					Region: actorSystemDaemon.Name,
-					Name: "snapshot_updater_cron",
+					Name:   "snapshot_updater_cron",
 				},
 			)
 		},

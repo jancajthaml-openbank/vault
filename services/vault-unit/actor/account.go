@@ -113,10 +113,13 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 				return
 			}
 
-			nextPromised := new(money.Dec).Add(state.Promised, msg.Amount)
+			next := state.Copy()
+			next.Promised = new(money.Dec).Add(state.Promised, msg.Amount)
+			next.Promises.Add(msg.Transaction)
+			next.EventCounter = state.EventCounter + 1
 
-			if !state.IsBalanceCheck || new(money.Dec).Add(state.Balance, nextPromised).Sign() >= 0 {
-				if err := persistence.PersistPromise(s.Storage, state.Name, state.Version, msg.Amount, msg.Transaction); err != nil {
+			if !state.IsBalanceCheck || new(money.Dec).Add(state.Balance, next.Promised).Sign() >= 0 {
+				if err := persistence.PersistPromise(s.Storage, next, msg.Amount, msg.Transaction); err != nil {
 					s.SendMessage(
 						PromiseRejected+" STORAGE_ERROR",
 						context.Sender,
@@ -125,10 +128,6 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 					log.WithField("account", state.Name).Warnf("Exist Promise) Error Could not Persist %+v", err)
 					return
 				}
-
-				next := state.Copy()
-				next.Promised = nextPromised
-				next.Promises.Add(msg.Transaction)
 
 				s.Metrics.PromiseAccepted()
 
@@ -163,7 +162,13 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 				return
 			}
 
-			if err := persistence.PersistCommit(s.Storage, state.Name, state.Version, msg.Amount, msg.Transaction); err != nil {
+			next := state.Copy()
+			next.Balance = new(money.Dec).Add(state.Balance, msg.Amount)
+			next.Promised = new(money.Dec).Sub(state.Promised, msg.Amount)
+			next.Promises.Remove(msg.Transaction)
+			next.EventCounter = state.EventCounter + 1
+
+			if err := persistence.PersistCommit(s.Storage, next, msg.Amount, msg.Transaction); err != nil {
 				s.SendMessage(
 					CommitRejected+" STORAGE_ERROR",
 					context.Sender,
@@ -172,11 +177,6 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 				log.WithField("account", state.Name).Warnf("(Exist Commit) Error Could not Persist %+v", err)
 				return
 			}
-
-			next := state.Copy()
-			next.Balance = new(money.Dec).Add(state.Balance, msg.Amount)
-			next.Promised = new(money.Dec).Sub(state.Promised, msg.Amount)
-			next.Promises.Remove(msg.Transaction)
 
 			s.Metrics.CommitAccepted()
 
@@ -193,7 +193,12 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 				return
 			}
 
-			if err := persistence.PersistRollback(s.Storage, state.Name, state.Version, msg.Amount, msg.Transaction); err != nil {
+			next := state.Copy()
+			next.Promised = new(money.Dec).Sub(state.Promised, msg.Amount)
+			next.Promises.Remove(msg.Transaction)
+			next.EventCounter = state.EventCounter + 1
+
+			if err := persistence.PersistRollback(s.Storage, next, msg.Amount, msg.Transaction); err != nil {
 				s.SendMessage(
 					RollbackRejected+" STORAGE_ERROR",
 					context.Sender,
@@ -202,10 +207,6 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 				log.WithField("account", state.Name).Warnf("(Exist Rollback) Error Could not Persist %+v", err)
 				return
 			}
-
-			next := state.Copy()
-			next.Promised = new(money.Dec).Sub(state.Promised, msg.Amount)
-			next.Promises.Remove(msg.Transaction)
 
 			s.Metrics.RollbackAccepted()
 
@@ -217,7 +218,7 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 			return
 
 		case RequestUpdate:
-			if msg.Version != state.Version {
+			if msg.Version != state.SnapshotVersion {
 				log.WithField("account", state.Name).Warn("(Exist Update) Error Already Updated")
 				return
 			}
@@ -235,7 +236,7 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 			}
 
 			context.Self.Become(*next, ExistAccount(s))
-			log.WithField("account", state.Name).Infof("Updated Snapshot to %d", next.Version)
+			log.WithField("account", state.Name).Infof("Updated Snapshot to %d", next.SnapshotVersion)
 			log.WithField("account", state.Name).Debug("(Exist Update) OK")
 
 		default:
