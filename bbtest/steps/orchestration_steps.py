@@ -63,14 +63,14 @@ def step_impl(context):
 @given('unit "{unit}" is running')
 @then('unit "{unit}" is running')
 def unit_running(context, unit):
-  @eventually(2)
+  @eventually(10)
   def wait_for_unit_state_change():
     (code, result, error) = execute([
       "systemctl", "show", "-p", "SubState", unit
     ])
 
-    assert code == 0
-    assert 'SubState=running' in result
+    assert code == 0, code
+    assert 'SubState=running' in result, result
   wait_for_unit_state_change()
 
 
@@ -81,8 +81,8 @@ def unit_not_running(context, unit):
     "systemctl", "show", "-p", "SubState", unit
   ])
 
-  assert code == 0
-  assert 'SubState=dead' in result
+  assert code == 0, code
+  assert 'SubState=dead' in result, result
 
 
 @given('{operation} unit "{unit}"')
@@ -148,7 +148,7 @@ def unit_is_configured(context):
     'systemctl', 'list-units', '--no-legend'
   ])
   result = [item.split(' ')[0].strip() for item in result.split('\n')]
-  result = [item for item in result if ("vault" in item and ".service" in item)]
+  result = [item for item in result if ("vault-" in item and ".service" in item)]
 
   for unit in result:
     operation_unit(context, 'restart', unit)
