@@ -41,7 +41,7 @@ func TestSnapshot_Update(t *testing.T) {
 		assert.Equal(t, snapshotInitial.Balance, loadedInitial.Balance)
 		assert.Equal(t, snapshotInitial.Promised, loadedInitial.Promised)
 		assert.Equal(t, snapshotInitial.Promises, loadedInitial.Promises)
-		assert.Equal(t, snapshotInitial.Version, loadedInitial.Version)
+		assert.Equal(t, snapshotInitial.SnapshotVersion, loadedInitial.SnapshotVersion)
 	}
 
 	snapshotVersion1, err := UpdateAccount(&storage, name, snapshotInitial)
@@ -57,13 +57,13 @@ func TestSnapshot_Update(t *testing.T) {
 		assert.Equal(t, snapshotVersion1.Balance, loadedVersion1.Balance)
 		assert.Equal(t, snapshotVersion1.Promised, loadedVersion1.Promised)
 		assert.Equal(t, snapshotVersion1.Promises, loadedVersion1.Promises)
-		assert.Equal(t, snapshotVersion1.Version, loadedVersion1.Version)
+		assert.Equal(t, snapshotVersion1.SnapshotVersion, loadedVersion1.SnapshotVersion)
 	}
 
 	t.Log("Updated is increment of version of initial by 1")
 	{
-		assert.Equal(t, loadedInitial.Version+1, loadedVersion1.Version)
-		assert.Equal(t, snapshotInitial.Version+1, snapshotVersion1.Version)
+		assert.Equal(t, loadedInitial.SnapshotVersion+1, loadedVersion1.SnapshotVersion)
+		assert.Equal(t, snapshotInitial.SnapshotVersion+1, snapshotVersion1.SnapshotVersion)
 	}
 }
 
@@ -83,7 +83,8 @@ func TestSnapshot_RefuseOverflow(t *testing.T) {
 		Balance:        new(money.Dec),
 		Promised:       new(money.Dec),
 		Promises:       model.NewPromises(),
-		Version:        int64(math.MaxInt32),
+		SnapshotVersion:        int64(math.MaxInt32),
+		EventCounter: 0,
 		Name:           name,
 		Format:         format,
 		Currency:       currency,
@@ -94,7 +95,7 @@ func TestSnapshot_RefuseOverflow(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, snapshotNext)
 
-	assert.Equal(t, snapshotLast.Version, snapshotNext.Version)
+	assert.Equal(t, snapshotLast.SnapshotVersion, snapshotNext.SnapshotVersion)
 }
 
 func TestSnapshot_Promises(t *testing.T) {
@@ -115,7 +116,7 @@ func TestSnapshot_Promises(t *testing.T) {
 		Balance:        new(money.Dec),
 		Promised:       new(money.Dec),
 		Promises:       model.NewPromises(),
-		Version:        -1,
+		SnapshotVersion:        -1,
 		Name:           name,
 		Format:         format,
 		Currency:       currency,
@@ -136,7 +137,7 @@ func TestSnapshot_Promises(t *testing.T) {
 
 	assert.Equal(t, snapshot.Balance, loaded.Balance)
 	assert.Equal(t, snapshot.Promised, loaded.Promised)
-	assert.Equal(t, snapshot.Version, loaded.Version)
+	assert.Equal(t, snapshot.SnapshotVersion, loaded.SnapshotVersion)
 	assert.Equal(t, snapshot.Name, loaded.Name)
 	assert.Equal(t, snapshot.Format, loaded.Format)
 	assert.Equal(t, snapshot.Currency, loaded.Currency)

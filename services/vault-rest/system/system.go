@@ -21,8 +21,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jancajthaml-openbank/vault-rest/utils"
 	"github.com/coreos/go-systemd/dbus"
+	"github.com/jancajthaml-openbank/vault-rest/utils"
 )
 
 // SystemControl represents systemctl subroutine

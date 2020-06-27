@@ -21,10 +21,10 @@ import (
 	"github.com/jancajthaml-openbank/vault-rest/actor"
 	"github.com/jancajthaml-openbank/vault-rest/api"
 	"github.com/jancajthaml-openbank/vault-rest/config"
+	"github.com/jancajthaml-openbank/vault-rest/logging"
 	"github.com/jancajthaml-openbank/vault-rest/metrics"
 	"github.com/jancajthaml-openbank/vault-rest/system"
 	"github.com/jancajthaml-openbank/vault-rest/utils"
-	"github.com/jancajthaml-openbank/vault-rest/logging"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
 )

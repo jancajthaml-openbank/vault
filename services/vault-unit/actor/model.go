@@ -15,15 +15,15 @@
 package actor
 
 import (
-  money "gopkg.in/inf.v0"
+	money "gopkg.in/inf.v0"
 )
 
 // CreateAccount is inbound request for creation of new account
 type CreateAccount struct {
-  Name           string
-  Format         string
-  Currency       string
-  IsBalanceCheck bool
+	Name           string
+	Format         string
+	Currency       string
+	IsBalanceCheck bool
 }
 
 // GetAccountState is inbound request for balance of account
@@ -32,36 +32,36 @@ type GetAccountState struct {
 
 // RequestUpdate is inbound request to update snapshot
 type RequestUpdate struct {
-  Version int64
+	Version int64
 }
 
 // Promise is inbound request for transaction promise
 type Promise struct {
-  Transaction string
-  Amount      *money.Dec
-  Currency    string
+	Transaction string
+	Amount      *money.Dec
+	Currency    string
 }
 
 // Commit is inbound request for transaction commit
 type Commit struct {
-  Transaction string
-  Amount      *money.Dec
-  Currency    string
+	Transaction string
+	Amount      *money.Dec
+	Currency    string
 }
 
 // Rollback is inbound request for transaction rollback
 type Rollback struct {
-  Transaction string
-  Amount      *money.Dec
-  Currency    string
+	Transaction string
+	Amount      *money.Dec
+	Currency    string
 }
 
 // Committed is reply message that transaction is committed
 type Committed struct {
-  IDTransaction string
+	IDTransaction string
 }
 
 // Rollbacked is reply message that transaction is rollbacked
 type Rollbacked struct {
-  IDTransaction string
+	IDTransaction string
 }
