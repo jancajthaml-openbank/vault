@@ -80,15 +80,15 @@ func TestSnapshot_RefuseOverflow(t *testing.T) {
 	isBalanceCheck := true
 
 	snapshotLast := &model.Account{
-		Balance:        new(money.Dec),
-		Promised:       new(money.Dec),
-		Promises:       model.NewPromises(),
-		SnapshotVersion:        int64(math.MaxInt32),
-		EventCounter: 0,
-		Name:           name,
-		Format:         format,
-		Currency:       currency,
-		IsBalanceCheck: isBalanceCheck,
+		Balance:         new(money.Dec),
+		Promised:        new(money.Dec),
+		Promises:        model.NewPromises(),
+		SnapshotVersion: int64(math.MaxInt32),
+		EventCounter:    0,
+		Name:            name,
+		Format:          format,
+		Currency:        currency,
+		IsBalanceCheck:  isBalanceCheck,
 	}
 
 	snapshotNext, err := UpdateAccount(&storage, name, snapshotLast)
@@ -113,14 +113,14 @@ func TestSnapshot_Promises(t *testing.T) {
 	expectedPromises := []string{"A", "B", "C", "D"}
 
 	var snapshot = &model.Account{
-		Balance:        new(money.Dec),
-		Promised:       new(money.Dec),
-		Promises:       model.NewPromises(),
-		SnapshotVersion:        -1,
-		Name:           name,
-		Format:         format,
-		Currency:       currency,
-		IsBalanceCheck: isBalanceCheck,
+		Balance:         new(money.Dec),
+		Promised:        new(money.Dec),
+		Promises:        model.NewPromises(),
+		SnapshotVersion: -1,
+		Name:            name,
+		Format:          format,
+		Currency:        currency,
+		IsBalanceCheck:  isBalanceCheck,
 	}
 	snapshot.Promises.Add(expectedPromises...)
 

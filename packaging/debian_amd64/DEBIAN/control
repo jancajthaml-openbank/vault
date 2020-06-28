@@ -1,5 +1,5 @@
 Package: vault
-Version: 1.3.1+ability-to-pivot-from-event
+Version: 1.3.1+update-journal-in-place-without-scanner
 Section: misc
 Priority: extra
 Architecture: amd64

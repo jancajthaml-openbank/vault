@@ -27,16 +27,18 @@ import (
 // ActorSystem represents actor system subroutine
 type ActorSystem struct {
 	system.System
-	Storage *localfs.PlaintextStorage
-	Metrics *metrics.Metrics
+	Storage             *localfs.PlaintextStorage
+	Metrics             *metrics.Metrics
+	MaxEventsInSnapshot int64
 }
 
 // NewActorSystem returns actor system fascade
-func NewActorSystem(ctx context.Context, tenant string, lakeEndpoint string, metrics *metrics.Metrics, storage *localfs.PlaintextStorage) ActorSystem {
+func NewActorSystem(ctx context.Context, tenant string, lakeEndpoint string, maxEventsInSnapshot int, metrics *metrics.Metrics, storage *localfs.PlaintextStorage) ActorSystem {
 	result := ActorSystem{
-		System:  system.NewSystem(ctx, "VaultUnit/"+tenant, lakeEndpoint),
-		Storage: storage,
-		Metrics: metrics,
+		System:              system.NewSystem(ctx, "VaultUnit/"+tenant, lakeEndpoint),
+		Storage:             storage,
+		Metrics:             metrics,
+		MaxEventsInSnapshot: int64(maxEventsInSnapshot),
 	}
 	result.System.RegisterOnMessage(ProcessMessage(&result))
 	return result
