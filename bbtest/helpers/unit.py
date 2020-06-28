@@ -18,8 +18,7 @@ class UnitHelper(object):
     return {
       "STORAGE": "/data",
       "LOG_LEVEL": "DEBUG",
-      "JOURNAL_SATURATION": "10000",
-      "SNAPSHOT_SCANINTERVAL": "1h",
+      "SNAPSHOT_SATURATION_TRESHOLD": "10000",
       "MEMORY_THRESHOLD": 0,
       "STORAGE_THRESHOLD": 0,
       "LAKE_HOSTNAME": "127.0.0.1",

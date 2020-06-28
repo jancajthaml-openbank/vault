@@ -27,8 +27,7 @@ func loadConfFromEnv() Configuration {
 	storage := getEnvString("VAULT_STORAGE", "/data")
 	tenant := getEnvString("VAULT_TENANT", "")
 	lakeHostname := getEnvString("VAULT_LAKE_HOSTNAME", "")
-	snapshotScanInterval := getEnvDuration("VAULT_SNAPSHOT_SCANINTERVAL", time.Minute)
-	journalSaturation := getEnvInteger("VAULT_JOURNAL_SATURATION", 100)
+	snapshotSaturationTreshold := getEnvInteger("VAULT_SNAPSHOT_SATURATION_TRESHOLD", 100)
 	metricsOutput := getEnvFilename("VAULT_METRICS_OUTPUT", "/tmp")
 	metricsRefreshRate := getEnvDuration("VAULT_METRICS_REFRESHRATE", time.Second)
 
@@ -37,14 +36,13 @@ func loadConfFromEnv() Configuration {
 	}
 
 	return Configuration{
-		Tenant:               tenant,
-		LakeHostname:         lakeHostname,
-		RootStorage:          storage + "/" + "t_" + tenant,
-		LogLevel:             logLevel,
-		MetricsRefreshRate:   metricsRefreshRate,
-		MetricsOutput:        metricsOutput,
-		JournalSaturation:    journalSaturation,
-		SnapshotScanInterval: snapshotScanInterval,
+		Tenant:                     tenant,
+		LakeHostname:               lakeHostname,
+		RootStorage:                storage + "/" + "t_" + tenant,
+		LogLevel:                   logLevel,
+		MetricsRefreshRate:         metricsRefreshRate,
+		MetricsOutput:              metricsOutput,
+		SnapshotSaturationTreshold: snapshotSaturationTreshold,
 	}
 }
 

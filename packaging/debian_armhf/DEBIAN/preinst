@@ -11,8 +11,7 @@ case "$1" in
 
       echo "VAULT_STORAGE=/data" > /etc/init/vault.conf
       echo "VAULT_LOG_LEVEL=INFO" >> /etc/init/vault.conf
-      echo "VAULT_JOURNAL_SATURATION=100" >> /etc/init/vault.conf
-      echo "VAULT_SNAPSHOT_SCANINTERVAL=120s" >> /etc/init/vault.conf
+      echo "VAULT_SNAPSHOT_SATURATION_TRESHOLD=100" >> /etc/init/vault.conf
       echo "VAULT_HTTP_PORT=4400" >> /etc/init/vault.conf
       echo "VAULT_SECRETS=/opt/vault/secrets" >> /etc/init/vault.conf
       echo "VAULT_LAKE_HOSTNAME=127.0.0.1" >> /etc/init/vault.conf
