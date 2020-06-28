@@ -31,12 +31,9 @@ type Configuration struct {
 	MetricsRefreshRate time.Duration
 	// MetricsOutput represents output file for metrics persistence
 	MetricsOutput string
-	// JournalSaturation represents number of events needed in account to consider
-	// account snapshot in given version to be saturated
-	JournalSaturation int
-	// SnapshotScanInterval represents backoff between scan for saturated
-	// snapshots
-	SnapshotScanInterval time.Duration
+	// SnapshotSaturationTreshold represents number of events needed in account to
+	// consider account snapshot in given version to be saturated
+	SnapshotSaturationTreshold int
 }
 
 // GetConfig loads application configuration

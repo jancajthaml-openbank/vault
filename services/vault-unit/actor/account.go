@@ -134,15 +134,15 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 
 				s.SendMessage(PromiseAccepted, context.Sender, context.Receiver)
 
-				if state.EventCounter >= s.MaxEventsInSnapshot {
-				updated, err := persistence.UpdateAccount(s.Storage, state.Name, &next)
-				if err != nil {
-					log.WithField("account", state.Name).Warnf("(Exist Promise) Error unable to update snapshot %+v", err)
-				} else {
-					next = *updated
-					log.WithField("account", state.Name).Infof("(Exist Promise) Updated Snapshot to %d", next.SnapshotVersion)
+				if next.EventCounter >= s.EventCounterTreshold {
+					updated, err := persistence.UpdateAccount(s.Storage, state.Name, &next)
+					if err != nil {
+						log.WithField("account", state.Name).Warnf("(Exist Promise) Error unable to update snapshot %+v", err)
+					} else {
+						next = *updated
+						log.WithField("account", state.Name).Infof("(Exist Promise) Updated Snapshot to version %d", next.SnapshotVersion)
+					}
 				}
-			}
 
 				context.Self.Become(next, ExistAccount(s))
 				log.WithField("account", state.Name).Infof("Promised %s %s", msg.Amount.String(), state.Currency)
@@ -194,13 +194,13 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 
 			s.SendMessage(CommitAccepted, context.Sender, context.Receiver)
 
-			if state.EventCounter >= s.MaxEventsInSnapshot {
+			if next.EventCounter >= s.EventCounterTreshold {
 				updated, err := persistence.UpdateAccount(s.Storage, state.Name, &next)
 				if err != nil {
 					log.WithField("account", state.Name).Warnf("(Exist Commit) Error unable to update snapshot %+v", err)
 				} else {
 					next = *updated
-					log.WithField("account", state.Name).Infof("(Exist Commit) Updated Snapshot to %d", next.SnapshotVersion)
+					log.WithField("account", state.Name).Infof("(Exist Commit) Updated Snapshot to version %d", next.SnapshotVersion)
 				}
 			}
 
@@ -235,13 +235,13 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 
 			s.SendMessage(RollbackAccepted, context.Sender, context.Receiver)
 
-			if state.EventCounter >= s.MaxEventsInSnapshot {
+			if next.EventCounter >= s.EventCounterTreshold {
 				updated, err := persistence.UpdateAccount(s.Storage, state.Name, &next)
 				if err != nil {
 					log.WithField("account", state.Name).Warnf("(Exist Rollback) Error unable to update snapshot %+v", err)
 				} else {
 					next = *updated
-					log.WithField("account", state.Name).Infof("(Exist Rollback) Updated Snapshot to %d", next.SnapshotVersion)
+					log.WithField("account", state.Name).Infof("(Exist Rollback) Updated Snapshot to version %d", next.SnapshotVersion)
 				}
 			}
 

@@ -56,7 +56,7 @@ func Initialize() Program {
 		ctx,
 		cfg.Tenant,
 		cfg.LakeHostname,
-		cfg.JournalSaturation,
+		cfg.SnapshotSaturationTreshold,
 		&metricsDaemon,
 		&storage,
 	)
