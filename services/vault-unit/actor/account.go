@@ -119,7 +119,8 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 			next.EventCounter = state.EventCounter + 1
 
 			if !state.IsBalanceCheck || new(money.Dec).Add(state.Balance, next.Promised).Sign() >= 0 {
-				if err := persistence.PersistPromise(s.Storage, next, msg.Amount, msg.Transaction); err != nil {
+				err := persistence.PersistPromise(s.Storage, next, msg.Amount, msg.Transaction)
+				if err != nil {
 					s.SendMessage(
 						PromiseRejected+" STORAGE_ERROR",
 						context.Sender,
@@ -132,6 +133,16 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 				s.Metrics.PromiseAccepted()
 
 				s.SendMessage(PromiseAccepted, context.Sender, context.Receiver)
+
+				if state.EventCounter >= s.MaxEventsInSnapshot {
+				updated, err := persistence.UpdateAccount(s.Storage, state.Name, &next)
+				if err != nil {
+					log.WithField("account", state.Name).Warnf("(Exist Promise) Error unable to update snapshot %+v", err)
+				} else {
+					next = *updated
+					log.WithField("account", state.Name).Infof("(Exist Promise) Updated Snapshot to %d", next.SnapshotVersion)
+				}
+			}
 
 				context.Self.Become(next, ExistAccount(s))
 				log.WithField("account", state.Name).Infof("Promised %s %s", msg.Amount.String(), state.Currency)
@@ -168,7 +179,8 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 			next.Promises.Remove(msg.Transaction)
 			next.EventCounter = state.EventCounter + 1
 
-			if err := persistence.PersistCommit(s.Storage, next, msg.Amount, msg.Transaction); err != nil {
+			err := persistence.PersistCommit(s.Storage, next, msg.Amount, msg.Transaction)
+			if err != nil {
 				s.SendMessage(
 					CommitRejected+" STORAGE_ERROR",
 					context.Sender,
@@ -181,6 +193,16 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 			s.Metrics.CommitAccepted()
 
 			s.SendMessage(CommitAccepted, context.Sender, context.Receiver)
+
+			if state.EventCounter >= s.MaxEventsInSnapshot {
+				updated, err := persistence.UpdateAccount(s.Storage, state.Name, &next)
+				if err != nil {
+					log.WithField("account", state.Name).Warnf("(Exist Commit) Error unable to update snapshot %+v", err)
+				} else {
+					next = *updated
+					log.WithField("account", state.Name).Infof("(Exist Commit) Updated Snapshot to %d", next.SnapshotVersion)
+				}
+			}
 
 			context.Self.Become(next, ExistAccount(s))
 			log.WithField("account", state.Name).Debug("(Exist Commit) OK")
@@ -198,7 +220,8 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 			next.Promises.Remove(msg.Transaction)
 			next.EventCounter = state.EventCounter + 1
 
-			if err := persistence.PersistRollback(s.Storage, next, msg.Amount, msg.Transaction); err != nil {
+			err := persistence.PersistRollback(s.Storage, next, msg.Amount, msg.Transaction)
+			if err != nil {
 				s.SendMessage(
 					RollbackRejected+" STORAGE_ERROR",
 					context.Sender,
@@ -212,32 +235,20 @@ func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 
 			s.SendMessage(RollbackAccepted, context.Sender, context.Receiver)
 
+			if state.EventCounter >= s.MaxEventsInSnapshot {
+				updated, err := persistence.UpdateAccount(s.Storage, state.Name, &next)
+				if err != nil {
+					log.WithField("account", state.Name).Warnf("(Exist Rollback) Error unable to update snapshot %+v", err)
+				} else {
+					next = *updated
+					log.WithField("account", state.Name).Infof("(Exist Rollback) Updated Snapshot to %d", next.SnapshotVersion)
+				}
+			}
+
 			context.Self.Become(next, ExistAccount(s))
 			log.WithField("account", state.Name).Infof("Rejected %s %s", msg.Amount.String(), state.Currency)
 			log.WithField("account", state.Name).Debug("(Exist Rollback) OK")
 			return
-
-		case RequestUpdate:
-			if msg.Version != state.SnapshotVersion {
-				log.WithField("account", state.Name).Warn("(Exist Update) Error Already Updated")
-				return
-			}
-
-			result, err := persistence.LoadAccount(s.Storage, state.Name)
-			if err != nil {
-				log.WithField("account", state.Name).Warnf("(Exist Update) Error no existing snapshot %+v", err)
-				return
-			}
-
-			next, err := persistence.UpdateAccount(s.Storage, state.Name, result)
-			if err != nil {
-				log.WithField("account", state.Name).Warnf("(Exist Update) Error unable to update %+v", err)
-				return
-			}
-
-			context.Self.Become(*next, ExistAccount(s))
-			log.WithField("account", state.Name).Infof("Updated Snapshot to %d", next.SnapshotVersion)
-			log.WithField("account", state.Name).Debug("(Exist Update) OK")
 
 		default:
 			s.SendMessage(FatalError, context.Sender, context.Receiver)

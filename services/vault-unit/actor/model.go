@@ -30,11 +30,6 @@ type CreateAccount struct {
 type GetAccountState struct {
 }
 
-// RequestUpdate is inbound request to update snapshot
-type RequestUpdate struct {
-	Version int64
-}
-
 // Promise is inbound request for transaction promise
 type Promise struct {
 	Transaction string

@@ -24,7 +24,6 @@ import (
 	"github.com/jancajthaml-openbank/vault-unit/metrics"
 	"github.com/jancajthaml-openbank/vault-unit/utils"
 
-	system "github.com/jancajthaml-openbank/actor-system"
 	localfs "github.com/jancajthaml-openbank/local-fs"
 )
 
@@ -57,40 +56,14 @@ func Initialize() Program {
 		ctx,
 		cfg.Tenant,
 		cfg.LakeHostname,
-		&metricsDaemon,
-		&storage,
-	)
-	snapshotUpdaterDaemon := actor.NewSnapshotUpdater(
-		ctx,
 		cfg.JournalSaturation,
-		cfg.SnapshotScanInterval,
 		&metricsDaemon,
 		&storage,
-		func(account string, version int64) {
-			ref, err := actor.NewAccountActor(&actorSystemDaemon, account)
-			if err != nil {
-				return
-			}
-			ref.Tell(
-				actor.RequestUpdate{
-					Version: version,
-				},
-				system.Coordinates{
-					Region: actorSystemDaemon.Name,
-					Name:   account,
-				},
-				system.Coordinates{
-					Region: actorSystemDaemon.Name,
-					Name:   "snapshot_updater_cron",
-				},
-			)
-		},
 	)
 
 	var daemons = make([]utils.Daemon, 0)
 	daemons = append(daemons, metricsDaemon)
 	daemons = append(daemons, actorSystemDaemon)
-	daemons = append(daemons, snapshotUpdaterDaemon)
 
 	return Program{
 		interrupt: make(chan os.Signal, 1),
