@@ -20,4 +20,4 @@ TimeoutSec=infinity
 KillMode=process
 
 [Install]
-WantedBy=vault.service
+WantedBy=multi-user.target

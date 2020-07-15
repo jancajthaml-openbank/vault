@@ -10,21 +10,29 @@ if __name__ == "__main__":
   __TTY = sys.stdout.isatty() and (int(os.environ.get('NO_TTY', 0)) == 0)
 
   args = [
-    "--color",
-    "--no-capture",
-    "--no-junit",
-    "-f json -o /tmp/reports/blackbox-tests/behave/results.json",
+    '--color',
+    '--no-capture',
+    '--no-junit',
+    '-f json',
+    '-o /tmp/reports/blackbox-tests/behave/results.json',
   ]
 
   if __TTY:
-    args.append("-f pretty")
+    args.append('-f pretty')
   else:
-    args.append("-f progress3")
-    args.append("--quiet")
+    args.append('-f progress3')
+    args.append('--quiet')
 
   args.append('@{}/order.txt'.format(cwd))
 
-  os.system('mkdir -p /tmp/reports/blackbox-tests /tmp/reports/blackbox-tests/behave /tmp/reports/blackbox-tests/cucumber')
+  for path in [
+    '/tmp/reports/blackbox-tests/metrics',
+    '/tmp/reports/blackbox-tests/logs',
+    '/tmp/reports/blackbox-tests/data',
+    '/tmp/reports/blackbox-tests/behave',
+    '/tmp/reports/blackbox-tests/cucumber'
+  ]:
+    os.system('mkdir -p {}'.format(path))
 
   from behave import __main__ as behave_executable
   behave_executable.main(args=' '.join(args))

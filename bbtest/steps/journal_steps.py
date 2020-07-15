@@ -11,7 +11,7 @@ def check_account_snapshot(context, tenant, account, version):
 
   path = '/data/t_{}/account/{}/snapshot/{}'.format(tenant, account, version.zfill(10))
 
-  assert os.path.isfile(path) is True
+  assert os.path.isfile(path) is True, 'path {} does not exists'.format(path)
 
   actual = dict()
   with open(path, 'r') as fd:
