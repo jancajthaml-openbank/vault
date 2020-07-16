@@ -9,4 +9,4 @@ ExecStart=/bin/echo start vault namespace
 RemainAfterExit=yes
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=sysinit.target

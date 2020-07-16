@@ -2,12 +2,6 @@
 
 set -e
 
-if [ "$(ps -o comm -p 1 --no-headers | tr -d ' ')" = "systemd" ] ; then
-  SYSTEMD_AVAIL=true
-else
-  SYSTEMD_AVAIL=false
-fi
-
 enable() {
   wanted_by=$(cat /lib/systemd/system/${1} | sed -n -e 's/^.*WantedBy=//p')
   mkdir -p /etc/systemd/system/${wanted_by}.wants
@@ -23,13 +17,10 @@ case "$1" in
       enable vault.path
       enable vault.service
       enable vault-rest.service
-
-      if [ ${SYSTEMD_AVAIL} ] ; then
-        (systemctl daemon-reload || :)
-        (systemctl start vault.service || :)
-        (systemctl start vault.path || :)
-      fi
-
+      (systemctl daemon-reload >/dev/null 2>&1 || :)
+      (systemctl start vault.service >/dev/null 2>&1 || :)
+      (systemctl start vault-rest.service >/dev/null 2>&1 || :)
+      (systemctl start vault.path >/dev/null 2>&1 || :)
     else
       (>&2 echo "/etc/init/vault.conf file not found")
       exit 1
