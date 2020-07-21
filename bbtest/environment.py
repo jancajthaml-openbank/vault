@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import os
 from helpers.unit import UnitHelper
@@ -11,7 +13,6 @@ def after_feature(context, feature):
 def before_all(context):
   context.unit = UnitHelper(context)
   context.zmq = ZMQHelper(context)
-  os.system('rm -rf /tmp/reports/blackbox-tests/logs/*.log /tmp/reports/blackbox-tests/metrics/*.json /tmp/reports/blackbox-tests/data/*')
   context.zmq.start()
   context.unit.download()
   context.unit.configure()
