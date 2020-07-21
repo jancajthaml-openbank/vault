@@ -1,0 +1,24 @@
+[Unit]
+Description=openbank account vault tenant %i
+PartOf=vault.service
+After=vault.service
+ConditionPathExists=/etc/vault/conf.d/init.conf
+
+[Service]
+Type=notify
+Environment=VAULT_TENANT=%i
+EnvironmentFile=/etc/vault/conf.d/init.conf
+StartLimitBurst=0
+ExecStart=/usr/bin/vault-unit %i
+StandardInput=null
+LimitNOFILE=1048576
+LimitNPROC=infinity
+LimitCORE=infinity
+Restart=always
+RestartSec=0
+TimeoutStartSec=0
+TimeoutSec=infinity
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,12 @@
+[Unit]
+Description=openbank account vault services namespace
+After=inetd.service
+ConditionPathExists=/etc/vault/conf.d/init.conf
+
+[Service]
+Type=oneshot
+ExecStart=/bin/echo start vault namespace
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
