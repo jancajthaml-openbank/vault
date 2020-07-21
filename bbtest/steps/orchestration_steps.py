@@ -8,16 +8,16 @@ from helpers.eventually import eventually
 def step_impl(context, package, operation):
   if operation == 'installed':
     (code, result, error) = execute([
-      "apt-get", "-y", "install", "-f", "/tmp/packages/{}.deb".format(package)
+      "apt-get", "install", "-f", "-qq", "-o=Dpkg::Use-Pty=0", "-o=Dpkg::Options::=--force-confdef", "-o=Dpkg::Options::=--force-confnew", "/tmp/packages/{}.deb".format(package)
     ])
     assert code == 0, "unable to install with code {} and {} {}".format(code, result, error)
-    assert os.path.isfile('/etc/init/vault.conf') is True
+    assert os.path.isfile('/etc/vault/conf.d/init.conf') is True
   elif operation == 'uninstalled':
     (code, result, error) = execute([
       "apt-get", "-y", "remove", package
     ])
     assert code == 0, "unable to uninstall with code {} and {} {}".format(code, result, error)
-    assert os.path.isfile('/etc/init/vault.conf') is False
+    assert os.path.isfile('/etc/vault/conf.d/init.conf') is False
 
   else:
     assert False
@@ -90,7 +90,7 @@ def operation_unit(context, operation, unit):
   (code, result, error) = execute([
     "systemctl", operation, unit
   ])
-  assert code == 0
+  assert code == 0, str(result) + ' ' + str(error)
 
   if operation == 'restart':
     unit_running(context, unit)
@@ -125,13 +125,15 @@ def offboard_unit(context, tenant):
 
 @given('tenant {tenant} is onboarded')
 def onboard_unit(context, tenant):
-  execute([
+  (code, result, error) = execute([
     "systemctl", 'enable', 'vault-unit@{}'.format(tenant)
   ])
+  assert code == 0, str(result) + ' ' + str(error)
+
   (code, result, error) = execute([
     "systemctl", 'start', 'vault-unit@{}'.format(tenant)
   ])
-  assert code == 0
+  assert code == 0, str(result) + ' ' + str(error)
 
   unit_running(context, 'vault-unit@{}'.format(tenant))
 

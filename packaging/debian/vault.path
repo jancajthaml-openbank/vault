@@ -1,0 +1,12 @@
+[Unit]
+Description=openbank account vault services namespace
+PartOf=vault.service
+ConditionPathExists=/etc/vault/conf.d/init.conf
+
+[Path]
+PathChanged=/etc/vault/conf.d/init.conf
+PathModified=/etc/vault/conf.d/init.conf
+Unit=vault.service
+
+[Install]
+WantedBy=vault.service
