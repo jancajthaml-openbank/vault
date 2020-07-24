@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 from behave import *
@@ -12,11 +12,8 @@ def step_impl(context, unit):
 
   @eventually(5)
   def impl():
-    (code, result, error) = execute([
-      'journalctl', '-o', 'cat','-u', unit, '--no-pager'
-    ])
-
-    assert code == 0
+    (code, result, error) = execute(['journalctl', '-o', 'cat', '-u', unit, '--no-pager'])
+    assert code == 0, str(result) + ' ' + str(error)
 
     actual_lines_merged = [item.strip() for item in result.split('\n') if len(item.strip())]
     actual_lines = []
@@ -37,6 +34,6 @@ def step_impl(context, unit):
           found = True
           break
 
-      assert found == True, '{} not found in {}'.format(expected_lines, actual_lines_merged)
+      assert found == True, 'message "{}" was not found in logs'.format(context.text.strip())
 
   impl()
