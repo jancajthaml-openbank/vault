@@ -11,7 +11,7 @@ import glob
 
 @then('snapshot {tenant}/{account} version {version} should be')
 def check_account_snapshot(context, tenant, account, version):
-  path = '/data/t_{}/account/{}/snapshot/{}'.format(tenant, account, version.zfill(10))
+  path = '/tmp/reports/blackbox-tests/data/t_{}/account/{}/snapshot/{}'.format(tenant, account, version.zfill(10))
 
   assert os.path.isfile(path) is True, 'path {} does not exists'.format(path)
 
@@ -38,7 +38,7 @@ def check_account_snapshot(context, tenant, account, version):
 
 @then('{tenant}/{account} should have data integrity')
 def check_account_integrity(context, tenant, account):
-  snapshots = glob.glob('/data/t_{}/account/{}/snapshot/*'.format(tenant, account))
+  snapshots = glob.glob('/tmp/reports/blackbox-tests/data/t_{}/account/{}/snapshot/*'.format(tenant, account))
   snapshots.sort(key=lambda f: -int(f.split('/')[-1]))
 
   assert len(snapshots)
