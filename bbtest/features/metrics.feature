@@ -6,7 +6,7 @@ Feature: Metrics test
       | property            | value |
       | METRICS_REFRESHRATE |    1s |
 
-    Then metrics file /tmp/reports/blackbox-tests/metrics/metrics.M1.json should have following keys:
+    Then metrics file reports/blackbox-tests/metrics/metrics.M1.json should have following keys:
       | key                 |
       | commitsAccepted     |
       | createdAccounts     |
@@ -14,14 +14,14 @@ Feature: Metrics test
       | rollbacksAccepted   |
       | snapshotCronLatency |
       | updatedSnapshots    |
-    And metrics file /tmp/reports/blackbox-tests/metrics/metrics.M1.json has permissions -rw-r--r--
+    And metrics file reports/blackbox-tests/metrics/metrics.M1.json has permissions -rw-r--r--
 
-    And metrics file /tmp/reports/blackbox-tests/metrics/metrics.json should have following keys:
+    And metrics file reports/blackbox-tests/metrics/metrics.json should have following keys:
       | key                  |
       | createAccountLatency |
       | getAccountLatency    |
       | memoryAllocated      |
-    And metrics file /tmp/reports/blackbox-tests/metrics/metrics.json has permissions -rw-r--r--
+    And metrics file reports/blackbox-tests/metrics/metrics.json has permissions -rw-r--r--
 
   Scenario: metrics can remembers previous values after reboot
     Given tenant M2 is onboarded
@@ -29,7 +29,7 @@ Feature: Metrics test
       | property            | value |
       | METRICS_REFRESHRATE |    1s |
 
-    Then metrics file /tmp/reports/blackbox-tests/metrics/metrics.M2.json reports:
+    Then metrics file reports/blackbox-tests/metrics/metrics.M2.json reports:
       | key                 | value |
       | commitsAccepted     |     0 |
       | createdAccounts     |     0 |
@@ -39,7 +39,7 @@ Feature: Metrics test
       | updatedSnapshots    |     0 |
 
     When active EUR account M2/Credit is created
-    Then metrics file /tmp/reports/blackbox-tests/metrics/metrics.M2.json reports:
+    Then metrics file reports/blackbox-tests/metrics/metrics.M2.json reports:
       | key                 | value |
       | commitsAccepted     |     0 |
       | createdAccounts     |     1 |
@@ -49,7 +49,7 @@ Feature: Metrics test
       | updatedSnapshots    |     0 |
 
     When restart unit "vault-unit@M2.service"
-    Then metrics file /tmp/reports/blackbox-tests/metrics/metrics.M2.json reports:
+    Then metrics file reports/blackbox-tests/metrics/metrics.M2.json reports:
       | key                 | value |
       | commitsAccepted     |     0 |
       | createdAccounts     |     1 |

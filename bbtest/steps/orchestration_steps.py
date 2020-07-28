@@ -103,14 +103,14 @@ def unit_is_configured(context, unit):
 def offboard_unit(context, tenant):
   (code, result, error) = execute(['journalctl', '-o', 'cat', '-u', 'vault-unit@{}.service'.format(tenant), '--no-pager'])
   if code == 0 and result:
-    with open('/tmp/reports/blackbox-tests/logs/vault-unit.{}.log'.format(tenant), 'w') as f:
+    with open('reports/blackbox-tests/logs/vault-unit.{}.log'.format(tenant), 'w') as f:
       f.write(result)
 
   execute(['systemctl', 'stop', 'vault-unit@{}.service'.format(tenant)])
 
   (code, result, error) = execute(['journalctl', '-o', 'cat', '-u', 'vault-unit@{}.service'.format(tenant), '--no-pager'])
   if code == 0 and result:
-    with open('/tmp/reports/blackbox-tests/logs/vault-unit.{}.log'.format(tenant), 'w') as fd:
+    with open('reports/blackbox-tests/logs/vault-unit.{}.log'.format(tenant), 'w') as fd:
       fd.write(result)
 
   execute(['systemctl', 'disable', 'vault-unit@{}.service'.format(tenant)])
