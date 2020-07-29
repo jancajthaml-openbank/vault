@@ -30,7 +30,7 @@ lifecycle::go::sync() {
   fi
 
   if [ -d ${dir}/vendor ] ; then
-    rm -rf ${dir}/vendor
+    rm -rf ${dir}/vendor/*
   fi
 
   if [ -f ${dir}/go.sum ] ; then
