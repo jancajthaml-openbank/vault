@@ -118,8 +118,8 @@ func (entity Account) Serialize() []byte {
 	return buffer.Bytes()
 }
 
-// Deserialise Account entity from persistable data
-func (entity *Account) Deserialise(data []byte) {
+// Deserialize Account entity from persistable data
+func (entity *Account) Deserialize(data []byte) {
 	if entity == nil {
 		return
 	}

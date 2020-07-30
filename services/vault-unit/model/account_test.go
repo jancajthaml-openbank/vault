@@ -31,7 +31,7 @@ func TestAccount_Serialize(t *testing.T) {
 		entity.Promises = NewPromises()
 		entity.Promises.Add("A", "B", "C", "D", "E", "F", "G", "H")
 
-		data := entity.Serialise()
+		data := entity.Serialize()
 		require.NotNil(t, data)
 
 		assert.Equal(t, "CUR FOR_F\n1.0\n2.0\nA\nB\nC\nD\nE\nF\nG\nH", string(data))
@@ -40,7 +40,7 @@ func TestAccount_Serialize(t *testing.T) {
 		hydrated.Name = entity.Name
 		hydrated.SnapshotVersion = entity.SnapshotVersion
 
-		hydrated.Deserialise(data)
+		hydrated.Deserialize(data)
 
 		assert.Equal(t, entity, hydrated)
 	}
@@ -52,7 +52,7 @@ func TestAccount_Serialize(t *testing.T) {
 		entity.Format = "FOR"
 		entity.Currency = "CUR"
 
-		data := entity.Serialise()
+		data := entity.Serialize()
 		require.NotNil(t, data)
 
 		assert.Equal(t, data, []byte("CUR FOR_T\n0.0\n0.0"))
@@ -62,11 +62,11 @@ func TestAccount_Serialize(t *testing.T) {
 	{
 		yes := new(Account)
 		yes.IsBalanceCheck = true
-		assert.Equal(t, yes.Serialise(), []byte("??? _T\n0.0\n0.0"))
+		assert.Equal(t, yes.Serialize(), []byte("??? _T\n0.0\n0.0"))
 
 		no := new(Account)
 		no.IsBalanceCheck = false
-		assert.Equal(t, no.Serialise(), []byte("??? _F\n0.0\n0.0"))
+		assert.Equal(t, no.Serialize(), []byte("??? _F\n0.0\n0.0"))
 	}
 }
 
@@ -86,11 +86,11 @@ func BenchmarkAccount_Serialize(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		entity.Serialise()
+		entity.Serialize()
 	}
 }
 
-func BenchmarkAccount_Deserialise(b *testing.B) {
+func BenchmarkAccount_Deserialize(b *testing.B) {
 	entity := new(Account)
 
 	entity.Name = "accountName"
@@ -104,12 +104,12 @@ func BenchmarkAccount_Deserialise(b *testing.B) {
 	entity.Promises.Add("A", "B", "C", "D", "E", "F", "G", "H")
 	entity.SnapshotVersion = 0
 
-	data := entity.Serialise()
+	data := entity.Serialize()
 	hydrated := new(Account)
 
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		hydrated.Deserialise(data)
+		hydrated.Deserialize(data)
 	}
 }

@@ -49,7 +49,7 @@ func LoadAccount(storage *localfs.PlaintextStorage, name string) (*model.Account
 
 	result.SnapshotVersion = version
 	result.Name = name
-	result.Deserialise(data)
+	result.Deserialize(data)
 	result.EventCounter = 0
 
 	events, err := storage.ListDirectory(utils.EventPath(name, result.SnapshotVersion), false)
@@ -102,7 +102,7 @@ func CreateAccount(storage *localfs.PlaintextStorage, name string, format string
 	entity.Format = strings.ToUpper(format)
 	entity.Currency = strings.ToUpper(currency)
 	entity.IsBalanceCheck = isBalanceCheck
-	data := entity.Serialise()
+	data := entity.Serialize()
 	path := utils.SnapshotPath(name, entity.SnapshotVersion)
 	err := storage.WriteFileExclusive(path, data)
 	if err != nil {
@@ -127,7 +127,7 @@ func UpdateAccount(storage *localfs.PlaintextStorage, name string, original *mod
 		Format:          original.Format,
 		IsBalanceCheck:  original.IsBalanceCheck,
 	}
-	data := entity.Serialise()
+	data := entity.Serialize()
 	path := utils.SnapshotPath(name, entity.SnapshotVersion)
 	err := storage.WriteFileExclusive(path, data)
 	if err != nil {
