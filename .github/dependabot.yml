@@ -1,0 +1,13 @@
+version: 2
+
+updates:
+
+  - package-ecosystem: "gomod"
+    directory: "/services/vault-rest"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "gomod"
+    directory: "/services/vault-unit"
+    schedule:
+      interval: "daily"
