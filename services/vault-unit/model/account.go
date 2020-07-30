@@ -63,8 +63,8 @@ func NewAccount(name string) Account {
 	}
 }
 
-// Serialise Account entity to persistable data
-func (entity Account) Serialise() []byte {
+// Serialize Account entity to persistable data
+func (entity Account) Serialize() []byte {
 	var buffer bytes.Buffer
 
 	// [CURRENCY FORMAT_IS-CHECK]
@@ -118,8 +118,8 @@ func (entity Account) Serialise() []byte {
 	return buffer.Bytes()
 }
 
-// Deserialise Account entity from persistable data
-func (entity *Account) Deserialise(data []byte) {
+// Deserialize Account entity from persistable data
+func (entity *Account) Deserialize(data []byte) {
 	if entity == nil {
 		return
 	}
