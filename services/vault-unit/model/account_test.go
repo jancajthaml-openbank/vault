@@ -9,7 +9,7 @@ import (
 	money "gopkg.in/inf.v0"
 )
 
-func TestAccount_Serialise(t *testing.T) {
+func TestAccount_Serialize(t *testing.T) {
 	t.Log("serialized is deserializable")
 	{
 		entity := new(Account)
@@ -70,7 +70,7 @@ func TestAccount_Serialise(t *testing.T) {
 	}
 }
 
-func BenchmarkAccount_Serialise(b *testing.B) {
+func BenchmarkAccount_Serialize(b *testing.B) {
 	entity := new(Account)
 
 	entity.Name = "accountName"
