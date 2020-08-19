@@ -92,9 +92,11 @@ def perform_http_request(context, uri):
     response = urllib.request.urlopen(request, timeout=10, context=ctx)
     context.http_response['status'] = str(response.status)
     context.http_response['body'] = response.read().decode('utf-8')
+    context.http_response['content-type'] = response.info().get_content_type()
   except urllib.error.HTTPError as err:
     context.http_response['status'] = str(err.code)
     context.http_response['body'] = err.read().decode('utf-8')
+    context.http_response['content-type'] = 'text-plain'
 
 
 @then('HTTP response is')
@@ -127,4 +129,20 @@ def check_http_response(context):
         assert type(a) == type(b), 'types differ at {} expected: {} actual: {}'.format(path, type(a), type(b))
         assert a == b, 'values differ at {} expected: {} actual: {}'.format(path, a, b)
 
-    diff('', json.loads(context.text), json.loads(response['body']))
+    stash = list()
+
+    if response['body']:
+      for line in response['body'].split('\n'):
+        if response['content-type'].startswith('text/plain'):
+          stash.append(line)
+        else:
+          stash.append(json.loads(line))
+
+    try:
+      expected = json.loads(context.text)
+      if type(expected) == dict:
+        stash = stash[0]
+      diff('', expected, stash)
+    except AssertionError as ex:
+      raise AssertionError('{} with response {}'.format(ex, response['body']))
+

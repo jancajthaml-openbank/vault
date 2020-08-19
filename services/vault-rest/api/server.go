@@ -27,7 +27,7 @@ import (
 	"github.com/jancajthaml-openbank/vault-rest/system"
 	"github.com/jancajthaml-openbank/vault-rest/utils"
 
-	"github.com/gorilla/mux"
+	"github.com/labstack/echo"
 	localfs "github.com/jancajthaml-openbank/local-fs"
 )
 
@@ -41,12 +41,9 @@ type Server struct {
 	MemoryMonitor *system.MemoryMonitor
 	ActorSystem   *actor.ActorSystem
 	underlying    *http.Server
-	router        *mux.Router
 	key           []byte
 	cert          []byte
 }
-
-type endpoint func(*Server) func(http.ResponseWriter, *http.Request)
 
 type tcpKeepAliveListener struct {
 	*net.TCPListener
@@ -81,7 +78,7 @@ func cloneTLSConfig(cfg *tls.Config) *tls.Config {
 
 // NewServer returns new secure server instance
 func NewServer(ctx context.Context, port int, secretsPath string, actorSystem *actor.ActorSystem, systemControl *system.SystemControl, diskMonitor *system.DiskMonitor, memoryMonitor *system.MemoryMonitor, storage *localfs.PlaintextStorage) Server {
-	router := mux.NewRouter()
+	router := echo.New()
 
 	cert, err := ioutil.ReadFile(secretsPath + "/domain.local.crt")
 	if err != nil {
@@ -93,11 +90,21 @@ func NewServer(ctx context.Context, port int, secretsPath string, actorSystem *a
 		log.Fatalf("unable to load certificate %s/domain.local.key", secretsPath)
 	}
 
-	result := Server{
+	router.GET("/health", HealtCheck(memoryMonitor, diskMonitor))
+	router.HEAD("/health", HealtCheck(memoryMonitor, diskMonitor))
+
+	router.GET("/tenant", ListTenants(systemControl))
+	router.POST("/tenant/:tenant", CreateTenant(systemControl))
+	router.DELETE("/tenant/:tenant", DeleteTenant(systemControl))
+
+	router.GET("/account/:tenant/:id", GetAccount(actorSystem))
+	router.POST("/account/:tenant", CreateAccount(actorSystem))
+	router.GET("/account/:tenant", GetAccounts(storage))
+
+	return Server{
 		DaemonSupport: utils.NewDaemonSupport(ctx, "http-server"),
 		Storage:       storage,
 		ActorSystem:   actorSystem,
-		router:        router,
 		SystemControl: systemControl,
 		DiskMonitor:   diskMonitor,
 		MemoryMonitor: memoryMonitor,
@@ -122,20 +129,6 @@ func NewServer(ctx context.Context, port int, secretsPath string, actorSystem *a
 		key:  key,
 		cert: cert,
 	}
-
-	result.HandleFunc("/health", HealtCheck, "GET", "HEAD")
-	result.HandleFunc("/tenant/{tenant}", TenantPartial, "POST", "DELETE")
-	result.HandleFunc("/tenant", TenantsPartial, "GET")
-	result.HandleFunc("/account/{tenant}/{id}", AccountPartial, "GET")
-	result.HandleFunc("/account/{tenant}", AccountsPartial, "POST", "GET")
-
-	return result
-}
-
-// HandleFunc registers route
-func (server Server) HandleFunc(path string, handle endpoint, methods ...string) *mux.Route {
-	log.Debugf("HTTP route %+v %+v registered", methods, path)
-	return server.router.HandleFunc(path, handle(&server)).Methods(methods...)
 }
 
 // Start handles everything needed to start http-server daemon

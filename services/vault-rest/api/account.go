@@ -17,192 +17,124 @@ package api
 import (
 	"io/ioutil"
 	"net/http"
+	"fmt"
 
 	"github.com/jancajthaml-openbank/vault-rest/actor"
 	"github.com/jancajthaml-openbank/vault-rest/persistence"
 	"github.com/jancajthaml-openbank/vault-rest/utils"
 
-	"github.com/gorilla/mux"
+	localfs "github.com/jancajthaml-openbank/local-fs"
+	"github.com/labstack/echo"
 )
 
-// AccountPartial returns http handler for single account
-func AccountPartial(server *Server) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		vars := mux.Vars(r)
-
-		tenant := vars["tenant"]
-		id := vars["id"]
-
-		if tenant == "" || id == "" {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusNotFound)
-			w.Write(emptyJSONObject)
-			return
-		}
-
-		switch r.Method {
-
-		case "GET":
-			GetAccount(server, tenant, id, w, r)
-			return
-
-		default:
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			w.Write(emptyJSONObject)
-			return
-
-		}
-	}
-}
-
-// AccountsPartial returns http handler for accounts
-func AccountsPartial(server *Server) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		vars := mux.Vars(r)
-
-		tenant := vars["tenant"]
-
+// GetAccount returns account state
+func GetAccount(system *actor.ActorSystem) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		tenant := c.Param("tenant")
 		if tenant == "" {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusNotFound)
-			w.Write(emptyJSONArray)
-			return
+			return fmt.Errorf("missing tenant")
+		}
+		id := c.Param("id")
+		if id == "" {
+			return fmt.Errorf("missing id")
 		}
 
-		switch r.Method {
+		switch result := actor.GetAccount(system, tenant, id).(type) {
 
-		case "GET":
-			GetAccounts(server, tenant, w, r)
-			return
+		case *actor.AccountMissing:
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
 
-		case "POST":
-			CreateAccount(server, tenant, w, r)
-			return
+		case *actor.Account:
+			c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+			c.Response().WriteHeader(http.StatusOK)
+
+			chunk, err := utils.JSON.Marshal(result)
+			if err != nil {
+				return err
+			}
+			c.Response().Write(chunk)
+			c.Response().Flush()
+			return nil
+
+		case *actor.ReplyTimeout:
+			c.Response().WriteHeader(http.StatusGatewayTimeout)
+			return nil
 
 		default:
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			w.Write(emptyJSONObject)
-			return
+			return fmt.Errorf("internal error")
 
 		}
-
 	}
 }
 
-// CreateAccount creates new account
-func CreateAccount(server *Server, tenant string, w http.ResponseWriter, r *http.Request) {
+// CreateAccount creates new account for given tenant
+func CreateAccount(system *actor.ActorSystem) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		tenant := c.Param("tenant")
+		if tenant == "" {
+			return fmt.Errorf("missing tenant")
+		}
 
-	b, err := ioutil.ReadAll(r.Body)
-	defer r.Body.Close()
-	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(emptyJSONObject)
-		return
-	}
-
-	var req = new(actor.Account)
-	err = utils.JSON.Unmarshal(b, req)
-	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(emptyJSONObject)
-		return
-	}
-
-	switch actor.CreateAccount(server.ActorSystem, tenant, *req).(type) {
-
-	case *actor.AccountCreated:
-		resp, err := utils.JSON.Marshal(req)
+		b, err := ioutil.ReadAll(c.Request().Body)
+		defer c.Request().Body.Close()
 		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(emptyJSONArray)
-			return
+			c.Response().WriteHeader(http.StatusBadRequest)
+			return err
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(resp)
-		return
+		var req = new(actor.Account)
+		if utils.JSON.Unmarshal(b, req) != nil {
+			c.Response().WriteHeader(http.StatusBadRequest)
+			return nil
+		}
 
-	case *actor.ReplyTimeout:
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusGatewayTimeout)
-		w.Write(emptyJSONObject)
-		return
+		switch actor.CreateAccount(system, tenant, *req).(type) {
 
-	default:
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusConflict)
-		w.Write(emptyJSONObject)
-		return
+		case *actor.AccountCreated:
+			c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+			c.Response().WriteHeader(http.StatusOK)
+			c.Response().Write(b)
+			c.Response().Flush()
+			return nil
 
+		case *actor.ReplyTimeout:
+			c.Response().WriteHeader(http.StatusGatewayTimeout)
+			return nil
+
+		default:
+			c.Response().WriteHeader(http.StatusConflict)
+			return nil
+
+		}
 	}
 }
 
-// GetAccounts returns list of existing accounts
-func GetAccounts(server *Server, tenant string, w http.ResponseWriter, r *http.Request) {
+// GetAccounts return existing accounts of given tenant
+func GetAccounts(storage *localfs.PlaintextStorage) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		tenant := c.Param("tenant")
+		if tenant == "" {
+			return fmt.Errorf("missing tenant")
+		}
 
-	accounts, err := persistence.LoadAccounts(server.Storage, tenant)
-	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(emptyJSONArray)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	resp, err := utils.JSON.Marshal(accounts)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(emptyJSONArray)
-	} else {
-		w.WriteHeader(http.StatusOK)
-		w.Write(resp)
-	}
-	return
-}
-
-// GetAccount returns snapshot existing account
-func GetAccount(server *Server, tenant string, id string, w http.ResponseWriter, r *http.Request) {
-
-	switch result := actor.GetAccount(server.ActorSystem, tenant, id).(type) {
-
-	case *actor.AccountMissing:
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusNotFound)
-		w.Write(emptyJSONObject)
-		return
-
-	case *actor.Account:
-		w.Header().Set("Content-Type", "application/json")
-		resp, err := utils.JSON.Marshal(result)
+		accounts, err := persistence.LoadAccounts(storage, tenant)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(emptyJSONObject)
-		} else {
-			w.WriteHeader(http.StatusOK)
-			w.Write(resp)
+			return nil
 		}
-		return
 
-	case *actor.ReplyTimeout:
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusGatewayTimeout)
-		w.Write(emptyJSONObject)
-		return
+		c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextPlainCharsetUTF8)
+		c.Response().WriteHeader(http.StatusOK)
 
-	default:
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(emptyJSONObject)
-		return
+		for idx, account := range accounts {
+			if idx == len(accounts) - 1 {
+				c.Response().Write([]byte(account))
+			} else {
+				c.Response().Write([]byte(account+"\n"))
+			}
+			c.Response().Flush()
+		}
 
+		return nil
 	}
-	return
 }
