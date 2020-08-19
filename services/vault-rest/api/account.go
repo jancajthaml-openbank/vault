@@ -15,16 +15,16 @@
 package api
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
-	"fmt"
 
 	"github.com/jancajthaml-openbank/vault-rest/actor"
 	"github.com/jancajthaml-openbank/vault-rest/persistence"
 	"github.com/jancajthaml-openbank/vault-rest/utils"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 // GetAccount returns account state
@@ -127,10 +127,10 @@ func GetAccounts(storage *localfs.PlaintextStorage) func(c echo.Context) error {
 		c.Response().WriteHeader(http.StatusOK)
 
 		for idx, account := range accounts {
-			if idx == len(accounts) - 1 {
+			if idx == len(accounts)-1 {
 				c.Response().Write([]byte(account))
 			} else {
-				c.Response().Write([]byte(account+"\n"))
+				c.Response().Write([]byte(account + "\n"))
 			}
 			c.Response().Flush()
 		}

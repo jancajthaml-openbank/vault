@@ -20,7 +20,7 @@ import (
 	"github.com/jancajthaml-openbank/vault-rest/system"
 	"github.com/jancajthaml-openbank/vault-rest/utils"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 // HealtCheck returns 200 OK if service is healthy, 503 otherwise

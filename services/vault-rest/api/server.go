@@ -27,8 +27,8 @@ import (
 	"github.com/jancajthaml-openbank/vault-rest/system"
 	"github.com/jancajthaml-openbank/vault-rest/utils"
 
-	"github.com/labstack/echo"
 	localfs "github.com/jancajthaml-openbank/local-fs"
+	"github.com/labstack/echo/v4"
 )
 
 // Server is a fascade for http-server following handler api of Gin and

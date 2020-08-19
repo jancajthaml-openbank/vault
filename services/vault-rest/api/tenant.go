@@ -15,12 +15,12 @@
 package api
 
 import (
-	"net/http"
 	"fmt"
+	"net/http"
 
 	"github.com/jancajthaml-openbank/vault-rest/system"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 // CreateTenant enables vault-unit@{tenant}
@@ -73,10 +73,10 @@ func ListTenants(systemctl *system.SystemControl) func(c echo.Context) error {
 		c.Response().WriteHeader(http.StatusOK)
 
 		for idx, unit := range units {
-			if idx == len(units) - 1 {
+			if idx == len(units)-1 {
 				c.Response().Write([]byte(unit))
 			} else {
-				c.Response().Write([]byte(unit+"\n"))
+				c.Response().Write([]byte(unit + "\n"))
 			}
 			c.Response().Flush()
 		}
