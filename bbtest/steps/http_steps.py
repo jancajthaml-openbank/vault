@@ -65,9 +65,6 @@ def create_account(context, activity, currency, tenant, account):
 
   assert response.status == 200
 
-  response = response.read().decode('utf-8')
-  response = json.loads(response)
-
 
 @when('I request HTTP {uri}')
 def perform_http_request(context, uri):
@@ -141,7 +138,7 @@ def check_http_response(context):
     try:
       expected = json.loads(context.text)
       if type(expected) == dict:
-        stash = stash[0]
+        stash = stash[0] if len(stash) else dict()
       diff('', expected, stash)
     except AssertionError as ex:
       raise AssertionError('{} with response {}'.format(ex, response['body']))
