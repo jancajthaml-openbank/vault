@@ -46,13 +46,12 @@ func GetAccount(system *actor.ActorSystem) func(c echo.Context) error {
 			return nil
 
 		case *actor.Account:
-			c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
-			c.Response().WriteHeader(http.StatusOK)
-
 			chunk, err := utils.JSON.Marshal(result)
 			if err != nil {
 				return err
 			}
+			c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+			c.Response().WriteHeader(http.StatusOK)
 			c.Response().Write(chunk)
 			c.Response().Flush()
 			return nil
@@ -92,9 +91,13 @@ func CreateAccount(system *actor.ActorSystem) func(c echo.Context) error {
 		switch actor.CreateAccount(system, tenant, *req).(type) {
 
 		case *actor.AccountCreated:
+			chunk, err := utils.JSON.Marshal(req)
+			if err != nil {
+				return err
+			}
 			c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 			c.Response().WriteHeader(http.StatusOK)
-			c.Response().Write(b)
+			c.Response().Write(chunk)
 			c.Response().Flush()
 			return nil
 
