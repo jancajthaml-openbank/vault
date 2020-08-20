@@ -120,7 +120,7 @@ func GetAccounts(storage *localfs.PlaintextStorage) func(c echo.Context) error {
 
 		accounts, err := persistence.LoadAccounts(storage, tenant)
 		if err != nil {
-			return nil
+			return err
 		}
 
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextPlainCharsetUTF8)
