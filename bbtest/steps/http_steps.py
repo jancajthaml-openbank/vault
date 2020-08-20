@@ -126,20 +126,23 @@ def check_http_response(context):
         assert type(a) == type(b), 'types differ at {} expected: {} actual: {}'.format(path, type(a), type(b))
         assert a == b, 'values differ at {} expected: {} actual: {}'.format(path, a, b)
 
-    stash = list()
+    actual = None
 
-    if response['body']:
+    if response['content-type'].startswith('text/plain'):
+      actual = list()
       for line in response['body'].split('\n'):
-        if response['content-type'].startswith('text/plain'):
-          stash.append(line)
+        if line.startswith('{'):
+          actual.append(json.loads(line))
         else:
-          stash.append(json.loads(line))
+          actual.append(line)
+    elif response['content-type'].startswith('application/json'):
+      actual = json.loads(response['body'])
+    else:
+      actual = response['body']
 
     try:
       expected = json.loads(context.text)
-      if type(expected) == dict:
-        stash = stash[0] if len(stash) else dict()
-      diff('', expected, stash)
+      diff('', expected, actual)
     except AssertionError as ex:
       raise AssertionError('{} with response {}'.format(ex, response['body']))
 
