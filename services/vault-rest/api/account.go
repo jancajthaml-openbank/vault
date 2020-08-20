@@ -30,6 +30,8 @@ import (
 // GetAccount returns account state
 func GetAccount(system *actor.ActorSystem) func(c echo.Context) error {
 	return func(c echo.Context) error {
+		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+
 		tenant := c.Param("tenant")
 		if tenant == "" {
 			return fmt.Errorf("missing tenant")
@@ -50,7 +52,6 @@ func GetAccount(system *actor.ActorSystem) func(c echo.Context) error {
 			if err != nil {
 				return err
 			}
-			c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 			c.Response().WriteHeader(http.StatusOK)
 			c.Response().Write(chunk)
 			c.Response().Flush()

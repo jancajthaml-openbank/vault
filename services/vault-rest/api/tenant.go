@@ -45,6 +45,8 @@ func CreateTenant(systemctl *system.SystemControl) func(c echo.Context) error {
 // DeleteTenant disables vault-unit@{tenant}
 func DeleteTenant(systemctl *system.SystemControl) func(c echo.Context) error {
 	return func(c echo.Context) error {
+		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+
 		tenant := c.Param("tenant")
 		if tenant == "" {
 			return fmt.Errorf("missing tenant")
@@ -64,6 +66,8 @@ func DeleteTenant(systemctl *system.SystemControl) func(c echo.Context) error {
 // ListTenants lists vault-unit@
 func ListTenants(systemctl *system.SystemControl) func(c echo.Context) error {
 	return func(c echo.Context) error {
+		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+
 		units, err := systemctl.ListUnits("vault-unit@")
 		if err != nil {
 			return err
