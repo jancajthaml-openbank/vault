@@ -108,6 +108,7 @@ func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 	}
 }
 
+// NewAccountActor returns new account actor Envelope
 func NewAccountActor(s *ActorSystem, name string) (*system.Envelope, error) {
 	envelope := system.NewEnvelope(name, model.NewAccount(name))
 	err := s.RegisterActor(envelope, NilAccount(s))

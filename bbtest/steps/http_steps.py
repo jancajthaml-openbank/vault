@@ -65,9 +65,6 @@ def create_account(context, activity, currency, tenant, account):
 
   assert response.status == 200
 
-  response = response.read().decode('utf-8')
-  response = json.loads(response)
-
 
 @when('I request HTTP {uri}')
 def perform_http_request(context, uri):
@@ -92,9 +89,11 @@ def perform_http_request(context, uri):
     response = urllib.request.urlopen(request, timeout=10, context=ctx)
     context.http_response['status'] = str(response.status)
     context.http_response['body'] = response.read().decode('utf-8')
+    context.http_response['content-type'] = response.info().get_content_type()
   except urllib.error.HTTPError as err:
     context.http_response['status'] = str(err.code)
     context.http_response['body'] = err.read().decode('utf-8')
+    context.http_response['content-type'] = 'text-plain'
 
 
 @then('HTTP response is')
@@ -127,4 +126,23 @@ def check_http_response(context):
         assert type(a) == type(b), 'types differ at {} expected: {} actual: {}'.format(path, type(a), type(b))
         assert a == b, 'values differ at {} expected: {} actual: {}'.format(path, a, b)
 
-    diff('', json.loads(context.text), json.loads(response['body']))
+    actual = None
+
+    if response['content-type'].startswith('text/plain'):
+      actual = list()
+      for line in response['body'].split('\n'):
+        if line.startswith('{'):
+          actual.append(json.loads(line))
+        else:
+          actual.append(line)
+    elif response['content-type'].startswith('application/json'):
+      actual = json.loads(response['body'])
+    else:
+      actual = response['body']
+
+    try:
+      expected = json.loads(context.text)
+      diff('', expected, actual)
+    except AssertionError as ex:
+      raise AssertionError('{} with response {}'.format(ex, response['body']))
+
