@@ -24,7 +24,8 @@ import (
 
 func loadConfFromEnv() Configuration {
 	logLevel := strings.ToUpper(getEnvString("VAULT_LOG_LEVEL", "DEBUG"))
-	secrets := getEnvString("VAULT_SECRETS", "")
+	serverKey := getEnvString("VAULT_SERVER_KEY", "")
+	serverCert := getEnvString("VAULT_SERVER_CERT", "")
 	rootStorage := getEnvString("VAULT_STORAGE", "/data")
 	lakeHostname := getEnvString("VAULT_LAKE_HOSTNAME", "")
 	port := getEnvInteger("VAULT_HTTP_PORT", 4400)
@@ -33,14 +34,15 @@ func loadConfFromEnv() Configuration {
 	metricsOutput := getEnvFilename("VAULT_METRICS_OUTPUT", "/tmp")
 	metricsRefreshRate := getEnvDuration("VAULT_METRICS_REFRESHRATE", time.Second)
 
-	if lakeHostname == "" || secrets == "" || rootStorage == "" {
+	if lakeHostname == "" || serverKey == "" || serverCert == "" || rootStorage == "" {
 		log.Fatal("missing required parameter to run")
 	}
 
 	return Configuration{
 		RootStorage:        rootStorage,
 		ServerPort:         port,
-		SecretsPath:        secrets,
+		ServerKey:          serverKey,
+		ServerCert:         serverCert,
 		LakeHostname:       lakeHostname,
 		LogLevel:           logLevel,
 		MetricsRefreshRate: metricsRefreshRate,

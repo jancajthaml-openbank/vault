@@ -15,7 +15,7 @@
 package actor
 
 import (
-	"strings"
+	"fmt"
 
 	"github.com/jancajthaml-openbank/vault-unit/model"
 
@@ -23,87 +23,103 @@ import (
 	money "gopkg.in/inf.v0"
 )
 
+func parseMessage(msg string) (interface{}, error) {
+	start := 0
+	end := len(msg)
+	parts := make([]string, 4)
+	idx := 0
+	i := 0
+	for i < end && idx < 4 {
+		if msg[i] == 32 {
+			if !(start == i && msg[start] == 32) {
+				parts[idx] = msg[start:i]
+				idx++
+			}
+			start = i + 1
+		}
+		i++
+	}
+	if idx < 4 && msg[start] != 32 && len(msg[start:]) > 0 {
+		parts[idx] = msg[start:]
+		idx++
+	}
+
+	switch parts[0] {
+
+	case ReqAccountState:
+		return GetAccountState{}, nil
+
+	case ReqCreateAccount:
+		if idx == 4 {
+			return CreateAccount{
+				Format:         parts[1],
+				Currency:       parts[2],
+				IsBalanceCheck: parts[3] != "f",
+			}, nil
+		}
+		return nil, fmt.Errorf("invalid message %s", msg)
+
+	case PromiseOrder:
+		if idx == 4 {
+			if amount, ok := new(money.Dec).SetString(parts[2]); ok {
+				return Promise{
+					Transaction: parts[1],
+					Amount:      amount,
+					Currency:    parts[3],
+				}, nil
+			}
+		}
+		return nil, fmt.Errorf("invalid message %s", msg)
+
+	case CommitOrder:
+		if idx == 4 {
+			if amount, ok := new(money.Dec).SetString(parts[2]); ok {
+				return Commit{
+					Transaction: parts[1],
+					Amount:      amount,
+					Currency:    parts[3],
+				}, nil
+			}
+			return nil, fmt.Errorf("invalid order amount %s", msg)
+		}
+		return nil, fmt.Errorf("invalid message %s", msg)
+
+	case RollbackOrder:
+		if idx == 4 {
+			if amount, ok := new(money.Dec).SetString(parts[2]); ok {
+				return Rollback{
+					Transaction: parts[1],
+					Amount:      amount,
+					Currency:    parts[3],
+				}, nil
+			}
+			return nil, fmt.Errorf("invalid order amount %s", msg)
+		}
+		return nil, fmt.Errorf("invalid message %s", msg)
+
+	default:
+		return nil, fmt.Errorf("unknown message %s", msg)
+	}
+}
+
 // ProcessMessage processing of remote message
 func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 	return func(msg string, to system.Coordinates, from system.Coordinates) {
-
-		defer func() {
-			if r := recover(); r != nil {
-				log.Errorf("procesRemoteMessage recovered in [remote %v -> local %v] : %+v", from, to, r)
-				s.SendMessage(FatalError, from, to)
-			}
-		}()
-
 		ref, err := s.ActorOf(to.Name)
 		if err != nil {
 			ref, err = NewAccountActor(s, to.Name)
 		}
-
 		if err != nil {
 			log.Warnf("Actor not found [remote %v -> local %v]", from, to)
 			s.SendMessage(FatalError, from, to)
 			return
 		}
-
-		parts := strings.Split(msg, " ")
-
-		var message interface{}
-
-		switch parts[0] {
-
-		case ReqAccountState:
-			message = GetAccountState{}
-
-		case ReqCreateAccount:
-			if len(parts) == 4 {
-				message = CreateAccount{
-					Name:           to.Name,
-					Format:         parts[1],
-					Currency:       parts[2],
-					IsBalanceCheck: parts[3] != "f",
-				}
-			}
-
-		case PromiseOrder:
-			if len(parts) == 4 {
-				if amount, ok := new(money.Dec).SetString(parts[2]); ok {
-					message = Promise{
-						Transaction: parts[1],
-						Amount:      amount,
-						Currency:    parts[3],
-					}
-				}
-			}
-
-		case CommitOrder:
-			if len(parts) == 4 {
-				if amount, ok := new(money.Dec).SetString(parts[2]); ok {
-					message = Commit{
-						Transaction: parts[1],
-						Amount:      amount,
-						Currency:    parts[3],
-					}
-				}
-			}
-
-		case RollbackOrder:
-			if len(parts) == 4 {
-				if amount, ok := new(money.Dec).SetString(parts[2]); ok {
-					message = Rollback{
-						Transaction: parts[1],
-						Amount:      amount,
-						Currency:    parts[3],
-					}
-				}
-			}
-		}
-
-		if message == nil {
-			log.Warnf("Deserialization of unsuported message [remote %v -> local %v] : %+v", from, to, parts)
+		message, err := parseMessage(msg)
+		if err != nil {
+			log.Warnf("%s [remote %v -> local %v]", err, from, to)
 			s.SendMessage(FatalError, from, to)
 			return
 		}
-
 		ref.Tell(message, to, from)
 	}
 }

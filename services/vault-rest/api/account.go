@@ -20,6 +20,7 @@ import (
 	"net/http"
 
 	"github.com/jancajthaml-openbank/vault-rest/actor"
+	"github.com/jancajthaml-openbank/vault-rest/model"
 	"github.com/jancajthaml-openbank/vault-rest/persistence"
 	"github.com/jancajthaml-openbank/vault-rest/utils"
 
@@ -47,7 +48,7 @@ func GetAccount(system *actor.ActorSystem) func(c echo.Context) error {
 			c.Response().WriteHeader(http.StatusNotFound)
 			return nil
 
-		case *actor.Account:
+		case *model.Account:
 			chunk, err := utils.JSON.Marshal(result)
 			if err != nil {
 				return err
@@ -76,20 +77,20 @@ func CreateAccount(system *actor.ActorSystem) func(c echo.Context) error {
 			return fmt.Errorf("missing tenant")
 		}
 
-		b, err := ioutil.ReadAll(c.Request().Body)
+		req, err := ioutil.ReadAll(c.Request().Body)
 		defer c.Request().Body.Close()
 		if err != nil {
 			c.Response().WriteHeader(http.StatusBadRequest)
 			return err
 		}
 
-		var req = new(actor.Account)
-		if utils.JSON.Unmarshal(b, req) != nil {
+		var account = new(model.Account)
+		if utils.JSON.Unmarshal(req, account) != nil {
 			c.Response().WriteHeader(http.StatusBadRequest)
 			return nil
 		}
 
-		switch actor.CreateAccount(system, tenant, *req).(type) {
+		switch actor.CreateAccount(system, tenant, *account).(type) {
 
 		case *actor.AccountCreated:
 			c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)

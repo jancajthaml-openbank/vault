@@ -17,13 +17,14 @@ package actor
 import (
 	"time"
 
+	"github.com/jancajthaml-openbank/vault-rest/model"
 	"github.com/rs/xid"
 
 	system "github.com/jancajthaml-openbank/actor-system"
 )
 
 // CreateAccount creates new account for target tenant vault
-func CreateAccount(sys *ActorSystem, tenant string, account Account) (result interface{}) {
+func CreateAccount(sys *ActorSystem, tenant string, account model.Account) (result interface{}) {
 	sys.Metrics.TimeCreateAccount(func() {
 		ch := make(chan interface{})
 		defer close(ch)

@@ -20,7 +20,6 @@ import (
 
 // CreateAccount is inbound request for creation of new account
 type CreateAccount struct {
-	Name           string
 	Format         string
 	Currency       string
 	IsBalanceCheck bool

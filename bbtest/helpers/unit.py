@@ -23,7 +23,8 @@ class UnitHelper(object):
       "STORAGE_THRESHOLD": 0,
       "LAKE_HOSTNAME": "127.0.0.1",
       "HTTP_PORT": 443,
-      "SECRETS": "/etc/vault/secrets",
+      "SERVER_KEY": "/etc/vault/secrets/domain.local.key",
+      "SERVER_CERT": "/etc/vault/secrets/domain.local.crt",
       "METRICS_REFRESHRATE": "1h",
       "METRICS_OUTPUT": "{}/reports/blackbox-tests/metrics".format(os.getcwd()),
       #"METRICS_CONTINUOUS": "true",  # fixme implement
@@ -150,5 +151,5 @@ class UnitHelper(object):
   def __get_systemd_units(self):
     (code, result, error) = execute(['systemctl', 'list-units', '--no-legend'])
     result = [item.split(' ')[0].strip() for item in result.split(os.linesep)]
-    result = [item for item in result if "vault" in item]
+    result = [item for item in result if "vault" in item and not item.endswith('unit.slice')]
     return result
