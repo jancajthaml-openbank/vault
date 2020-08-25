@@ -109,18 +109,18 @@ func parseMessage(msg string) (interface{}, error) {
 // ProcessMessage processing of remote message
 func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 	return func(msg string, to system.Coordinates, from system.Coordinates) {
+		message, err := parseMessage(msg)
+		if err != nil {
+			log.Warnf("%s [remote %v -> local %v]", err, from, to)
+			s.SendMessage(FatalError, from, to)
+			return
+		}
 		ref, err := s.ActorOf(to.Name)
 		if err != nil {
 			ref, err = NewAccountActor(s, to.Name)
 		}
 		if err != nil {
 			log.Warnf("Actor not found [remote %v -> local %v]", from, to)
-			s.SendMessage(FatalError, from, to)
-			return
-		}
-		message, err := parseMessage(msg)
-		if err != nil {
-			log.Warnf("%s [remote %v -> local %v]", err, from, to)
 			s.SendMessage(FatalError, from, to)
 			return
 		}
