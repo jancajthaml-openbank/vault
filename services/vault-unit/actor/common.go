@@ -44,7 +44,7 @@ func parseMessage(msg string) (interface{}, error) {
 		idx++
 	}
 
-	if i != end - 1 {
+	if i != end {
 		return nil, fmt.Errorf("message too large")
 	}
 
