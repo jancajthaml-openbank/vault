@@ -19,17 +19,15 @@ services:
       - GOARCH
       - GOPATH=/go
       - COMPOSE_PROJECT_NAME
-    entrypoint:
-      - go
 
   # -------------------------------------------------------------------------- #
 
   debian: &debian
     image: jancajthaml/debian-packager
+    tty: true
     volumes:
       - .:/project
     working_dir: /project
-    tty: true
 
   # -------------------------------------------------------------------------- #
 
