@@ -14,13 +14,6 @@
 
 package actor
 
-import (
-	"fmt"
-	"strings"
-
-	"github.com/jancajthaml-openbank/vault-rest/utils"
-)
-
 // ReplyTimeout message
 type ReplyTimeout struct{}
 
@@ -29,55 +22,3 @@ type AccountCreated struct{}
 
 // AccountMissing message
 type AccountMissing struct{}
-
-// Account represents account
-type Account struct {
-	Name           string `json:"-"`
-	Format         string `json:"format"`
-	Currency       string `json:"currency"`
-	Balance        string `json:"balance"`
-	Blocking       string `json:"blocking"`
-	IsBalanceCheck bool   `json:"isBalanceCheck"`
-}
-
-// UnmarshalJSON unmarshal json of Account entity
-func (entity *Account) UnmarshalJSON(data []byte) error {
-	if entity == nil {
-		return fmt.Errorf("cannot unmarshall to nil pointer")
-	}
-	all := struct {
-		Name           string `json:"name"`
-		Format         string `json:"format"`
-		Currency       string `json:"currency"`
-		IsBalanceCheck *bool  `json:"isBalanceCheck"`
-	}{}
-	err := utils.JSON.Unmarshal(data, &all)
-	if err != nil {
-		return err
-	}
-	if all.Name == "" {
-		return fmt.Errorf("missing attribute \"name\"")
-	}
-	if all.Format == "" {
-		return fmt.Errorf("missing attribute \"format\"")
-	}
-	if all.Currency == "" {
-		return fmt.Errorf("missing attribute \"currency\"")
-	}
-	if len(all.Currency) != 3 ||
-		!((all.Currency[0] >= 'A' && all.Currency[0] <= 'Z') &&
-			(all.Currency[1] >= 'A' && all.Currency[1] <= 'Z') &&
-			(all.Currency[2] >= 'A' && all.Currency[2] <= 'Z')) {
-		return fmt.Errorf("invalid value of attribute \"currency\"")
-	}
-	if all.IsBalanceCheck == nil {
-		entity.IsBalanceCheck = true
-	} else {
-		entity.IsBalanceCheck = *all.IsBalanceCheck
-	}
-
-	entity.Name = strings.Replace(all.Name, " ", "_", -1)
-	entity.Format = strings.Replace(all.Format, " ", "_", -1)
-	entity.Currency = all.Currency
-	return nil
-}
