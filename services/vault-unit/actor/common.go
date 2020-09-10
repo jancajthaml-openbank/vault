@@ -120,7 +120,7 @@ func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 			ref, err = NewAccountActor(s, to.Name)
 		}
 		if err != nil {
-			log.Warn().Msgf("Actor not found [remote %v -> local %v]", from, to)
+			log.Warn().Msgf("Actor not found for message [remote %v -> local %v]", from, to)
 			s.SendMessage(FatalError, from, to)
 			return
 		}
@@ -133,9 +133,9 @@ func NewAccountActor(s *ActorSystem, name string) (*system.Envelope, error) {
 	envelope := system.NewEnvelope(name, model.NewAccount(name))
 	err := s.RegisterActor(envelope, NilAccount(s))
 	if err != nil {
-		log.Warn().Msgf("%s ~ Spawning Actor Error unable to register", name)
+		log.Warn().Msgf("Unable to register %s actor", name)
 		return nil, err
 	}
-	log.Debug().Msgf("%s ~ Actor Spawned", name)
+	log.Debug().Msgf("Actor %s registered", name)
 	return envelope, nil
 }
