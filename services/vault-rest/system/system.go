@@ -113,8 +113,8 @@ func (sys SystemControl) DisableUnit(name string) error {
 		if result != "done" {
 			return fmt.Errorf("unable to stop unit %s", name)
 		}
-		log.Infof("Stopped unit %s", name)
-		log.Infof("Disabling unit %s", name)
+		log.Info().Msgf("Stopped unit %s", name)
+		log.Info().Msgf("Disabling unit %s", name)
 
 		if _, err := sys.underlying.DisableUnitFiles([]string{name}, false); err != nil {
 			return fmt.Errorf("unable to disable unit %s because %+v", name, err)
@@ -147,7 +147,7 @@ func (sys SystemControl) EnableUnit(name string) error {
 		if result != "done" {
 			return fmt.Errorf("unable to start unit %s", name)
 		}
-		log.Infof("Started unit %s", name)
+		log.Info().Msgf("Started unit %s", name)
 		return nil
 
 	case <-time.After(3 * time.Second):
@@ -173,7 +173,7 @@ func (sys SystemControl) Start() {
 		return
 	}
 
-	log.Info("Start system-control daemon")
+	log.Info().Msg("Start system-control daemon")
 
 	go func() {
 		for {
@@ -186,5 +186,5 @@ func (sys SystemControl) Start() {
 	}()
 
 	sys.WaitStop()
-	log.Info("Stop system-control daemon")
+	log.Info().Msg("Stop system-control daemon")
 }

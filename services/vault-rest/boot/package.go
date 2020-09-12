@@ -18,4 +18,4 @@ import (
 	"github.com/jancajthaml-openbank/vault-rest/logging"
 )
 
-var log = logging.NewLogger("boot")
+var log = logging.New("boot")
