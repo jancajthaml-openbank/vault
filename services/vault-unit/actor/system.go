@@ -35,7 +35,7 @@ type ActorSystem struct {
 // NewActorSystem returns actor system fascade
 func NewActorSystem(ctx context.Context, tenant string, lakeEndpoint string, maxEventsInSnapshot int, metrics *metrics.Metrics, storage *localfs.PlaintextStorage) ActorSystem {
 	result := ActorSystem{
-		System:               system.NewSystem(ctx, "VaultUnit/"+tenant, lakeEndpoint),
+		System:               system.New(ctx, "VaultUnit/"+tenant, lakeEndpoint),
 		Storage:              storage,
 		Metrics:              metrics,
 		EventCounterTreshold: int64(maxEventsInSnapshot) - 1,

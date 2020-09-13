@@ -29,7 +29,7 @@ func CreateAccount(sys *ActorSystem, tenant string, account model.Account) (resu
 		ch := make(chan interface{})
 		defer close(ch)
 
-		envelope := system.NewEnvelope("relay/"+xid.New().String(), nil)
+		envelope := system.NewActor("relay/"+xid.New().String(), nil)
 		defer sys.UnregisterActor(envelope.Name)
 
 		sys.RegisterActor(envelope, func(state interface{}, context system.Context) {
@@ -67,7 +67,7 @@ func GetAccount(sys *ActorSystem, tenant string, name string) (result interface{
 		ch := make(chan interface{})
 		defer close(ch)
 
-		envelope := system.NewEnvelope("relay/"+xid.New().String(), nil)
+		envelope := system.NewActor("relay/"+xid.New().String(), nil)
 		defer sys.UnregisterActor(envelope.Name)
 
 		sys.RegisterActor(envelope, func(state interface{}, context system.Context) {
