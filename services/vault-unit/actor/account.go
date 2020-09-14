@@ -23,7 +23,7 @@ import (
 )
 
 // NilAccount represents account that is neither existing neither non existing
-func NilAccount(s *ActorSystem) func(interface{}, system.Context) {
+func NilAccount(s *System) func(interface{}, system.Context) {
 	return func(t_state interface{}, context system.Context) {
 		state := t_state.(model.Account)
 
@@ -41,7 +41,7 @@ func NilAccount(s *ActorSystem) func(interface{}, system.Context) {
 }
 
 // NonExistAccount represents account that does not exist
-func NonExistAccount(s *ActorSystem) func(interface{}, system.Context) {
+func NonExistAccount(s *System) func(interface{}, system.Context) {
 	return func(t_state interface{}, context system.Context) {
 		state := t_state.(model.Account)
 
@@ -82,7 +82,7 @@ func NonExistAccount(s *ActorSystem) func(interface{}, system.Context) {
 }
 
 // ExistAccount represents account that does exist
-func ExistAccount(s *ActorSystem) func(interface{}, system.Context) {
+func ExistAccount(s *System) func(interface{}, system.Context) {
 	return func(t_state interface{}, context system.Context) {
 		state := t_state.(model.Account)
 

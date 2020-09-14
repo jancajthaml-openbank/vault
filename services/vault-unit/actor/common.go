@@ -107,7 +107,7 @@ func parseMessage(msg string) (interface{}, error) {
 }
 
 // ProcessMessage processing of remote message
-func ProcessMessage(s *ActorSystem) system.ProcessMessage {
+func ProcessMessage(s *System) system.ProcessMessage {
 	return func(msg string, to system.Coordinates, from system.Coordinates) {
 		message, err := parseMessage(msg)
 		if err != nil {
@@ -129,7 +129,7 @@ func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 }
 
 // NewAccountActor returns new account Actor
-func NewAccountActor(s *ActorSystem, name string) (*system.Actor, error) {
+func NewAccountActor(s *System, name string) (*system.Actor, error) {
 	envelope := system.NewActor(name, model.NewAccount(name))
 	err := s.RegisterActor(envelope, NilAccount(s))
 	if err != nil {

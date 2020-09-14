@@ -24,7 +24,7 @@ import (
 )
 
 // CreateAccount creates new account for target tenant vault
-func CreateAccount(sys *ActorSystem, tenant string, account model.Account) (result interface{}) {
+func CreateAccount(sys *System, tenant string, account model.Account) (result interface{}) {
 	sys.Metrics.TimeCreateAccount(func() {
 		ch := make(chan interface{})
 		defer close(ch)
@@ -62,7 +62,7 @@ func CreateAccount(sys *ActorSystem, tenant string, account model.Account) (resu
 }
 
 // GetAccount retrives account state from target tenant vault
-func GetAccount(sys *ActorSystem, tenant string, name string) (result interface{}) {
+func GetAccount(sys *System, tenant string, name string) (result interface{}) {
 	sys.Metrics.TimeGetAccount(func() {
 		ch := make(chan interface{})
 		defer close(ch)
