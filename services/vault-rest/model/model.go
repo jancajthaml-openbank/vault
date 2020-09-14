@@ -15,10 +15,9 @@
 package model
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
-
-	"github.com/jancajthaml-openbank/vault-rest/utils"
 )
 
 // Account represents account
@@ -34,7 +33,7 @@ type Account struct {
 // UnmarshalJSON unmarshal json of Account entity
 func (entity *Account) UnmarshalJSON(data []byte) error {
 	if entity == nil {
-		return fmt.Errorf("cannot unmarshall to nil pointer")
+		return fmt.Errorf("cannot unmarshal to nil pointer")
 	}
 	all := struct {
 		Name           string `json:"name"`
@@ -42,7 +41,7 @@ func (entity *Account) UnmarshalJSON(data []byte) error {
 		Currency       string `json:"currency"`
 		IsBalanceCheck *bool  `json:"isBalanceCheck"`
 	}{}
-	err := utils.JSON.Unmarshal(data, &all)
+	err := json.Unmarshal(data, &all)
 	if err != nil {
 		return err
 	}

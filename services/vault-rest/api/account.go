@@ -15,6 +15,7 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -22,14 +23,13 @@ import (
 	"github.com/jancajthaml-openbank/vault-rest/actor"
 	"github.com/jancajthaml-openbank/vault-rest/model"
 	"github.com/jancajthaml-openbank/vault-rest/persistence"
-	"github.com/jancajthaml-openbank/vault-rest/utils"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
 	"github.com/labstack/echo/v4"
 )
 
 // GetAccount returns account state
-func GetAccount(system *actor.ActorSystem) func(c echo.Context) error {
+func GetAccount(system *actor.System) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 
@@ -49,7 +49,7 @@ func GetAccount(system *actor.ActorSystem) func(c echo.Context) error {
 			return nil
 
 		case *model.Account:
-			chunk, err := utils.JSON.Marshal(result)
+			chunk, err := json.Marshal(result)
 			if err != nil {
 				return err
 			}
@@ -70,7 +70,7 @@ func GetAccount(system *actor.ActorSystem) func(c echo.Context) error {
 }
 
 // CreateAccount creates new account for given tenant
-func CreateAccount(system *actor.ActorSystem) func(c echo.Context) error {
+func CreateAccount(system *actor.System) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		tenant := c.Param("tenant")
 		if tenant == "" {
@@ -85,7 +85,7 @@ func CreateAccount(system *actor.ActorSystem) func(c echo.Context) error {
 		}
 
 		var account = new(model.Account)
-		if utils.JSON.Unmarshal(req, account) != nil {
+		if json.Unmarshal(req, account) != nil {
 			c.Response().WriteHeader(http.StatusBadRequest)
 			return nil
 		}

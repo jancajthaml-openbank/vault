@@ -14,8 +14,8 @@
 
 package system
 
-// UnitStatus represents whitelist of properties we are willing to
-// expose via health check
+// UnitStatus represents whitelist of properties of unit that we are willing to
+// expose
 type UnitStatus struct {
 	Status          string `json:"status"`
 	StatusChangedAt uint64 `json:"statusChangedAt"`
@@ -35,8 +35,8 @@ type MemoryStatus struct {
 	IsHealthy bool   `json:"healthy"`
 }
 
-// SystemStatus represents system status snapshot
-type SystemStatus struct {
+// Status represents system status snapshot
+type Status struct {
 	Storage StorageStatus `json:"storage"`
 	Memory  MemoryStatus  `json:"memory"`
 }

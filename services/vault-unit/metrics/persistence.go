@@ -16,8 +16,8 @@ package metrics
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
-	"github.com/jancajthaml-openbank/vault-unit/utils"
 	"os"
 	"strconv"
 	"time"
@@ -26,13 +26,13 @@ import (
 // MarshalJSON serializes Metrics as json bytes
 func (metrics *Metrics) MarshalJSON() ([]byte, error) {
 	if metrics == nil {
-		return nil, fmt.Errorf("cannot marshall nil")
+		return nil, fmt.Errorf("cannot marshal nil")
 	}
 
 	if metrics.promisesAccepted == nil || metrics.commitsAccepted == nil ||
 		metrics.rollbacksAccepted == nil || metrics.createdAccounts == nil ||
 		metrics.updatedSnapshots == nil || metrics.snapshotCronLatency == nil {
-		return nil, fmt.Errorf("cannot marshall nil references")
+		return nil, fmt.Errorf("cannot marshal nil references")
 	}
 
 	var buffer bytes.Buffer
@@ -57,13 +57,13 @@ func (metrics *Metrics) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON deserializes Metrics from json bytes
 func (metrics *Metrics) UnmarshalJSON(data []byte) error {
 	if metrics == nil {
-		return fmt.Errorf("cannot unmarshall to nil")
+		return fmt.Errorf("cannot unmarshal to nil")
 	}
 
 	if metrics.promisesAccepted == nil || metrics.commitsAccepted == nil ||
 		metrics.rollbacksAccepted == nil || metrics.createdAccounts == nil ||
 		metrics.updatedSnapshots == nil || metrics.snapshotCronLatency == nil {
-		return fmt.Errorf("cannot unmarshall to nil references")
+		return fmt.Errorf("cannot unmarshal to nil references")
 	}
 
 	aux := &struct {
@@ -75,7 +75,7 @@ func (metrics *Metrics) UnmarshalJSON(data []byte) error {
 		RollbacksAccepted   int64   `json:"rollbacksAccepted"`
 	}{}
 
-	if err := utils.JSON.Unmarshal(data, &aux); err != nil {
+	if err := json.Unmarshal(data, &aux); err != nil {
 		return err
 	}
 
@@ -98,7 +98,7 @@ func (metrics *Metrics) Persist() error {
 	if metrics == nil {
 		return fmt.Errorf("cannot persist nil reference")
 	}
-	data, err := utils.JSON.Marshal(metrics)
+	data, err := json.Marshal(metrics)
 	if err != nil {
 		return err
 	}
@@ -122,7 +122,7 @@ func (metrics *Metrics) Hydrate() error {
 	if err != nil {
 		return err
 	}
-	err = utils.JSON.Unmarshal(data, metrics)
+	err = json.Unmarshal(data, metrics)
 	if err != nil {
 		return err
 	}
