@@ -3,6 +3,7 @@
 Service responsible for account integrity, amount blockations and ledger promises realisation.
 
 ![Health Check](https://github.com/jancajthaml-openbank/vault/workflows/Health%20Check/badge.svg)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fjancajthaml-openbank%2Fvault.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fjancajthaml-openbank%2Fvault?ref=badge_shield)
 
 [![godoc for jancajthaml-openbank/vault](https://godoc.org/github.com/nathany/looper?status.svg)](https://godoc.org/github.com/jancajthaml-openbank/vault) [![CircleCI](https://circleci.com/gh/jancajthaml-openbank/vault/tree/master.svg?style=shield)](https://circleci.com/gh/jancajthaml-openbank/vault/tree/master)
 
@@ -11,6 +12,9 @@ Service responsible for account integrity, amount blockations and ledger promise
 ## License
 
 Licensed under Apache 2.0 see LICENSE.md for details
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fjancajthaml-openbank%2Fvault.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fjancajthaml-openbank%2Fvault?ref=badge_large)
 
 ## Contributing
 
