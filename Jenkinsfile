@@ -129,6 +129,12 @@ pipeline {
                         --source ${env.WORKSPACE}/services/vault-rest
                     """
                 }
+                script {
+                    sh """
+                        ${env.WORKSPACE}/dev/lifecycle/sync \
+                        --source ${env.WORKSPACE}/services/vault-unit
+                    """
+                }
             }
         }
 
@@ -151,6 +157,16 @@ pipeline {
                         --source ${env.WORKSPACE}/services/vault-rest
                     """
                 }
+                script {
+                    sh """
+                        ${env.WORKSPACE}/dev/lifecycle/lint \
+                        --source ${env.WORKSPACE}/services/vault-unit
+                    """
+                    sh """
+                        ${env.WORKSPACE}/dev/lifecycle/sec \
+                        --source ${env.WORKSPACE}/services/vault-unit
+                    """
+                }
             }
         }
 
@@ -167,6 +183,13 @@ pipeline {
                     sh """
                         ${env.WORKSPACE}/dev/lifecycle/test \
                         --source ${env.WORKSPACE}/services/vault-rest \
+                        --output ${env.WORKSPACE}/reports/unit-tests
+                    """
+                }
+                script {
+                    sh """
+                        ${env.WORKSPACE}/dev/lifecycle/test \
+                        --source ${env.WORKSPACE}/services/vault-unit \
                         --output ${env.WORKSPACE}/reports/unit-tests
                     """
                 }
@@ -187,6 +210,14 @@ pipeline {
                         ${env.WORKSPACE}/dev/lifecycle/package \
                         --arch linux/${env.ARCH} \
                         --source ${env.WORKSPACE}/services/vault-rest \
+                        --output ${env.WORKSPACE}/packaging/bin
+                    """
+                }
+                script {
+                    sh """
+                        ${env.WORKSPACE}/dev/lifecycle/package \
+                        --arch linux/${env.ARCH} \
+                        --source ${env.WORKSPACE}/services/vault-unit \
                         --output ${env.WORKSPACE}/packaging/bin
                     """
                 }
@@ -271,6 +302,11 @@ pipeline {
                                 "recursive": "false"
                             },
                             {
+                                "pattern": "${env.WORKSPACE}/packaging/bin/vault-unit-linux-(*)",
+                                "target": "generic-local/openbank/vault/linux/{1}/${env.VERSION}/vault-unit",
+                                "recursive": "false"
+                            },
+                            {
                                 "pattern": "${env.WORKSPACE}/packaging/bin/vault_(*)_(*).deb",
                                 "target": "generic-local/openbank/vault/linux/{2}/{1}/vault.deb",
                                 "recursive": "false"
@@ -295,16 +331,25 @@ pipeline {
                     allowMissing: true,
                     alwaysLinkToLastBuild: false,
                     keepAll: true,
-                    reportDir: "${env.WORKSPACE}/reports/unit-tests",
+                    reportDir: "${env.WORKSPACE}/reports/unit-tests/vault-rest-coverage.html",
                     reportFiles: 'vault-rest-coverage.html',
                     reportName: 'Unit Test Coverage (Vault Rest)'
                 ])
+                publishHTML(target: [
+                    allowMissing: true,
+                    alwaysLinkToLastBuild: false,
+                    keepAll: true,
+                    reportDir: "${env.WORKSPACE}/reports/unit-tests/vault-unit-coverage.html",
+                    reportFiles: 'vault-unit-coverage.html',
+                    reportName: 'Unit Test Coverage (Vault Unit)'
+                ])
                 junit(
-                    checksName: 'Unit Test (Vault Rest)',
+                    checksName: 'Unit Test',
                     allowEmptyResults: true,
                     skipPublishingChecks: true,
-                    testResults: "${env.WORKSPACE}/reports/unit-tests/vault-rest-results.xml"
+                    testResults: "${env.WORKSPACE}/reports/unit-tests/vault-*-results.xml"
                 )
+
                 cucumber(
                     allowEmptyResults: true,
                     fileIncludePattern: '*',
