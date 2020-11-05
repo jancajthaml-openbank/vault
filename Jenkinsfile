@@ -193,6 +193,9 @@ pipeline {
                         --output ${env.WORKSPACE}/reports/unit-tests
                     """
                 }
+                script {
+                    sh "ls -lFa ${env.WORKSPACE}/reports/unit-tests"
+                }
             }
         }
 
@@ -331,17 +334,9 @@ pipeline {
                     allowMissing: true,
                     alwaysLinkToLastBuild: false,
                     keepAll: true,
-                    reportDir: "${env.WORKSPACE}/reports/unit-tests/vault-rest-coverage.html",
+                    reportDir: "${env.WORKSPACE}/reports/unit-tests",
                     reportFiles: 'vault-rest-coverage.html',
-                    reportName: 'Unit Test Coverage (Vault Rest)'
-                ])
-                publishHTML(target: [
-                    allowMissing: true,
-                    alwaysLinkToLastBuild: false,
-                    keepAll: true,
-                    reportDir: "${env.WORKSPACE}/reports/unit-tests/vault-unit-coverage.html",
-                    reportFiles: 'vault-unit-coverage.html',
-                    reportName: 'Unit Test Coverage (Vault Unit)'
+                    reportName: 'Unit Test Coverage'
                 ])
                 junit(
                     checksName: 'Unit Test',
