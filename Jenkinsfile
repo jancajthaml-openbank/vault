@@ -323,12 +323,6 @@ pipeline {
             }
         }
         success {
-            dir("${env.WORKSPACE}/reports") {
-                archiveArtifacts(
-                    allowEmptyArchive: true,
-                    artifacts: 'blackbox-tests/**/*.log'
-                )
-            }
             cleanWs()
         }
         failure {
