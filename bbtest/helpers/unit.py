@@ -26,7 +26,7 @@ class UnitHelper(object):
       "SERVER_CERT": "/etc/vault/secrets/domain.local.crt",
       "METRICS_REFRESHRATE": "1h",
       "METRICS_OUTPUT": os.path.realpath('{}/../../reports/blackbox-tests/metrics'.format(os.path.dirname(__file__))),
-      "STORAGE": "/data",
+      "STORAGE": "/data"
     }
 
   def get_arch(self):

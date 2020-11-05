@@ -347,13 +347,24 @@ pipeline {
                     jsonReportDirectory: "${env.WORKSPACE}/reports/blackbox-tests/cucumber"
                 )
             }
-            cleanWs()
         }
         success {
-            echo 'Success'
+            dir("${env.WORKSPACE}/reports") {
+                archiveArtifacts(
+                    allowEmptyArchive: true,
+                    artifacts: 'blackbox-tests/**/*.log'
+                )
+            }
+            cleanWs()
         }
         failure {
-            echo 'Failure'
+            dir("${env.WORKSPACE}/reports") {
+                archiveArtifacts(
+                    allowEmptyArchive: true,
+                    artifacts: 'blackbox-tests/**/*.log'
+                )
+            }
+            cleanWs()
         }
     }
 }
