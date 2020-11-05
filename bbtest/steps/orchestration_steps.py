@@ -101,16 +101,18 @@ def unit_is_configured(context, unit):
 
 @given('tenant {tenant} is offboarded')
 def offboard_unit(context, tenant):
+  logfile = os.path.realpath('{}/../../reports/blackbox-tests/logs/vault-unit.{}.log'.format(os.path.dirname(__file__), tenant))
+
   (code, result, error) = execute(['journalctl', '-o', 'cat', '-u', 'vault-unit@{}.service'.format(tenant), '--no-pager'])
   if code == 0 and result:
-    with open('reports/blackbox-tests/logs/vault-unit.{}.log'.format(tenant), 'w') as f:
+    with open(logfile, 'w') as f:
       f.write(result)
 
   execute(['systemctl', 'stop', 'vault-unit@{}.service'.format(tenant)])
 
   (code, result, error) = execute(['journalctl', '-o', 'cat', '-u', 'vault-unit@{}.service'.format(tenant), '--no-pager'])
   if code == 0 and result:
-    with open('reports/blackbox-tests/logs/vault-unit.{}.log'.format(tenant), 'w') as fd:
+    with open(logfile, 'w') as fd:
       fd.write(result)
 
   execute(['systemctl', 'disable', 'vault-unit@{}.service'.format(tenant)])
