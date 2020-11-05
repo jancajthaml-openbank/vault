@@ -328,7 +328,6 @@ pipeline {
             }
             script {
                 publishHTML(target: [
-                    allowMissing: true,
                     alwaysLinkToLastBuild: false,
                     keepAll: true,
                     reportDir: "${env.WORKSPACE}/reports/unit-tests/vault-unit",
@@ -336,27 +335,12 @@ pipeline {
                     reportName: 'Unit Test Coverage (Vault Unit)'
                 ])
                 publishHTML(target: [
-                    allowMissing: true,
                     alwaysLinkToLastBuild: false,
                     keepAll: true,
                     reportDir: "${env.WORKSPACE}/reports/unit-tests/vault-rest",
                     reportFiles: 'vault-rest-coverage.html',
                     reportName: 'Unit Test Coverage (Vault Rest)'
                 ])
-                junit(
-                    allowMissing: true,
-                    checksName: 'Unit Test (Vault Unit)',
-                    allowEmptyResults: true,
-                    skipPublishingChecks: true,
-                    testResults: "${env.WORKSPACE}/reports/unit-tests/vault-unit/vault-unit-results.xml"
-                )
-                junit(
-                    allowMissing: true,
-                    checksName: 'Unit Test (Vault Rest)',
-                    allowEmptyResults: true,
-                    skipPublishingChecks: true,
-                    testResults: "${env.WORKSPACE}/reports/unit-tests/vault-rest/vault-rest-results.xml"
-                )
                 cucumber(
                     reportTitle: 'Black Box Test',
                     allowMissing: true,
