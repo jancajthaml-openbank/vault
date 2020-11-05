@@ -11,7 +11,7 @@ import glob
 
 @then('snapshot {tenant}/{account} version {version} should be')
 def check_account_snapshot(context, tenant, account, version):
-  filename =  os.path.realpath('{}/../../reports/blackbox-tests/data/t_{}/account/{}/snapshot/{}'.format(os.path.dirname(__file__), tenant, account, version.zfill(10)))
+  filename =  os.path.realpath('/data/t_{}/account/{}/snapshot/{}'.format(tenant, account, version.zfill(10)))
 
   assert os.path.isfile(filename) is True, 'file {} does not exists'.format(filename)
 
@@ -38,7 +38,7 @@ def check_account_snapshot(context, tenant, account, version):
 
 @then('{tenant}/{account} should have data integrity')
 def check_account_integrity(context, tenant, account):
-  snapshots = glob.glob('{}/../../reports/blackbox-tests/data/t_{}/account/{}/snapshot/*'.format(os.path.dirname(__file__), tenant, account))
+  snapshots = glob.glob('/data/t_{}/account/{}/snapshot/*'.format(tenant, account))
   snapshots.sort(key=lambda f: -int(f.split('/')[-1]))
 
   assert len(snapshots), 'no snapshots found for {}/{}'.format(tenant, account)
