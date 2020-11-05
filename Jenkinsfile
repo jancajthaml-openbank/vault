@@ -343,7 +343,6 @@ pipeline {
                 ])
                 cucumber(
                     reportTitle: 'Black Box Test',
-                    allowMissing: true,
                     fileIncludePattern: '*',
                     jsonReportDirectory: "${env.WORKSPACE}/reports/blackbox-tests/cucumber"
                 )
