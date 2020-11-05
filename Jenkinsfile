@@ -183,18 +183,15 @@ pipeline {
                     sh """
                         ${env.WORKSPACE}/dev/lifecycle/test \
                         --source ${env.WORKSPACE}/services/vault-rest \
-                        --output ${env.WORKSPACE}/reports/unit-tests
+                        --output ${env.WORKSPACE}/reports/unit-tests/vault-rest
                     """
                 }
                 script {
                     sh """
                         ${env.WORKSPACE}/dev/lifecycle/test \
                         --source ${env.WORKSPACE}/services/vault-unit \
-                        --output ${env.WORKSPACE}/reports/unit-tests
+                        --output ${env.WORKSPACE}/reports/unit-tests/vault-unit
                     """
-                }
-                script {
-                    sh "ls -lFa ${env.WORKSPACE}/reports/unit-tests"
                 }
             }
         }
@@ -334,19 +331,35 @@ pipeline {
                     allowMissing: true,
                     alwaysLinkToLastBuild: false,
                     keepAll: true,
-                    reportDir: "${env.WORKSPACE}/reports/unit-tests",
+                    reportDir: "${env.WORKSPACE}/reports/unit-tests/vault-unit",
+                    reportFiles: 'vault-unit-coverage.html',
+                    reportName: 'Unit Test Coverage (Vault Unit)'
+                ])
+                publishHTML(target: [
+                    allowMissing: true,
+                    alwaysLinkToLastBuild: false,
+                    keepAll: true,
+                    reportDir: "${env.WORKSPACE}/reports/unit-tests/vault-rest",
                     reportFiles: 'vault-rest-coverage.html',
-                    reportName: 'Unit Test Coverage'
+                    reportName: 'Unit Test Coverage (Vault Rest)'
                 ])
                 junit(
-                    checksName: 'Unit Test',
+                    allowMissing: true,
+                    checksName: 'Unit Test (Vault Unit)',
                     allowEmptyResults: true,
                     skipPublishingChecks: true,
-                    testResults: "${env.WORKSPACE}/reports/unit-tests/vault-*-results.xml"
+                    testResults: "${env.WORKSPACE}/reports/unit-tests/vault-unit/vault-unit-results.xml"
                 )
-
-                cucumber(
+                junit(
+                    allowMissing: true,
+                    checksName: 'Unit Test (Vault Rest)',
                     allowEmptyResults: true,
+                    skipPublishingChecks: true,
+                    testResults: "${env.WORKSPACE}/reports/unit-tests/vault-rest/vault-rest-results.xml"
+                )
+                cucumber(
+                    reportTitle: 'Black Box Test',
+                    allowMissing: true,
                     fileIncludePattern: '*',
                     jsonReportDirectory: "${env.WORKSPACE}/reports/blackbox-tests/cucumber"
                 )
