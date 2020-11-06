@@ -272,17 +272,17 @@ pipeline {
                         "files": [
                             {
                                 "pattern": "${env.WORKSPACE}/packaging/bin/vault-rest-linux-(*)",
-                                "target": "generic-local/openbank/vault/linux/{1}/${env.VERSION}/vault-rest",
+                                "target": "generic-local/openbank/vault/${env.VERSION}/linux/{1}/vault-rest",
                                 "recursive": "false"
                             },
                             {
                                 "pattern": "${env.WORKSPACE}/packaging/bin/vault-unit-linux-(*)",
-                                "target": "generic-local/openbank/vault/linux/{1}/${env.VERSION}/vault-unit",
+                                "target": "generic-local/openbank/vault/${env.VERSION}/linux/{1}/vault-unit",
                                 "recursive": "false"
                             },
                             {
                                 "pattern": "${env.WORKSPACE}/packaging/bin/vault_(*)_(*).deb",
-                                "target": "generic-local/openbank/vault/linux/{2}/{1}/vault.deb",
+                                "target": "generic-local/openbank/vault/{1}/linux/{2}/vault.deb",
                                 "recursive": "false"
                             }
                         ]
