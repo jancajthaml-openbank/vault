@@ -299,15 +299,15 @@ pipeline {
                 publishHTML(target: [
                     alwaysLinkToLastBuild: false,
                     keepAll: true,
-                    reportDir: "${env.WORKSPACE}/reports/unit-tests/vault-unit",
-                    reportFiles: 'vault-unit-coverage.html',
+                    reportDir: "${env.WORKSPACE}/reports/unit-tests/vault-unit-coverage",
+                    reportFiles: '*',
                     reportName: 'Unit Test Coverage (Vault Unit)'
                 ])
                 publishHTML(target: [
                     alwaysLinkToLastBuild: false,
                     keepAll: true,
-                    reportDir: "${env.WORKSPACE}/reports/unit-tests/vault-rest",
-                    reportFiles: 'vault-rest-coverage.html',
+                    reportDir: "${env.WORKSPACE}/reports/unit-tests/vault-rest-coverage",
+                    reportFiles: '*',
                     reportName: 'Unit Test Coverage (Vault Rest)'
                 ])
                 cucumber(
