@@ -277,14 +277,14 @@ jobs:
           command: |
             /mnt/ramdisk/dev/lifecycle/test \
               --source /mnt/ramdisk/services/vault-unit \
-              --output /mnt/ramdisk/reports
+              --output /mnt/ramdisk/reports/unit-tests
           no_output_timeout: 5m
       - run:
           name: Unit test vault-rest
           command: |
             /mnt/ramdisk/dev/lifecycle/test \
               --source /mnt/ramdisk/services/vault-rest \
-              --output /mnt/ramdisk/reports
+              --output /mnt/ramdisk/reports/unit-tests
           no_output_timeout: 5m
       - store_test_results:
           path: /mnt/ramdisk/reports/unit-tests
