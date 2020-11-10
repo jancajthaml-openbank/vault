@@ -14,7 +14,10 @@
 
 package config
 
-import "time"
+import (
+	"time"
+	"strings"
+)
 
 // Configuration of application
 type Configuration struct {
@@ -45,5 +48,16 @@ type Configuration struct {
 
 // GetConfig loads application configuration
 func GetConfig() Configuration {
-	return loadConfFromEnv()
+	return Configuration{
+		RootStorage:        envString("VAULT_STORAGE", "/data"),
+		ServerPort:         envInteger("VAULT_HTTP_PORT", 4400),
+		ServerKey:          envString("VAULT_SERVER_KEY", ""),
+		ServerCert:         envString("VAULT_SERVER_CERT", ""),
+		LakeHostname:       envString("VAULT_LAKE_HOSTNAME", "127.0.0.1"),
+		LogLevel:           strings.ToUpper(envString("VAULT_LOG_LEVEL", "DEBUG")),
+		MetricsRefreshRate: envDuration("VAULT_METRICS_REFRESHRATE", time.Second),
+		MetricsOutput:      envFilename("VAULT_METRICS_OUTPUT", "/tmp/metrics"),
+		MinFreeDiskSpace:   uint64(envInteger("VAULT_STORAGE_THRESHOLD", 0)),
+		MinFreeMemory:      uint64(envInteger("VAULT_MEMORY_THRESHOLD", 0)),
+	}
 }
