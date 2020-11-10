@@ -47,7 +47,7 @@ func GetConfig() Configuration {
 		RootStorage:                envString("VAULT_STORAGE", "/data") + "/" + "t_" + envString("VAULT_TENANT", ""),
 		LogLevel:                   strings.ToUpper(envString("VAULT_LOG_LEVEL", "DEBUG")),
 		MetricsRefreshRate:         envDuration("VAULT_METRICS_REFRESHRATE", time.Second),
-		MetricsOutput:              envFilename("VAULT_METRICS_OUTPUT", "/tmp/metrics"),
+		MetricsOutput:              envFilename("VAULT_METRICS_OUTPUT", "/tmp/vault-unit-metrics"),
 		SnapshotSaturationTreshold: envInteger("VAULT_SNAPSHOT_SATURATION_TRESHOLD", 100),
 	}
 }
