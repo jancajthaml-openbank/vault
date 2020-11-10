@@ -86,6 +86,9 @@ func (prog Program) Stop() {
 // Start runs the application
 func (prog Program) Start() {
 	for idx := range prog.daemons {
+		if prog.daemons[idx] == nil {
+			continue
+		}
 		go prog.daemons[idx].Start()
 	}
 
