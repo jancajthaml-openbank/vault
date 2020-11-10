@@ -43,9 +43,9 @@ type Configuration struct {
 func GetConfig() Configuration {
 	return Configuration{
 		Tenant:                     envString("VAULT_TENANT", ""),
-		LakeHostname:               envString("VAULT_LAKE_HOSTNAME", "lake"),
+		LakeHostname:               envString("VAULT_LAKE_HOSTNAME", "127.0.0.1"),
 		RootStorage:                envString("VAULT_STORAGE", "/data") + "/" + "t_" + envString("VAULT_TENANT", ""),
-		LogLevel:                   strings.ToUpper(envString("VAULT_LOG_LEVEL", "DEBUG")),
+		LogLevel:                   strings.ToUpper(envString("VAULT_LOG_LEVEL", "INFO")),
 		MetricsRefreshRate:         envDuration("VAULT_METRICS_REFRESHRATE", time.Second),
 		MetricsOutput:              envFilename("VAULT_METRICS_OUTPUT", "/tmp/vault-unit-metrics"),
 		SnapshotSaturationTreshold: envInteger("VAULT_SNAPSHOT_SATURATION_TRESHOLD", 100),
