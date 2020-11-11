@@ -7,9 +7,25 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPromises_New(t *testing.T) {
-	s := NewPromises()
-	assert.Equal(t, s.Size(), 0)
+func TestPromises(t *testing.T) {
+
+	t.Log("initialy empty")
+	{
+		a := NewPromises()
+		assert.Equal(t, a.Size(), 0)
+	}
+
+	t.Log("does not panic on nil")
+	{
+		var s *Promises
+		s.Add("X")
+		s.Remove("X")
+
+		assert.Equal(t, s.Size(), 0)
+		assert.Equal(t, s.Contains(), false)
+		assert.Equal(t, s.Values(), make([]string, 0))
+		assert.Equal(t, s.String(), "[]")
+	}
 }
 
 func TestPromises_Add(t *testing.T) {

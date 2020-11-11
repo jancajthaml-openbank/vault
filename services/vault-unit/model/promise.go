@@ -16,7 +16,7 @@ package model
 
 import "bytes"
 
-// Promises is set datastructure for promised transaction Ids
+// Promises is stable set datastructure for promised transaction Ids
 type Promises struct {
 	keys   []int
 	values map[int]string
@@ -24,7 +24,7 @@ type Promises struct {
 	tail   int
 }
 
-// NewPromises returns a fascade for promises datastructure
+// NewPromises returns a fascade for promises
 func NewPromises() Promises {
 	return Promises{
 		index:  make(map[string]int),
@@ -35,6 +35,9 @@ func NewPromises() Promises {
 
 // Add adds items to set if not already present
 func (s *Promises) Add(items ...string) {
+	if s == nil {
+		return
+	}
 	for _, item := range items {
 		if _, found := s.index[item]; found {
 			continue
@@ -48,6 +51,9 @@ func (s *Promises) Add(items ...string) {
 
 // Contains returns true if all items are present in set
 func (s *Promises) Contains(items ...string) bool {
+	if s == nil {
+		return false
+	}
 	for _, item := range items {
 		if _, found := s.index[item]; !found {
 			return false
@@ -58,6 +64,9 @@ func (s *Promises) Contains(items ...string) bool {
 
 // Remove removes items from set
 func (s *Promises) Remove(items ...string) {
+	if s == nil {
+		return
+	}
 	for _, item := range items {
 		idx, found := s.index[item]
 		if !found {
@@ -78,6 +87,9 @@ func (s *Promises) Remove(items ...string) {
 
 // Values returns slice of items in order or insertion
 func (s *Promises) Values() []string {
+	if s == nil {
+		return make([]string, 0)
+	}
 	values := make([]string, len(s.values))
 	for i, k := range s.keys {
 		values[i] = s.values[k]
@@ -87,10 +99,16 @@ func (s *Promises) Values() []string {
 
 // Size returns number of items in set
 func (s *Promises) Size() int {
+	if s == nil {
+		return 0
+	}
 	return len(s.values)
 }
 
 func (s *Promises) String() string {
+	if s == nil {
+		return "[]"
+	}
 	var buffer bytes.Buffer
 
 	buffer.WriteString("[")
