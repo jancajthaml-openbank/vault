@@ -30,14 +30,13 @@ type System struct {
 }
 
 // NewActorSystem returns actor system fascade
-func NewActorSystem(ctx context.Context, lakeEndpoint string, metrics *metrics.Metrics) System {
+func NewActorSystem(ctx context.Context, lakeEndpoint string, metrics *metrics.Metrics) *System {
 	result := System{
 		System:  system.New(ctx, "VaultRest", lakeEndpoint),
 		Metrics: metrics,
 	}
-
 	result.System.RegisterOnMessage(ProcessMessage(&result))
-	return result
+	return &result
 }
 
 // Start daemon noop

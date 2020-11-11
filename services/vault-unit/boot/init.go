@@ -23,8 +23,6 @@ import (
 	"github.com/jancajthaml-openbank/vault-unit/logging"
 	"github.com/jancajthaml-openbank/vault-unit/metrics"
 	"github.com/jancajthaml-openbank/vault-unit/utils"
-
-	localfs "github.com/jancajthaml-openbank/local-fs"
 )
 
 // Program encapsulate initialized application
@@ -43,9 +41,6 @@ func Initialize() Program {
 
 	logging.SetupLogger(cfg.LogLevel)
 
-	storage := localfs.NewPlaintextStorage(
-		cfg.RootStorage,
-	)
 	metricsDaemon := metrics.NewMetrics(
 		ctx,
 		cfg.MetricsOutput,
@@ -57,13 +52,13 @@ func Initialize() Program {
 		cfg.Tenant,
 		cfg.LakeHostname,
 		cfg.SnapshotSaturationTreshold,
-		&metricsDaemon,
-		&storage,
+		cfg.RootStorage,
+		metricsDaemon,
 	)
 
 	var daemons = make([]utils.Daemon, 0)
-	daemons = append(daemons, &metricsDaemon)
-	daemons = append(daemons, &actorSystemDaemon)
+	daemons = append(daemons, metricsDaemon)
+	daemons = append(daemons, actorSystemDaemon)
 
 	return Program{
 		interrupt: make(chan os.Signal, 1),

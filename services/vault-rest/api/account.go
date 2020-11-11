@@ -110,7 +110,7 @@ func CreateAccount(system *actor.System) func(c echo.Context) error {
 }
 
 // GetAccounts return existing accounts of given tenant
-func GetAccounts(storage *localfs.PlaintextStorage) func(c echo.Context) error {
+func GetAccounts(storage localfs.Storage) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		tenant := c.Param("tenant")
 		if tenant == "" {
