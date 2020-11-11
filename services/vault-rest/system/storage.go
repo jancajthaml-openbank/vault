@@ -71,11 +71,13 @@ func (monitor *DiskMonitor) GetUsedDiskSpace() uint64 {
 
 // CheckDiskSpace update free disk space metric and determine if ok to operate
 func (monitor *DiskMonitor) CheckDiskSpace() {
-	defer recover()
-
 	var stat = new(syscall.Statfs_t)
-	syscall.Statfs(monitor.rootStorage, stat)
-
+	err := syscall.Statfs(monitor.rootStorage, stat)
+	if err != nil {
+		log.Warn().Msgf("Unable to obtain storage stats")
+		atomic.StoreInt32(&(monitor.ok), 0)
+		return
+	}
 	free := stat.Bavail * uint64(stat.Bsize)
 	used := (stat.Blocks - stat.Bfree) * uint64(stat.Bsize)
 
