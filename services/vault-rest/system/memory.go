@@ -70,10 +70,12 @@ func (monitor *MemoryMonitor) GetUsedMemory() uint64 {
 
 // CheckMemoryAllocation update memory allocation metric and determine if ok to operate
 func (monitor *MemoryMonitor) CheckMemoryAllocation() {
-	defer recover()
+	if monitor == nil {
+		return
+	}
 
-	var memStat runtime.MemStats
-	runtime.ReadMemStats(&memStat)
+	var memStat = new(runtime.MemStats)
+	runtime.ReadMemStats(memStat)
 
 	var sysStat = new(syscall.Sysinfo_t)
 	err := syscall.Sysinfo(sysStat)
