@@ -71,6 +71,9 @@ func (monitor *DiskMonitor) GetUsedDiskSpace() uint64 {
 
 // CheckDiskSpace update free disk space metric and determine if ok to operate
 func (monitor *DiskMonitor) CheckDiskSpace() {
+	if monitor == nil {
+		return
+	}
 	var stat = new(syscall.Statfs_t)
 	err := syscall.Statfs(monitor.rootStorage, stat)
 	if err != nil {
