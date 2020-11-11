@@ -43,17 +43,17 @@ type tcpKeepAliveListener struct {
 
 // NewServer returns new secure server instance
 func NewServer(ctx context.Context, port int, certPath string, keyPath string, rootStorage string, actorSystem *actor.System, systemControl *system.Control, diskMonitor *system.DiskMonitor, memoryMonitor *system.MemoryMonitor) *Server {
+	storage, err := localfs.NewPlaintextStorage(rootStorage)
+	if err != nil {
+		log.Error().Msgf("Failed to ensure storage %+v", err)
+		return nil
+	}
+
 	router := echo.New()
 
 	certificate, err := tls.LoadX509KeyPair(certPath, keyPath)
 	if err != nil {
 		log.Error().Msgf("Invalid cert %s and key %s", certPath, keyPath)
-		return nil
-	}
-
-	storage, err := localfs.NewPlaintextStorage(rootStorage)
-	if err != nil {
-		log.Error().Msgf("Failed to ensure storage %+v", err)
 		return nil
 	}
 
