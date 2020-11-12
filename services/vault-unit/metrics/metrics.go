@@ -26,7 +26,7 @@ import (
 // Metrics holds metrics counters
 type Metrics struct {
 	utils.DaemonSupport
-	storage             localfs.PlaintextStorage
+	storage             localfs.Storage
 	tenant              string
 	refreshRate         time.Duration
 	promisesAccepted    metrics.Counter
@@ -38,10 +38,15 @@ type Metrics struct {
 }
 
 // NewMetrics returns blank metrics holder
-func NewMetrics(ctx context.Context, output string, tenant string, refreshRate time.Duration) Metrics {
-	return Metrics{
+func NewMetrics(ctx context.Context, output string, tenant string, refreshRate time.Duration) *Metrics {
+	storage, err := localfs.NewPlaintextStorage(output)
+	if err != nil {
+		log.Error().Msgf("Failed to ensure storage %+v", err)
+		return nil
+	}
+	return &Metrics{
 		DaemonSupport:       utils.NewDaemonSupport(ctx, "metrics"),
-		storage:             localfs.NewPlaintextStorage(output),
+		storage:             storage,
 		tenant:              tenant,
 		refreshRate:         refreshRate,
 		promisesAccepted:    metrics.NewCounter(),
@@ -84,7 +89,10 @@ func (metrics *Metrics) RollbackAccepted() {
 }
 
 // Start handles everything needed to start metrics daemon
-func (metrics Metrics) Start() {
+func (metrics *Metrics) Start() {
+	if metrics == nil {
+		return
+	}
 	ticker := time.NewTicker(metrics.refreshRate)
 	defer ticker.Stop()
 
@@ -103,7 +111,7 @@ func (metrics Metrics) Start() {
 		return
 	}
 
-	log.Info().Msgf("Start metrics daemon, update each %v into %v", metrics.refreshRate, metrics.storage.Root)
+	log.Info().Msgf("Start metrics daemon, update file each %v", metrics.refreshRate)
 
 	go func() {
 		for {

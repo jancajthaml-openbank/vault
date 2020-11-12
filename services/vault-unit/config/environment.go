@@ -22,44 +22,33 @@ import (
 	"time"
 )
 
-func loadConfFromEnv() Configuration {
-	logLevel := strings.ToUpper(getEnvString("VAULT_LOG_LEVEL", "DEBUG"))
-	storage := getEnvString("VAULT_STORAGE", "/data")
-	tenant := getEnvString("VAULT_TENANT", "")
-	lakeHostname := getEnvString("VAULT_LAKE_HOSTNAME", "")
-	snapshotSaturationTreshold := getEnvInteger("VAULT_SNAPSHOT_SATURATION_TRESHOLD", 100)
-	metricsOutput := getEnvFilename("VAULT_METRICS_OUTPUT", "/tmp")
-	metricsRefreshRate := getEnvDuration("VAULT_METRICS_REFRESHRATE", time.Second)
-
-	if tenant == "" || lakeHostname == "" || storage == "" {
-		log.Error().Msg("missing required parameter to run")
-		panic("missing required parameter to run")
+func envBoolean(key string, fallback bool) bool {
+	value := strings.TrimSpace(os.Getenv(key))
+	if value == "" {
+		return fallback
 	}
-
-	return Configuration{
-		Tenant:                     tenant,
-		LakeHostname:               lakeHostname,
-		RootStorage:                storage + "/" + "t_" + tenant,
-		LogLevel:                   logLevel,
-		MetricsRefreshRate:         metricsRefreshRate,
-		MetricsOutput:              metricsOutput,
-		SnapshotSaturationTreshold: snapshotSaturationTreshold,
+	cast, err := strconv.ParseBool(value)
+	if err != nil {
+		log.Error().Msgf("invalid value of variable %s", key)
+		return fallback
 	}
+	return cast
 }
 
-func getEnvFilename(key string, fallback string) string {
+func envFilename(key string, fallback string) string {
 	var value = strings.TrimSpace(os.Getenv(key))
 	if value == "" {
 		return fallback
 	}
 	value = filepath.Clean(value)
 	if os.MkdirAll(value, os.ModePerm) != nil {
+		log.Error().Msgf("invalid value of variable %s", key)
 		return fallback
 	}
 	return value
 }
 
-func getEnvString(key string, fallback string) string {
+func envString(key string, fallback string) string {
 	value := strings.TrimSpace(os.Getenv(key))
 	if value == "" {
 		return fallback
@@ -67,7 +56,7 @@ func getEnvString(key string, fallback string) string {
 	return value
 }
 
-func getEnvInteger(key string, fallback int) int {
+func envInteger(key string, fallback int) int {
 	value := strings.TrimSpace(os.Getenv(key))
 	if value == "" {
 		return fallback
@@ -80,7 +69,7 @@ func getEnvInteger(key string, fallback int) int {
 	return cast
 }
 
-func getEnvDuration(key string, fallback time.Duration) time.Duration {
+func envDuration(key string, fallback time.Duration) time.Duration {
 	value := strings.TrimSpace(os.Getenv(key))
 	if value == "" {
 		return fallback

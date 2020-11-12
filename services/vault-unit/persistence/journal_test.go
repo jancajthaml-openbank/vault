@@ -21,18 +21,18 @@ func TestSnapshot_Update(t *testing.T) {
 	require.Nil(t, err)
 	defer os.RemoveAll(tmpdir)
 
-	storage := localfs.NewPlaintextStorage(tmpdir)
+	storage, _ := localfs.NewPlaintextStorage(tmpdir)
 
 	name := "account_name"
 	format := "account_format"
 	currency := "XRP"
 	isBalanceCheck := false
 
-	snapshotInitial, err := CreateAccount(&storage, name, format, currency, isBalanceCheck)
+	snapshotInitial, err := CreateAccount(storage, name, format, currency, isBalanceCheck)
 	require.Nil(t, err)
 	require.NotNil(t, snapshotInitial)
 
-	loadedInitial, err := LoadAccount(&storage, name)
+	loadedInitial, err := LoadAccount(storage, name)
 	require.Nil(t, err)
 	require.NotNil(t, loadedInitial)
 
@@ -44,11 +44,11 @@ func TestSnapshot_Update(t *testing.T) {
 		assert.Equal(t, snapshotInitial.SnapshotVersion, loadedInitial.SnapshotVersion)
 	}
 
-	snapshotVersion1, err := UpdateAccount(&storage, name, snapshotInitial)
+	snapshotVersion1, err := UpdateAccount(storage, name, snapshotInitial)
 	require.Nil(t, err)
 	require.NotNil(t, snapshotVersion1)
 
-	loadedVersion1, err := LoadAccount(&storage, name)
+	loadedVersion1, err := LoadAccount(storage, name)
 	require.Nil(t, err)
 	require.NotNil(t, loadedVersion1)
 
@@ -72,7 +72,7 @@ func TestSnapshot_RefuseOverflow(t *testing.T) {
 	require.Nil(t, err)
 	defer os.RemoveAll(tmpdir)
 
-	storage := localfs.NewPlaintextStorage(tmpdir)
+	storage, _ := localfs.NewPlaintextStorage(tmpdir)
 
 	name := "xxx"
 	format := "format"
@@ -91,7 +91,7 @@ func TestSnapshot_RefuseOverflow(t *testing.T) {
 		IsBalanceCheck:  isBalanceCheck,
 	}
 
-	snapshotNext, err := UpdateAccount(&storage, name, snapshotLast)
+	snapshotNext, err := UpdateAccount(storage, name, snapshotLast)
 	require.Nil(t, err)
 	require.NotNil(t, snapshotNext)
 
@@ -103,7 +103,7 @@ func TestSnapshot_Promises(t *testing.T) {
 	require.Nil(t, err)
 	defer os.RemoveAll(tmpdir)
 
-	storage := localfs.NewPlaintextStorage(tmpdir)
+	storage, _ := localfs.NewPlaintextStorage(tmpdir)
 
 	name := "yyy"
 	format := "format"
@@ -124,10 +124,10 @@ func TestSnapshot_Promises(t *testing.T) {
 	}
 	snapshot.Promises.Add(expectedPromises...)
 
-	snapshot, err = UpdateAccount(&storage, name, snapshot)
+	snapshot, err = UpdateAccount(storage, name, snapshot)
 	require.Nil(t, err)
 
-	loaded, err := LoadAccount(&storage, name)
+	loaded, err := LoadAccount(storage, name)
 	require.Nil(t, err)
 
 	if loaded == nil {
@@ -154,15 +154,15 @@ func BenchmarkAccountLoad(b *testing.B) {
 	require.Nil(b, err)
 	defer os.RemoveAll(tmpdir)
 
-	storage := localfs.NewPlaintextStorage(tmpdir)
+	storage, _ := localfs.NewPlaintextStorage(tmpdir)
 
-	account, err := CreateAccount(&storage, "bench", "format", "BNC", false)
+	account, err := CreateAccount(storage, "bench", "format", "BNC", false)
 	require.Nil(b, err)
 	require.NotNil(b, account)
 
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		LoadAccount(&storage, "bench")
+		LoadAccount(storage, "bench")
 	}
 }
