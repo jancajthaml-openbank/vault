@@ -30,7 +30,21 @@ func NewPromises() Promises {
 		index:  make(map[string]int),
 		keys:   make([]int, 0),
 		values: make(map[int]string),
+		tail: 0,
 	}
+}
+
+// Copy returns copy of promises
+func (s Promises) Copy() Promises {
+	result := NewPromises()
+	result.keys = make([]int, len(s.keys))
+	copy(result.keys, s.keys)
+	result.tail = s.tail
+	for _, k := range s.keys {
+		result.values[k] = s.values[k]
+		result.index[s.values[k]] = k
+	}
+	return result
 }
 
 // Add adds items to set if not already present
@@ -105,6 +119,7 @@ func (s *Promises) Size() int {
 	return len(s.values)
 }
 
+// String serializes promises
 func (s *Promises) String() string {
 	if s == nil || len(s.keys) == 0 {
 		return "[]"

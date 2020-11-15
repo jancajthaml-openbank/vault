@@ -42,7 +42,7 @@ func (entity Account) Copy() Account {
 		IsBalanceCheck:  entity.IsBalanceCheck,
 		Balance:         new(money.Dec).Set(entity.Balance),
 		Promised:        new(money.Dec).Set(entity.Promised),
-		Promises:        entity.Promises, //.Copy(), // FIXME implement
+		Promises:        entity.Promises.Copy(),
 		SnapshotVersion: entity.SnapshotVersion,
 		EventCounter:    entity.EventCounter,
 	}

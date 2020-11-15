@@ -28,6 +28,17 @@ func TestPromises(t *testing.T) {
 	}
 }
 
+func TestPromises_Copy(t *testing.T) {
+	a := NewPromises()
+	a.Add("A", "B")
+	a.Add("C", "D")
+	b := a.Copy()
+	a.Add("E")
+	b.Remove("A")
+	assert.Equal(t, []string{"A", "B", "C", "D", "E"}, a.Values())
+	assert.Equal(t, []string{"B", "C", "D"}, b.Values())
+}
+
 func TestPromises_Add(t *testing.T) {
 	s := NewPromises()
 	s.Add("A", "B", "C", "D", "X", "Y", "E", "F")
