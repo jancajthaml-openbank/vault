@@ -33,21 +33,6 @@ type Account struct {
 	EventCounter    int64
 }
 
-// Copy returns copy of Account
-func (entity Account) Copy() Account {
-	return Account{
-		Name:            entity.Name,
-		Format:          entity.Format,
-		Currency:        entity.Currency,
-		IsBalanceCheck:  entity.IsBalanceCheck,
-		Balance:         new(money.Dec).Set(entity.Balance),
-		Promised:        new(money.Dec).Set(entity.Promised),
-		Promises:        entity.Promises.Copy(),
-		SnapshotVersion: entity.SnapshotVersion,
-		EventCounter:    entity.EventCounter,
-	}
-}
-
 // NewAccount returns new Account
 func NewAccount(name string) Account {
 	return Account{

@@ -113,13 +113,13 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 				return
 			}
 
-			next := state.Copy()
-			next.Promised = new(money.Dec).Add(state.Promised, msg.Amount)
-			next.Promises.Add(msg.Transaction)
-			next.EventCounter = state.EventCounter + 1
+			//next := state.Copy()
+			state.Promised = new(money.Dec).Add(state.Promised, msg.Amount)
+			state.Promises.Add(msg.Transaction)
+			state.EventCounter = state.EventCounter + 1
 
-			if !state.IsBalanceCheck || new(money.Dec).Add(state.Balance, next.Promised).Sign() >= 0 {
-				err := persistence.PersistPromise(s.Storage, next, msg.Amount, msg.Transaction)
+			if !state.IsBalanceCheck || new(money.Dec).Add(state.Balance, state.Promised).Sign() >= 0 {
+				err := persistence.PersistPromise(s.Storage, state, msg.Amount, msg.Transaction)
 				if err != nil {
 					s.SendMessage(
 						PromiseRejected+" STORAGE_ERROR",
@@ -127,6 +127,9 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 						context.Receiver,
 					)
 					log.Warn().Msgf("%s/Exist/Promise Error could not persist %+v", state.Name, err)
+					state.Promised = new(money.Dec).Sub(state.Promised, msg.Amount)
+					state.Promises.Remove(msg.Transaction)
+					state.EventCounter = state.EventCounter - 1
 					return
 				}
 
@@ -134,17 +137,18 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 
 				s.SendMessage(PromiseAccepted, context.Sender, context.Receiver)
 
-				if next.EventCounter >= s.EventCounterTreshold {
-					updated, err := persistence.UpdateAccount(s.Storage, state.Name, &next)
+				if state.EventCounter >= s.EventCounterTreshold {
+					err := persistence.UpdateAccount(s.Storage, state.Name, &state)
 					if err != nil {
 						log.Warn().Msgf("%s/Exist/Promise Error unable to update snapshot %+v", state.Name, err)
 					} else {
-						next = *updated
-						log.Info().Msgf("%s/Exist/Promise Updated snapshot to version %d", state.Name, next.SnapshotVersion)
+						state.SnapshotVersion += 1
+						state.EventCounter = 0
+						log.Info().Msgf("%s/Exist/Promise Updated snapshot to version %d", state.Name, state.SnapshotVersion)
 					}
 				}
 
-				context.Self.Become(next, ExistAccount(s))
+				context.Self.Become(state, ExistAccount(s))
 				log.Info().Msgf("Account %s promised %s %s", state.Name, msg.Amount.String(), state.Currency)
 				log.Debug().Msgf("%s/Exist/Promise OK", state.Name)
 				return
@@ -173,13 +177,12 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 				return
 			}
 
-			next := state.Copy()
-			next.Balance = new(money.Dec).Add(state.Balance, msg.Amount)
-			next.Promised = new(money.Dec).Sub(state.Promised, msg.Amount)
-			next.Promises.Remove(msg.Transaction)
-			next.EventCounter = state.EventCounter + 1
+			state.Balance = new(money.Dec).Add(state.Balance, msg.Amount)
+			state.Promised = new(money.Dec).Sub(state.Promised, msg.Amount)
+			state.Promises.Remove(msg.Transaction)
+			state.EventCounter = state.EventCounter + 1
 
-			err := persistence.PersistCommit(s.Storage, next, msg.Amount, msg.Transaction)
+			err := persistence.PersistCommit(s.Storage, state, msg.Amount, msg.Transaction)
 			if err != nil {
 				s.SendMessage(
 					CommitRejected+" STORAGE_ERROR",
@@ -187,6 +190,10 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 					context.Receiver,
 				)
 				log.Warn().Msgf("%s/Exist/Commit Error could not persist %+v", state.Name, err)
+				state.Balance = new(money.Dec).Sub(state.Balance, msg.Amount)
+				state.Promised = new(money.Dec).Add(state.Promised, msg.Amount)
+				state.Promises.Add(msg.Transaction)
+				state.EventCounter = state.EventCounter - 1
 				return
 			}
 
@@ -194,17 +201,18 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 
 			s.SendMessage(CommitAccepted, context.Sender, context.Receiver)
 
-			if next.EventCounter >= s.EventCounterTreshold {
-				updated, err := persistence.UpdateAccount(s.Storage, state.Name, &next)
+			if state.EventCounter >= s.EventCounterTreshold {
+				err := persistence.UpdateAccount(s.Storage, state.Name, &state)
 				if err != nil {
 					log.Warn().Msgf("%s/Exist/Commit Error unable to update snapshot %+v", state.Name, err)
 				} else {
-					next = *updated
-					log.Info().Msgf("%s/Exist/Commit Updated snapshot to version %d", state.Name, next.SnapshotVersion)
+					state.SnapshotVersion += 1
+					state.EventCounter = 0
+					log.Info().Msgf("%s/Exist/Commit Updated snapshot to version %d", state.Name, state.SnapshotVersion)
 				}
 			}
 
-			context.Self.Become(next, ExistAccount(s))
+			context.Self.Become(state, ExistAccount(s))
 			log.Debug().Msgf("%s/Exist/Commit OK", state.Name)
 			return
 
@@ -215,12 +223,11 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 				return
 			}
 
-			next := state.Copy()
-			next.Promised = new(money.Dec).Sub(state.Promised, msg.Amount)
-			next.Promises.Remove(msg.Transaction)
-			next.EventCounter = state.EventCounter + 1
+			state.Promised = new(money.Dec).Sub(state.Promised, msg.Amount)
+			state.Promises.Remove(msg.Transaction)
+			state.EventCounter = state.EventCounter + 1
 
-			err := persistence.PersistRollback(s.Storage, next, msg.Amount, msg.Transaction)
+			err := persistence.PersistRollback(s.Storage, state, msg.Amount, msg.Transaction)
 			if err != nil {
 				s.SendMessage(
 					RollbackRejected+" STORAGE_ERROR",
@@ -228,6 +235,9 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 					context.Receiver,
 				)
 				log.Warn().Msgf("%s/Exist/Rollback Error could not persist %+v", state.Name, err)
+				state.Promised = new(money.Dec).Add(state.Promised, msg.Amount)
+				state.Promises.Add(msg.Transaction)
+				state.EventCounter = state.EventCounter - 1
 				return
 			}
 
@@ -235,17 +245,18 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 
 			s.SendMessage(RollbackAccepted, context.Sender, context.Receiver)
 
-			if next.EventCounter >= s.EventCounterTreshold {
-				updated, err := persistence.UpdateAccount(s.Storage, state.Name, &next)
+			if state.EventCounter >= s.EventCounterTreshold {
+				err := persistence.UpdateAccount(s.Storage, state.Name, &state)
 				if err != nil {
 					log.Warn().Msgf("%s/Exist/Rollback Error unable to update snapshot %+v", state.Name, err)
 				} else {
-					next = *updated
-					log.Info().Msgf("%s/Exist/Rollback Updated snapshot to version %d", state.Name, next.SnapshotVersion)
+					state.SnapshotVersion += 1
+						state.EventCounter = 0
+					log.Info().Msgf("%s/Exist/Rollback Updated snapshot to version %d", state.Name, state.SnapshotVersion)
 				}
 			}
 
-			context.Self.Become(next, ExistAccount(s))
+			context.Self.Become(state, ExistAccount(s))
 			log.Info().Msgf("Account %s rejected %s %s", state.Name, msg.Amount.String(), state.Currency)
 			log.Debug().Msgf("%s/Exist/Rollback OK", state.Name)
 			return

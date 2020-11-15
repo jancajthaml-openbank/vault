@@ -9,16 +9,6 @@ import (
 	money "gopkg.in/inf.v0"
 )
 
-/*
-func TestAccount_Copy(t *testing.T) {
-	t.Log("can copy nil")
-	{
-		var entity *Account
-		assert.Equal(t, entity.Copy(), entity)
-	}
-}
-*/
-
 func TestAccount_Serialize(t *testing.T) {
 	t.Log("serialized is deserializable")
 	{

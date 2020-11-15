@@ -15,6 +15,7 @@
 package persistence
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -111,9 +112,9 @@ func CreateAccount(storage localfs.Storage, name string, format string, currency
 }
 
 // UpdateAccount persist account entity state with incremented version
-func UpdateAccount(storage localfs.Storage, name string, original *model.Account) (*model.Account, error) {
+func UpdateAccount(storage localfs.Storage, name string, original *model.Account) error {
 	if original.SnapshotVersion == math.MaxInt32 {
-		return original, nil
+		return fmt.Errorf("reached maximum snapshot version")
 	}
 	entity := &model.Account{
 		Balance:         original.Balance,
@@ -130,9 +131,9 @@ func UpdateAccount(storage localfs.Storage, name string, original *model.Account
 	path := utils.SnapshotPath(name, entity.SnapshotVersion)
 	err := storage.WriteFileExclusive(path, data)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return entity, nil
+	return nil
 }
 
 // PersistPromise persists promise event

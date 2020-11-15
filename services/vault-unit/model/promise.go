@@ -34,19 +34,6 @@ func NewPromises() Promises {
 	}
 }
 
-// Copy returns copy of promises
-func (s Promises) Copy() Promises {
-	result := NewPromises()
-	result.keys = make([]int, len(s.keys))
-	copy(result.keys, s.keys)
-	result.tail = s.tail
-	for _, k := range s.keys {
-		result.values[k] = s.values[k]
-		result.index[s.values[k]] = k
-	}
-	return result
-}
-
 // Add adds items to set if not already present
 func (s *Promises) Add(items ...string) {
 	if s == nil {
