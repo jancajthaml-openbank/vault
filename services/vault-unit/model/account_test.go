@@ -68,6 +68,29 @@ func TestAccount_Serialize(t *testing.T) {
 		no.IsBalanceCheck = false
 		assert.Equal(t, no.Serialize(), []byte("??? _F\n0.0\n0.0"))
 	}
+
+	t.Log("serialized currency")
+	{
+		a := new(Account)
+		a.Currency = ""
+		assert.Equal(t, a.Serialize(), []byte("??? _F\n0.0\n0.0"))
+
+		b := new(Account)
+		b.Currency = "A"
+		assert.Equal(t, b.Serialize(), []byte("A?? _F\n0.0\n0.0"))
+
+		c := new(Account)
+		c.Currency = "AB"
+		assert.Equal(t, c.Serialize(), []byte("AB? _F\n0.0\n0.0"))
+
+		d := new(Account)
+		d.Currency = "ABC"
+		assert.Equal(t, d.Serialize(), []byte("ABC _F\n0.0\n0.0"))
+
+		e := new(Account)
+		e.Currency = "ABCD"
+		assert.Equal(t, e.Serialize(), []byte("ABC _F\n0.0\n0.0"))
+	}
 }
 
 func BenchmarkAccount_Serialize(b *testing.B) {

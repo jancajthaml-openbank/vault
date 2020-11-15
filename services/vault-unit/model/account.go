@@ -61,11 +61,11 @@ func (entity Account) Serialize() []byte {
 	case 0:
 		buffer.WriteString("???")
 	case 1:
+		buffer.WriteString(entity.Currency)
 		buffer.WriteString("??")
-		buffer.WriteString(entity.Currency)
 	case 2:
-		buffer.WriteString("?")
 		buffer.WriteString(entity.Currency)
+		buffer.WriteString("?")
 	default:
 		buffer.WriteString(entity.Currency[0:3])
 	}
