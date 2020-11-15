@@ -90,11 +90,11 @@ func (s *Promises) Values() []string {
 	if s == nil {
 		return make([]string, 0)
 	}
-	values := make([]string, len(s.values))
+	result := make([]string, len(s.values))
 	for i, k := range s.keys {
-		values[i] = s.values[k]
+		result[i] = s.values[k]
 	}
-	return values
+	return result
 }
 
 // Size returns number of items in set
@@ -106,7 +106,7 @@ func (s *Promises) Size() int {
 }
 
 func (s *Promises) String() string {
-	if s == nil {
+	if s == nil || len(s.keys) == 0 {
 		return "[]"
 	}
 	var buffer bytes.Buffer
@@ -116,6 +116,7 @@ func (s *Promises) String() string {
 		buffer.WriteString(s.values[k])
 		buffer.WriteString(",")
 	}
+	buffer.Truncate(buffer.Len()-1)
 	buffer.WriteString("]")
 
 	return buffer.String()

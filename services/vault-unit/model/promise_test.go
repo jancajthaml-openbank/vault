@@ -99,6 +99,13 @@ func TestPromises_Size(t *testing.T) {
 	assert.Equal(t, s.Size(), 0)
 }
 
+func TestPromises_String(t *testing.T) {
+	s := NewPromises()
+	s.Add("A", "B")
+
+	require.Equal(t, s.String(), "[A,B]")
+}
+
 func BenchmarkPromises_Add(b *testing.B) {
 	s := NewPromises()
 
