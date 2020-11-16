@@ -114,31 +114,39 @@ func (entity *Account) Deserialize(data []byte) {
 
 	var (
 		i = 4
-		j = bytes.IndexByte(data[4:], '\n') + 4
+		j = bytes.IndexByte(data, '\n')
+		l = len(data)
 	)
 
-	format := string(data[i:j])
+	if j < i || j > l {
+		j = l
+	}
 
-	entity.IsBalanceCheck = (format[len(format)-1:] != "F")
-	entity.Format = format[:len(format)-2]
+	entity.IsBalanceCheck = (data[j-1] != byte('F'))
+	entity.Format = string(data[i:j-2])
+
+	if j >= l {
+		return
+	}
 
 	i = j + 1
-
 	j = bytes.IndexByte(data[i:], '\n')
+
 	if j < 0 {
-		if len(data) > 0 {
-			entity.Balance, _ = new(money.Dec).SetString(string(data[i]))
+		if i < l {
+			entity.Balance, _ = new(money.Dec).SetString(string(data[i:]))
 		}
 		return
 	}
 	j += i
+
 	entity.Balance, _ = new(money.Dec).SetString(string(data[i:j]))
 	i = j + 1
 
 	j = bytes.IndexByte(data[i:], '\n')
 	if j < 0 {
-		if len(data) > 0 {
-			entity.Promised, _ = new(money.Dec).SetString(string(data[i]))
+		if i < l {
+			entity.Promised, _ = new(money.Dec).SetString(string(data[i:]))
 		}
 		return
 	}
@@ -149,7 +157,7 @@ func (entity *Account) Deserialize(data []byte) {
 	for {
 		j = bytes.IndexByte(data[i:], '\n')
 		if j < 0 {
-			if len(data) > 0 {
+			if i < l {
 				entity.Promises.Add(string(data[i:]))
 			}
 			return

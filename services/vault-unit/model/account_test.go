@@ -9,6 +9,85 @@ import (
 	money "gopkg.in/inf.v0"
 )
 
+func TestAccount_Deserialize(t *testing.T) {
+
+	t.Log("does not panic on nil")
+	{
+		var entity *Account
+		entity.Deserialize(nil)
+	}
+
+	t.Log("cut after meta")
+	{
+		data := []byte("CUR FOR_T")
+
+		entity := new(Account)
+		entity.Deserialize(data)
+
+		assert.Equal(t, "FOR", entity.Format)
+		assert.Equal(t, "CUR", entity.Currency)
+		assert.Equal(t, true, entity.IsBalanceCheck)
+		assert.Nil(t, entity.Balance)
+		assert.Nil(t, entity.Promised)
+		assert.Equal(t, int64(0), entity.SnapshotVersion)
+		assert.Equal(t, int64(0), entity.EventCounter)
+	}
+
+	t.Log("cut after balance")
+	{
+		data := []byte("CUR FOR_T\n1.0")
+
+		entity := new(Account)
+		entity.Deserialize(data)
+
+		assert.Equal(t, "FOR", entity.Format)
+		assert.Equal(t, "CUR", entity.Currency)
+		assert.Equal(t, true, entity.IsBalanceCheck)
+		assert.NotNil(t, entity.Balance)
+		assert.Equal(t, "1.0", entity.Balance.String())
+		assert.Nil(t, entity.Promised)
+		assert.Equal(t, int64(0), entity.SnapshotVersion)
+		assert.Equal(t, int64(0), entity.EventCounter)
+	}
+
+	t.Log("cut after promised")
+	{
+		data := []byte("CUR FOR_T\n1.0\n2.0")
+
+		entity := new(Account)
+		entity.Deserialize(data)
+
+		assert.Equal(t, "FOR", entity.Format)
+		assert.Equal(t, "CUR", entity.Currency)
+		assert.Equal(t, true, entity.IsBalanceCheck)
+		assert.NotNil(t, entity.Balance)
+		assert.Equal(t, "1.0", entity.Balance.String())
+		assert.NotNil(t, entity.Promised)
+		assert.Equal(t, "2.0", entity.Promised.String())
+		assert.Equal(t, int64(0), entity.SnapshotVersion)
+		assert.Equal(t, int64(0), entity.EventCounter)
+	}
+
+	t.Log("full")
+	{
+		data := []byte("CUR FOR_T\n1.0\n2.0\nA\nB")
+
+		entity := new(Account)
+		entity.Deserialize(data)
+
+		assert.Equal(t, "FOR", entity.Format)
+		assert.Equal(t, "CUR", entity.Currency)
+		assert.Equal(t, true, entity.IsBalanceCheck)
+		assert.NotNil(t, entity.Balance)
+		assert.Equal(t, "1.0", entity.Balance.String())
+		assert.NotNil(t, entity.Promised)
+		assert.Equal(t, "2.0", entity.Promised.String())
+		assert.Equal(t, []string{"A", "B"}, entity.Promises.Values())
+		assert.Equal(t, int64(0), entity.SnapshotVersion)
+		assert.Equal(t, int64(0), entity.EventCounter)
+	}
+}
+
 func TestAccount_Serialize(t *testing.T) {
 	t.Log("serialized is deserializable")
 	{

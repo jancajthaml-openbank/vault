@@ -20,11 +20,6 @@ func TestPromises(t *testing.T) {
 		var s *Promises
 		s.Add("X")
 		s.Remove("X")
-
-		assert.Equal(t, s.Size(), 0)
-		assert.Equal(t, s.Contains(), false)
-		assert.Equal(t, s.Values(), make([]string, 0))
-		assert.Equal(t, s.String(), "[]")
 	}
 }
 

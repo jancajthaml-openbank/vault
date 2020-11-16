@@ -51,10 +51,7 @@ func (s *Promises) Add(items ...string) {
 }
 
 // Contains returns true if all items are present in set
-func (s *Promises) Contains(items ...string) bool {
-	if s == nil {
-		return false
-	}
+func (s Promises) Contains(items ...string) bool {
 	for _, item := range items {
 		if _, found := s.index[item]; !found {
 			return false
@@ -87,10 +84,7 @@ func (s *Promises) Remove(items ...string) {
 }
 
 // Values returns slice of items in order or insertion
-func (s *Promises) Values() []string {
-	if s == nil {
-		return make([]string, 0)
-	}
+func (s Promises) Values() []string {
 	result := make([]string, len(s.values))
 	for i, k := range s.keys {
 		result[i] = s.values[k]
@@ -99,16 +93,13 @@ func (s *Promises) Values() []string {
 }
 
 // Size returns number of items in set
-func (s *Promises) Size() int {
-	if s == nil {
-		return 0
-	}
+func (s Promises) Size() int {
 	return len(s.values)
 }
 
 // String serializes promises
-func (s *Promises) String() string {
-	if s == nil || len(s.keys) == 0 {
+func (s Promises) String() string {
+	if len(s.keys) == 0 {
 		return "[]"
 	}
 	var buffer bytes.Buffer
