@@ -113,10 +113,9 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 				return
 			}
 
-			//next := state.Copy()
 			state.Promised = new(money.Dec).Add(state.Promised, msg.Amount)
 			state.Promises.Add(msg.Transaction)
-			state.EventCounter = state.EventCounter + 1
+			state.EventCounter++
 
 			if !state.IsBalanceCheck || new(money.Dec).Add(state.Balance, state.Promised).Sign() >= 0 {
 				err := persistence.PersistPromise(s.Storage, state, msg.Amount, msg.Transaction)
@@ -129,7 +128,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 					log.Warn().Msgf("%s/Exist/Promise Error could not persist %+v", state.Name, err)
 					state.Promised = new(money.Dec).Sub(state.Promised, msg.Amount)
 					state.Promises.Remove(msg.Transaction)
-					state.EventCounter = state.EventCounter - 1
+					state.EventCounter--
 					return
 				}
 
@@ -142,7 +141,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 					if err != nil {
 						log.Warn().Msgf("%s/Exist/Promise Error unable to update snapshot %+v", state.Name, err)
 					} else {
-						state.SnapshotVersion += 1
+						state.SnapshotVersion++
 						state.EventCounter = 0
 						log.Info().Msgf("%s/Exist/Promise Updated snapshot to version %d", state.Name, state.SnapshotVersion)
 					}
@@ -180,7 +179,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 			state.Balance = new(money.Dec).Add(state.Balance, msg.Amount)
 			state.Promised = new(money.Dec).Sub(state.Promised, msg.Amount)
 			state.Promises.Remove(msg.Transaction)
-			state.EventCounter = state.EventCounter + 1
+			state.EventCounter++
 
 			err := persistence.PersistCommit(s.Storage, state, msg.Amount, msg.Transaction)
 			if err != nil {
@@ -193,7 +192,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 				state.Balance = new(money.Dec).Sub(state.Balance, msg.Amount)
 				state.Promised = new(money.Dec).Add(state.Promised, msg.Amount)
 				state.Promises.Add(msg.Transaction)
-				state.EventCounter = state.EventCounter - 1
+				state.EventCounter--
 				return
 			}
 
@@ -206,7 +205,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 				if err != nil {
 					log.Warn().Msgf("%s/Exist/Commit Error unable to update snapshot %+v", state.Name, err)
 				} else {
-					state.SnapshotVersion += 1
+					state.SnapshotVersion++
 					state.EventCounter = 0
 					log.Info().Msgf("%s/Exist/Commit Updated snapshot to version %d", state.Name, state.SnapshotVersion)
 				}
@@ -225,7 +224,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 
 			state.Promised = new(money.Dec).Sub(state.Promised, msg.Amount)
 			state.Promises.Remove(msg.Transaction)
-			state.EventCounter = state.EventCounter + 1
+			state.EventCounter++
 
 			err := persistence.PersistRollback(s.Storage, state, msg.Amount, msg.Transaction)
 			if err != nil {
@@ -237,7 +236,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 				log.Warn().Msgf("%s/Exist/Rollback Error could not persist %+v", state.Name, err)
 				state.Promised = new(money.Dec).Add(state.Promised, msg.Amount)
 				state.Promises.Add(msg.Transaction)
-				state.EventCounter = state.EventCounter - 1
+				state.EventCounter--
 				return
 			}
 
@@ -250,8 +249,8 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 				if err != nil {
 					log.Warn().Msgf("%s/Exist/Rollback Error unable to update snapshot %+v", state.Name, err)
 				} else {
-					state.SnapshotVersion += 1
-						state.EventCounter = 0
+					state.SnapshotVersion++
+					state.EventCounter = 0
 					log.Info().Msgf("%s/Exist/Rollback Updated snapshot to version %d", state.Name, state.SnapshotVersion)
 				}
 			}

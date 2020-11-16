@@ -30,7 +30,7 @@ func NewPromises() Promises {
 		index:  make(map[string]int),
 		keys:   make([]int, 0),
 		values: make(map[int]string),
-		tail: 0,
+		tail:   0,
 	}
 }
 
@@ -109,7 +109,7 @@ func (s Promises) String() string {
 		buffer.WriteString(s.values[k])
 		buffer.WriteString(",")
 	}
-	buffer.Truncate(buffer.Len()-1)
+	buffer.Truncate(buffer.Len() - 1)
 	buffer.WriteString("]")
 
 	return buffer.String()

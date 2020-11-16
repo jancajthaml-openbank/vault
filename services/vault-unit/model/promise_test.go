@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,7 +10,7 @@ import (
 
 func TestPromises(t *testing.T) {
 
-	t.Log("initialy empty")
+	t.Log("initially empty")
 	{
 		a := NewPromises()
 		assert.Equal(t, a.Size(), 0)
@@ -115,40 +116,40 @@ func BenchmarkPromises_Add(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		s.Add(string(i))
+		s.Add(fmt.Sprintf("%d", i))
 	}
 }
 
 func BenchmarkPromises_Remove(b *testing.B) {
 	s := NewPromises()
 	for i := 0; i < 10000; i++ {
-		s.Add(string(i))
+		s.Add(fmt.Sprintf("%d", i))
 	}
 
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		s.Remove(string(i))
+		s.Remove(fmt.Sprintf("%d", i))
 	}
 }
 
 func BenchmarkPromises_Contains(b *testing.B) {
 	s := NewPromises()
 	for i := 0; i < 10000; i++ {
-		s.Add(string(i))
+		s.Add(fmt.Sprintf("%d", i))
 	}
 
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		s.Contains(string(i))
+		s.Contains(fmt.Sprintf("%d", i))
 	}
 }
 
 func BenchmarkPromises_Size(b *testing.B) {
 	s := NewPromises()
 	for i := 0; i < 10000; i++ {
-		s.Add(string(i))
+		s.Add(fmt.Sprintf("%d", i))
 	}
 
 	b.ReportAllocs()
@@ -161,7 +162,7 @@ func BenchmarkPromises_Size(b *testing.B) {
 func BenchmarkPromises_Values(b *testing.B) {
 	s := NewPromises()
 	for i := 0; i < 10000; i++ {
-		s.Add(string(i))
+		s.Add(fmt.Sprintf("%d", i))
 	}
 
 	b.ReportAllocs()
@@ -174,7 +175,7 @@ func BenchmarkPromises_Values(b *testing.B) {
 func BenchmarkPromises_String(b *testing.B) {
 	s := NewPromises()
 	for i := 0; i < 10000; i++ {
-		s.Add(string(i))
+		s.Add(fmt.Sprintf("%d", i))
 	}
 
 	b.ReportAllocs()

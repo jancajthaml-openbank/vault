@@ -123,7 +123,7 @@ func (entity *Account) Deserialize(data []byte) {
 	}
 
 	entity.IsBalanceCheck = (data[j-1] != byte('F'))
-	entity.Format = string(data[i:j-2])
+	entity.Format = string(data[i : j-2])
 
 	if j >= l {
 		return

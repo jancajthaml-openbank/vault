@@ -128,7 +128,7 @@ func TestSnapshot_Promises(t *testing.T) {
 
 	assert.Equal(t, snapshot.Balance, loaded.Balance)
 	assert.Equal(t, snapshot.Promised, loaded.Promised)
-	assert.Equal(t, snapshot.SnapshotVersion + 1, loaded.SnapshotVersion)
+	assert.Equal(t, snapshot.SnapshotVersion+1, loaded.SnapshotVersion)
 	assert.Equal(t, snapshot.Name, loaded.Name)
 	assert.Equal(t, snapshot.Format, loaded.Format)
 	assert.Equal(t, snapshot.Currency, loaded.Currency)
