@@ -6,14 +6,33 @@ import (
     "testing"
     "github.com/labstack/echo/v4"
     "github.com/stretchr/testify/assert"
+
+    "github.com/jancajthaml-openbank/vault-rest/system"
 )
+
+type mockMemoryMonitor struct {
+    system.MemoryMonitor
+}
+
+func (monitoy mockMemoryMonitor) IsHealthy() bool {
+    return true
+}
+
+func (monitoy mockMemoryMonitor) GetFreeMemory() uint64 {
+    return uint64(0)
+}
+
+func (monitoy mockMemoryMonitor) GetUsedMemory() uint64 {
+    return uint64(0)
+}
 
 func TestHealthCheckHandler(t *testing.T) {
     t.Log("HEAD /health")
     {
-        router := echo.New()
+        memoryMonitor := new(mockMemoryMonitor)
 
-        router.HEAD("/health", HealtCheckPing(nil, nil))
+        router := echo.New()
+        router.HEAD("/health", HealtCheckPing(memoryMonitor, nil))
 
         req := httptest.NewRequest(http.MethodHead, "/health", nil)
         rec := httptest.NewRecorder()
@@ -25,9 +44,10 @@ func TestHealthCheckHandler(t *testing.T) {
 
     t.Log("GET /health")
     {
-        router := echo.New()
+        memoryMonitor := new(mockMemoryMonitor)
 
-        router.GET("/health", HealtCheck(nil, nil))
+        router := echo.New()
+        router.GET("/health", HealtCheck(memoryMonitor, nil))
 
         req := httptest.NewRequest(http.MethodGet, "/health", nil)
         rec := httptest.NewRecorder()

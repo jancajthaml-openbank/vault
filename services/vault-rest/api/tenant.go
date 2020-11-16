@@ -24,7 +24,7 @@ import (
 )
 
 // CreateTenant enables vault-unit@{tenant}
-func CreateTenant(systemctl *system.Control) func(c echo.Context) error {
+func CreateTenant(systemctl system.Control) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		tenant := c.Param("tenant")
 		if tenant == "" {
@@ -43,7 +43,7 @@ func CreateTenant(systemctl *system.Control) func(c echo.Context) error {
 }
 
 // DeleteTenant disables vault-unit@{tenant}
-func DeleteTenant(systemctl *system.Control) func(c echo.Context) error {
+func DeleteTenant(systemctl system.Control) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 
@@ -64,12 +64,13 @@ func DeleteTenant(systemctl *system.Control) func(c echo.Context) error {
 }
 
 // ListTenants lists vault-unit@
-func ListTenants(systemctl *system.Control) func(c echo.Context) error {
+func ListTenants(systemctl system.Control) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 
 		units, err := systemctl.ListUnits("vault-unit@")
 		if err != nil {
+			fmt.Println(err.Error())
 			return err
 		}
 

@@ -25,27 +25,40 @@ import (
 	"github.com/jancajthaml-openbank/vault-rest/utils"
 )
 
-// Control represents systemctl subroutine
-type Control struct {
+// Control represents contract of system control
+type Control interface {
+	ListUnits(string) ([]string, error)
+	GetUnitsProperties(string) (map[string]UnitStatus, error)
+	DisableUnit(string) error
+	EnableUnit(string) error
+}
+
+// DbusControl is control implementation using dbus
+type DbusControl struct {
+	Control
 	utils.DaemonSupport
 	underlying *dbus.Conn
 }
 
 // NewSystemControl returns new systemctl fascade
-func NewSystemControl(ctx context.Context) *Control {
+func NewSystemControl(ctx context.Context) *DbusControl {
 	conn, err := dbus.New()
 	if err != nil {
 		log.Error().Msgf("Unable to obtain dbus connection because %+v", err)
 		return nil
 	}
-	return &Control{
+	return &DbusControl{
 		DaemonSupport: utils.NewDaemonSupport(ctx, "system-control"),
 		underlying:    conn,
 	}
 }
 
 // ListUnits returns list of unit names
-func (sys Control) ListUnits(prefix string) ([]string, error) {
+func (sys *DbusControl) ListUnits(prefix string) ([]string, error) {
+	if sys == nil {
+		return nil, fmt.Errorf("cannot call method on nil")
+	}
+
 	units, err := sys.underlying.ListUnits()
 	if err != nil {
 		return nil, err
@@ -67,7 +80,11 @@ func (sys Control) ListUnits(prefix string) ([]string, error) {
 }
 
 // GetUnitsProperties return unit properties
-func (sys Control) GetUnitsProperties(prefix string) (map[string]UnitStatus, error) {
+func (sys *DbusControl) GetUnitsProperties(prefix string) (map[string]UnitStatus, error) {
+	if sys == nil {
+		return nil, fmt.Errorf("cannot call method on nil")
+	}
+
 	units, err := sys.underlying.ListUnits()
 	if err != nil {
 		return nil, err
@@ -97,7 +114,11 @@ func (sys Control) GetUnitsProperties(prefix string) (map[string]UnitStatus, err
 }
 
 // DisableUnit disables unit
-func (sys Control) DisableUnit(name string) error {
+func (sys *DbusControl) DisableUnit(name string) error {
+	if sys == nil {
+		return fmt.Errorf("cannot call method on nil")
+	}
+
 	ch := make(chan string)
 
 	if _, err := sys.underlying.StopUnit(name, "replace", ch); err != nil {
@@ -126,7 +147,10 @@ func (sys Control) DisableUnit(name string) error {
 }
 
 // EnableUnit enables unit
-func (sys Control) EnableUnit(name string) error {
+func (sys *DbusControl) EnableUnit(name string) error {
+	if sys == nil {
+		return fmt.Errorf("cannot call method on nil")
+	}
 	if _, _, err := sys.underlying.EnableUnitFiles([]string{name}, false, false); err != nil {
 		return fmt.Errorf("unable to enable unit %s because %+v", name, err)
 	}
@@ -155,7 +179,10 @@ func (sys Control) EnableUnit(name string) error {
 }
 
 // Start handles everything needed to start system-control daemon
-func (sys Control) Start() {
+func (sys *DbusControl) Start() {
+	if sys == nil {
+		return
+	}
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 
