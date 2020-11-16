@@ -45,10 +45,7 @@ func HealtCheck(memoryMonitor system.MemoryMonitor, diskMonitor system.DiskMonit
 			c.Response().WriteHeader(http.StatusOK)
 		}
 
-		chunk, err := json.Marshal(status)
-		if err != nil {
-			return err
-		}
+		chunk, _ := json.Marshal(status)
 		c.Response().Write(chunk)
 		c.Response().Flush()
 		return nil

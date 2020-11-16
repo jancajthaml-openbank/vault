@@ -37,7 +37,7 @@ func (monitor mockMonitor) GetUsedDiskSpace() uint64 {
 }
 
 func TestHealthCheckHandler(t *testing.T) {
-    t.Log("HEAD /health - healthy")
+    t.Log("HEAD - healthy")
     {
         monitor := new(mockMonitor)
         monitor.healthy = true
@@ -53,7 +53,7 @@ func TestHealthCheckHandler(t *testing.T) {
         assert.Empty(t, rec.Body.String())
     }
 
-    t.Log("HEAD /health - unhealthy")
+    t.Log("HEAD - unhealthy")
     {
         monitor := new(mockMonitor)
         monitor.healthy = false
@@ -69,7 +69,7 @@ func TestHealthCheckHandler(t *testing.T) {
         assert.Empty(t, rec.Body.String())
     }
 
-    t.Log("GET /health - healthy")
+    t.Log("GET - healthy")
     {
         monitor := new(mockMonitor)
         monitor.healthy = true
@@ -98,7 +98,7 @@ func TestHealthCheckHandler(t *testing.T) {
         `, rec.Body.String())
     }
 
-    t.Log("GET /health - unhealthy")
+    t.Log("GET - unhealthy")
     {
         monitor := new(mockMonitor)
         monitor.healthy = false

@@ -16,6 +16,7 @@ package api
 
 import (
 	"fmt"
+	"strings"
 	"net/http"
 
 	"github.com/jancajthaml-openbank/vault-rest/system"
@@ -26,18 +27,16 @@ import (
 // CreateTenant enables vault-unit@{tenant}
 func CreateTenant(systemctl system.Control) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		tenant := c.Param("tenant")
+		tenant := strings.TrimSpace(c.Param("tenant"))
 		if tenant == "" {
-			return fmt.Errorf("missing tenant")
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
 		}
-
 		err := systemctl.EnableUnit("vault-unit@" + tenant + ".service")
 		if err != nil {
 			return err
 		}
-
 		c.Response().WriteHeader(http.StatusOK)
-
 		return nil
 	}
 }
@@ -45,20 +44,16 @@ func CreateTenant(systemctl system.Control) func(c echo.Context) error {
 // DeleteTenant disables vault-unit@{tenant}
 func DeleteTenant(systemctl system.Control) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
-
-		tenant := c.Param("tenant")
+		tenant := strings.TrimSpace(c.Param("tenant"))
 		if tenant == "" {
-			return fmt.Errorf("missing tenant")
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
 		}
-
 		err := systemctl.DisableUnit("vault-unit@" + tenant + ".service")
 		if err != nil {
 			return err
 		}
-
 		c.Response().WriteHeader(http.StatusOK)
-
 		return nil
 	}
 }
@@ -67,16 +62,13 @@ func DeleteTenant(systemctl system.Control) func(c echo.Context) error {
 func ListTenants(systemctl system.Control) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
-
 		units, err := systemctl.ListUnits("vault-unit@")
 		if err != nil {
 			fmt.Println(err.Error())
 			return err
 		}
-
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextPlainCharsetUTF8)
 		c.Response().WriteHeader(http.StatusOK)
-
 		for idx, unit := range units {
 			if idx == len(units)-1 {
 				c.Response().Write([]byte(unit))

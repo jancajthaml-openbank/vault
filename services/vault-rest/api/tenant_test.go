@@ -30,24 +30,8 @@ func (sys mockSystemControl) EnableUnit(name string) error {
     return nil
 }
 
-
-func TestTenantHandler(t *testing.T) {
-    t.Log("GET /tenant")
-    {
-        mockControl := new(mockSystemControl)
-
-        router := echo.New()
-        router.GET("/tenant", ListTenants(mockControl))
-
-        req := httptest.NewRequest(http.MethodGet, "/tenant", nil)
-        rec := httptest.NewRecorder()
-        router.ServeHTTP(rec, req)
-
-        assert.Equal(t, http.StatusOK, rec.Code)
-        assert.Equal(t, "", rec.Body.String())
-    }
-
-    t.Log("POST /tenant/:tenant")
+func TestCreateTenant(t *testing.T) {
+    t.Log("happy path")
     {
         mockControl := new(mockSystemControl)
 
@@ -62,7 +46,40 @@ func TestTenantHandler(t *testing.T) {
         assert.Equal(t, "", rec.Body.String())
     }
 
-    t.Log("DELETE /tenant/:tenant")
+    t.Log("missing tenant")
+    {
+        mockControl := new(mockSystemControl)
+
+        router := echo.New()
+        router.POST("/tenant/:tenant", CreateTenant(mockControl))
+
+        req := httptest.NewRequest(http.MethodPost, "/tenant/ ", nil)
+        rec := httptest.NewRecorder()
+        router.ServeHTTP(rec, req)
+
+        assert.Equal(t, http.StatusNotFound, rec.Code)
+    }
+}
+
+func TestGetTenants(t *testing.T) {
+    t.Log("happy path")
+    {
+        mockControl := new(mockSystemControl)
+
+        router := echo.New()
+        router.GET("/tenant", ListTenants(mockControl))
+
+        req := httptest.NewRequest(http.MethodGet, "/tenant", nil)
+        rec := httptest.NewRecorder()
+        router.ServeHTTP(rec, req)
+
+        assert.Equal(t, http.StatusOK, rec.Code)
+        assert.Equal(t, "", rec.Body.String())
+    }
+}
+
+func TestDeleteTenant(t *testing.T) {
+    t.Log("happy path")
     {
         mockControl := new(mockSystemControl)
 
