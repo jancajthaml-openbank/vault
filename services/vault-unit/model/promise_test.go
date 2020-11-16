@@ -95,10 +95,18 @@ func TestPromises_Size(t *testing.T) {
 }
 
 func TestPromises_String(t *testing.T) {
-	s := NewPromises()
-	s.Add("A", "B")
+	t.Log("empty")
+	{
+		s := NewPromises()
+		require.Equal(t, s.String(), "[]")
+	}
 
-	require.Equal(t, s.String(), "[A,B]")
+	t.Log("non empty")
+	{
+		s := NewPromises()
+		s.Add("A", "B")
+		require.Equal(t, s.String(), "[A,B]")
+	}
 }
 
 func BenchmarkPromises_Add(b *testing.B) {

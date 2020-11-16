@@ -15,6 +15,21 @@ func TestVersionString(t *testing.T) {
 	assert.Equal(t, len(versionMin), len(versionMax))
 }
 
+func TestRootPath(t *testing.T) {
+	path := RootPath()
+
+	assert.Equal(t, "account", path)
+}
+
+func TestEventsPath(t *testing.T) {
+	account := "account_1"
+
+	path := EventsPath(account)
+	expected := fmt.Sprintf("account/%s/events", account)
+
+	assert.Equal(t, expected, path)
+}
+
 func TestEventPath(t *testing.T) {
 	account := "account_2"
 
