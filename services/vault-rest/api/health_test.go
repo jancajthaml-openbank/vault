@@ -13,32 +13,34 @@ import (
 type mockMonitor struct {
     system.MemoryMonitor
     system.DiskMonitor
+    healthy bool
 }
 
-func (monitoy mockMonitor) IsHealthy() bool {
-    return true
+func (monitor mockMonitor) IsHealthy() bool {
+    return monitor.healthy
 }
 
-func (monitoy mockMonitor) GetFreeMemory() uint64 {
+func (monitor mockMonitor) GetFreeMemory() uint64 {
     return uint64(0)
 }
 
-func (monitoy mockMonitor) GetUsedMemory() uint64 {
+func (monitor mockMonitor) GetUsedMemory() uint64 {
     return uint64(0)
 }
 
-func (monitoy mockMonitor) GetFreeDiskSpace() uint64 {
+func (monitor mockMonitor) GetFreeDiskSpace() uint64 {
     return uint64(0)
 }
 
-func (monitoy mockMonitor) GetUsedDiskSpace() uint64 {
+func (monitor mockMonitor) GetUsedDiskSpace() uint64 {
     return uint64(0)
 }
 
 func TestHealthCheckHandler(t *testing.T) {
-    t.Log("HEAD /health")
+    t.Log("HEAD /health - healthy")
     {
         monitor := new(mockMonitor)
+        monitor.healthy = true
 
         router := echo.New()
         router.HEAD("/health", HealtCheckPing(monitor, monitor))
@@ -51,9 +53,26 @@ func TestHealthCheckHandler(t *testing.T) {
         assert.Empty(t, rec.Body.String())
     }
 
-    t.Log("GET /health")
+    t.Log("HEAD /health - unhealthy")
     {
         monitor := new(mockMonitor)
+        monitor.healthy = false
+
+        router := echo.New()
+        router.HEAD("/health", HealtCheckPing(monitor, monitor))
+
+        req := httptest.NewRequest(http.MethodHead, "/health", nil)
+        rec := httptest.NewRecorder()
+        router.ServeHTTP(rec, req)
+
+        assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
+        assert.Empty(t, rec.Body.String())
+    }
+
+    t.Log("GET /health - healthy")
+    {
+        monitor := new(mockMonitor)
+        monitor.healthy = true
 
         router := echo.New()
         router.GET("/health", HealtCheck(monitor, monitor))
@@ -74,6 +93,35 @@ func TestHealthCheckHandler(t *testing.T) {
                     "free": 0,
                     "used": 0,
                     "healthy": true
+                }
+            }
+        `, rec.Body.String())
+    }
+
+    t.Log("GET /health - unhealthy")
+    {
+        monitor := new(mockMonitor)
+        monitor.healthy = false
+
+        router := echo.New()
+        router.GET("/health", HealtCheck(monitor, monitor))
+
+        req := httptest.NewRequest(http.MethodGet, "/health", nil)
+        rec := httptest.NewRecorder()
+        router.ServeHTTP(rec, req)
+
+        assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
+        assert.JSONEq(t, `
+            {
+                "storage": {
+                    "free": 0,
+                    "used": 0,
+                    "healthy": false
+                },
+                "memory": {
+                    "free": 0,
+                    "used": 0,
+                    "healthy": false
                 }
             }
         `, rec.Body.String())
