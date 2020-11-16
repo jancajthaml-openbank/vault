@@ -14,6 +14,15 @@ func TestAccount_Unmarshall(t *testing.T) {
     entity.UnmarshalJSON(nil)
   }
 
+  t.Log("does not panic on invalid data")
+  {
+    data := []byte(`
+      {
+        "name": "NAME",
+    `)
+    require.NotNil(t, new(Account).UnmarshalJSON(data))
+  }
+
   t.Log("full schema check")
   {
     data := []byte(`
