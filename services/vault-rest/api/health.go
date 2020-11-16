@@ -22,7 +22,7 @@ import (
 )
 
 // HealtCheck returns 200 OK if service is healthy, 503 otherwise
-func HealtCheck(memoryMonitor system.MemoryMonitor, diskMonitor *system.DiskMonitor) func(c echo.Context) error {
+func HealtCheck(memoryMonitor system.MemoryMonitor, diskMonitor system.DiskMonitor) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 
@@ -56,7 +56,7 @@ func HealtCheck(memoryMonitor system.MemoryMonitor, diskMonitor *system.DiskMoni
 }
 
 // HealtCheckPing returns 200 OK if service is healthy, 503 otherwise
-func HealtCheckPing(memoryMonitor system.MemoryMonitor, diskMonitor *system.DiskMonitor) func(c echo.Context) error {
+func HealtCheckPing(memoryMonitor system.MemoryMonitor, diskMonitor system.DiskMonitor) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		if !memoryMonitor.IsHealthy() || !diskMonitor.IsHealthy() {
 			c.Response().WriteHeader(http.StatusServiceUnavailable)

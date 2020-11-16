@@ -10,29 +10,38 @@ import (
     "github.com/jancajthaml-openbank/vault-rest/system"
 )
 
-type mockMemoryMonitor struct {
+type mockMonitor struct {
     system.MemoryMonitor
+    system.DiskMonitor
 }
 
-func (monitoy mockMemoryMonitor) IsHealthy() bool {
+func (monitoy mockMonitor) IsHealthy() bool {
     return true
 }
 
-func (monitoy mockMemoryMonitor) GetFreeMemory() uint64 {
+func (monitoy mockMonitor) GetFreeMemory() uint64 {
     return uint64(0)
 }
 
-func (monitoy mockMemoryMonitor) GetUsedMemory() uint64 {
+func (monitoy mockMonitor) GetUsedMemory() uint64 {
+    return uint64(0)
+}
+
+func (monitoy mockMonitor) GetFreeDiskSpace() uint64 {
+    return uint64(0)
+}
+
+func (monitoy mockMonitor) GetUsedDiskSpace() uint64 {
     return uint64(0)
 }
 
 func TestHealthCheckHandler(t *testing.T) {
     t.Log("HEAD /health")
     {
-        memoryMonitor := new(mockMemoryMonitor)
+        monitor := new(mockMonitor)
 
         router := echo.New()
-        router.HEAD("/health", HealtCheckPing(memoryMonitor, nil))
+        router.HEAD("/health", HealtCheckPing(monitor, monitor))
 
         req := httptest.NewRequest(http.MethodHead, "/health", nil)
         rec := httptest.NewRecorder()
@@ -44,10 +53,10 @@ func TestHealthCheckHandler(t *testing.T) {
 
     t.Log("GET /health")
     {
-        memoryMonitor := new(mockMemoryMonitor)
+        monitor := new(mockMonitor)
 
         router := echo.New()
-        router.GET("/health", HealtCheck(memoryMonitor, nil))
+        router.GET("/health", HealtCheck(monitor, monitor))
 
         req := httptest.NewRequest(http.MethodGet, "/health", nil)
         rec := httptest.NewRecorder()

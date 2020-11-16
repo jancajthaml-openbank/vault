@@ -23,8 +23,16 @@ import (
 	"github.com/jancajthaml-openbank/vault-rest/utils"
 )
 
-// DiskMonitor represents disk monitoring subroutine
-type DiskMonitor struct {
+// DiskMonitor represents contract of storage monitor
+type DiskMonitor interface {
+	IsHealthy() bool
+	GetFreeDiskSpace() uint64
+	GetUsedDiskSpace() uint64
+}
+
+// RuntimeDiskMonitor is storage monitor implementation looking at runtime
+// storage
+type RuntimeDiskMonitor struct {
 	utils.DaemonSupport
 	rootStorage string
 	limit       uint64
@@ -34,8 +42,8 @@ type DiskMonitor struct {
 }
 
 // NewDiskMonitor returns new disk monitor fascade
-func NewDiskMonitor(ctx context.Context, limit uint64, rootStorage string) *DiskMonitor {
-	return &DiskMonitor{
+func NewDiskMonitor(ctx context.Context, limit uint64, rootStorage string) *RuntimeDiskMonitor {
+	return &RuntimeDiskMonitor{
 		DaemonSupport: utils.NewDaemonSupport(ctx, "storage-check"),
 		rootStorage:   rootStorage,
 		limit:         limit,
@@ -46,7 +54,7 @@ func NewDiskMonitor(ctx context.Context, limit uint64, rootStorage string) *Disk
 }
 
 // IsHealthy true if storage is healthy
-func (monitor *DiskMonitor) IsHealthy() bool {
+func (monitor *RuntimeDiskMonitor) IsHealthy() bool {
 	if monitor == nil {
 		return true
 	}
@@ -54,7 +62,7 @@ func (monitor *DiskMonitor) IsHealthy() bool {
 }
 
 // GetFreeDiskSpace returns free disk space
-func (monitor *DiskMonitor) GetFreeDiskSpace() uint64 {
+func (monitor *RuntimeDiskMonitor) GetFreeDiskSpace() uint64 {
 	if monitor == nil {
 		return 0
 	}
@@ -62,7 +70,7 @@ func (monitor *DiskMonitor) GetFreeDiskSpace() uint64 {
 }
 
 // GetUsedDiskSpace returns used disk space
-func (monitor *DiskMonitor) GetUsedDiskSpace() uint64 {
+func (monitor *RuntimeDiskMonitor) GetUsedDiskSpace() uint64 {
 	if monitor == nil {
 		return 0
 	}
@@ -70,7 +78,7 @@ func (monitor *DiskMonitor) GetUsedDiskSpace() uint64 {
 }
 
 // CheckDiskSpace update free disk space metric and determine if ok to operate
-func (monitor *DiskMonitor) CheckDiskSpace() {
+func (monitor *RuntimeDiskMonitor) CheckDiskSpace() {
 	if monitor == nil {
 		return
 	}
@@ -97,7 +105,7 @@ func (monitor *DiskMonitor) CheckDiskSpace() {
 }
 
 // Start handles everything needed to start storage daemon
-func (monitor *DiskMonitor) Start() {
+func (monitor *RuntimeDiskMonitor) Start() {
 	if monitor == nil {
 		return
 	}
