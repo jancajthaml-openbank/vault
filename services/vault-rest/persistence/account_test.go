@@ -79,13 +79,24 @@ func (storage storageMock) LastModification(string) (time.Time, error) {
 
 
 func TestLoadAccounts(t *testing.T) {
-    storage := new(storageMock)
-    storage.TouchFile("t_tenant/account/a")
-    storage.TouchFile("/tmp/var")
-    storage.TouchFile("t_tenant/account/b")
-    storage.TouchFile("t_tenant/account/c")
-    storage.TouchFile("/dev/null")
-    accounts, err := LoadAccounts(storage, "tenant")
-    require.Nil(t, err)
-    assert.Equal(t, []string{"a", "b", "c"}, accounts)
+    t.Log("happy path")
+    {
+        storage := new(storageMock)
+        storage.TouchFile("t_tenant/account/a")
+        storage.TouchFile("/tmp/var")
+        storage.TouchFile("t_tenant/account/b")
+        storage.TouchFile("t_tenant/account/c")
+        storage.TouchFile("/dev/null")
+        accounts, err := LoadAccounts(storage, "tenant")
+        require.Nil(t, err)
+        assert.Equal(t, []string{"a", "b", "c"}, accounts)
+    }
+
+    t.Log("misconfigured storage")
+    {
+        storage := new(storageMock)
+        accounts, err := LoadAccounts(storage, "tenant")
+        require.Nil(t, err)
+        assert.Equal(t, []string{}, accounts)
+    }
 }
