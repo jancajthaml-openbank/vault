@@ -73,7 +73,8 @@ func ListTenants(systemctl system.Control) func(c echo.Context) error {
 			if idx == len(units)-1 {
 				c.Response().Write([]byte(unit))
 			} else {
-				c.Response().Write([]byte(unit + "\n"))
+				c.Response().Write([]byte(unit))
+				c.Response().Write([]byte("\n"))
 			}
 			c.Response().Flush()
 		}

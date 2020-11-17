@@ -35,11 +35,13 @@ func GetAccount(system *actor.System) func(c echo.Context) error {
 
 		tenant := c.Param("tenant")
 		if tenant == "" {
-			return fmt.Errorf("missing tenant")
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
 		}
 		id := c.Param("id")
 		if id == "" {
-			return fmt.Errorf("missing id")
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
 		}
 
 		switch result := actor.GetAccount(system, tenant, id).(type) {
@@ -74,7 +76,8 @@ func CreateAccount(system *actor.System) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		tenant := c.Param("tenant")
 		if tenant == "" {
-			return fmt.Errorf("missing tenant")
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
 		}
 
 		req, err := ioutil.ReadAll(c.Request().Body)
@@ -114,7 +117,8 @@ func GetAccounts(storage localfs.Storage) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		tenant := c.Param("tenant")
 		if tenant == "" {
-			return fmt.Errorf("missing tenant")
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
 		}
 
 		accounts, err := persistence.LoadAccounts(storage, tenant)
@@ -129,7 +133,8 @@ func GetAccounts(storage localfs.Storage) func(c echo.Context) error {
 			if idx == len(accounts)-1 {
 				c.Response().Write([]byte(account))
 			} else {
-				c.Response().Write([]byte(account + "\n"))
+				c.Response().Write([]byte(account))
+				c.Response().Write([]byte("\n"))
 			}
 			c.Response().Flush()
 		}
