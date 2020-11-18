@@ -17,9 +17,13 @@ type mockSystemControl struct {
     units []string
     circuitBreakEnableUnit bool
     circuitBreakDisableUnit bool
+    circuitBreakListUnits bool
 }
 
 func (sys mockSystemControl) ListUnits(prefix string) ([]string, error) {
+    if sys.circuitBreakListUnits == true {
+        return nil, fmt.Errorf("list units circuit break")
+    }
     var result = make([]string, 0)
     for _, unit := range sys.units {
         if !strings.HasPrefix(unit, prefix) {
@@ -156,5 +160,20 @@ func TestGetTenants(t *testing.T) {
 
         assert.Equal(t, http.StatusOK, rec.Code)
         assert.Equal(t, "a\nb", rec.Body.String())
+    }
+
+    t.Log("list unit fails")
+    {
+        mockControl := new(mockSystemControl)
+        mockControl.circuitBreakListUnits = true
+
+        router := echo.New()
+        router.GET("/tenant", ListTenants(mockControl))
+
+        req := httptest.NewRequest(http.MethodGet, "/tenant", nil)
+        rec := httptest.NewRecorder()
+        router.ServeHTTP(rec, req)
+
+        assert.Equal(t, http.StatusInternalServerError, rec.Code)
     }
 }
