@@ -1,6 +1,7 @@
 package persistence
 
 import (
+    "fmt"
     "os"
     "time"
     "strings"
@@ -14,6 +15,7 @@ import (
 type storageMock struct {
     localfs.Storage
     files []string
+    circuitBreakListDirectory bool
 }
 
 func (storage *storageMock) Chmod(absPath string, mod os.FileMode) error {
@@ -21,6 +23,9 @@ func (storage *storageMock) Chmod(absPath string, mod os.FileMode) error {
 }
 
 func (storage *storageMock) ListDirectory(path string, acs bool) ([]string, error) {
+    if storage.circuitBreakListDirectory {
+        return nil, fmt.Errorf("list directory circuit break")
+    }
     filtered := make([]string, len(storage.files))
     var ln int
     for _, file := range storage.files {
@@ -103,5 +108,14 @@ func TestLoadAccounts(t *testing.T) {
         accounts, err := LoadAccounts(storage, "tenant")
         require.Nil(t, err)
         assert.Equal(t, []string{}, accounts)
+    }
+
+    t.Log("corrupted node")
+    {
+        storage := new(storageMock)
+        storage.TouchFile("t_tenant/account/a")
+        storage.circuitBreakListDirectory = true
+        _, err := LoadAccounts(storage, "tenant")
+        require.NotNil(t, err)
     }
 }
