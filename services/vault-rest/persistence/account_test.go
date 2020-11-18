@@ -40,8 +40,13 @@ func (storage *storageMock) CountFiles(file string) (int, error) {
     return 0, nil
 }
 
-func (storage *storageMock) Exists(file string) (bool, error) {
-    return true, nil
+func (storage *storageMock) Exists(path string) (bool, error) {
+    for _, file := range storage.files {
+        if strings.HasPrefix(file, path) {
+            return true, nil
+        }
+    }
+    return false, nil
 }
 
 func (storage *storageMock) TouchFile(file string) error {
