@@ -2,6 +2,7 @@ package api
 
 import (
     "fmt"
+    "strings"
     "net/http"
     "net/http/httptest"
     "testing"
@@ -18,8 +19,15 @@ type mockSystemControl struct {
     circuitBreakDisableUnit bool
 }
 
-func (sys mockSystemControl) ListUnits(name string) ([]string, error) {
-    return sys.units, nil
+func (sys mockSystemControl) ListUnits(prefix string) ([]string, error) {
+    var result = make([]string, 0)
+    for _, unit := range sys.units {
+        if !strings.HasPrefix(unit, prefix) {
+            continue
+        }
+        result = append(result, strings.TrimSuffix(strings.TrimPrefix(unit, prefix), ".service"))
+    }
+    return result, nil
 }
 
 func (sys mockSystemControl) GetUnitsProperties(name string) (map[string]system.UnitStatus, error) {
@@ -136,6 +144,8 @@ func TestGetTenants(t *testing.T) {
     t.Log("happy path")
     {
         mockControl := new(mockSystemControl)
+        mockControl.units = append(mockControl.units, "vault-unit@a.service")
+        mockControl.units = append(mockControl.units, "vault-unit@b.service")
 
         router := echo.New()
         router.GET("/tenant", ListTenants(mockControl))
@@ -145,6 +155,6 @@ func TestGetTenants(t *testing.T) {
         router.ServeHTTP(rec, req)
 
         assert.Equal(t, http.StatusOK, rec.Code)
-        assert.Equal(t, "", rec.Body.String())
+        assert.Equal(t, "a\nb", rec.Body.String())
     }
 }
