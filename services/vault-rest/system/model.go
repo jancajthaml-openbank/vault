@@ -31,5 +31,5 @@ type CapacityStatus struct {
 // Status represents system status snapshot
 type Status struct {
 	Storage CapacityStatus `json:"storage"`
-	Memory  CapacityStatus  `json:"memory"`
+	Memory  CapacityStatus `json:"memory"`
 }

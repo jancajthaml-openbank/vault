@@ -15,9 +15,8 @@
 package api
 
 import (
-	"fmt"
-	"strings"
 	"net/http"
+	"strings"
 
 	"github.com/jancajthaml-openbank/vault-rest/system"
 
@@ -64,7 +63,6 @@ func ListTenants(control system.Control) func(c echo.Context) error {
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		units, err := control.ListUnits("unit@")
 		if err != nil {
-			fmt.Println(err.Error())
 			return err
 		}
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextPlainCharsetUTF8)
