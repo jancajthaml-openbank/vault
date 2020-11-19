@@ -24,17 +24,9 @@ import (
 	"github.com/jancajthaml-openbank/vault-rest/utils"
 )
 
-// MemoryMonitor represents contract of memory monitor
-type MemoryMonitor interface {
-	IsHealthy() bool
-	GetFreeMemory() uint64
-	GetUsedMemory() uint64
-}
-
-// RuntimeMemoryMonitor is memory monitor implementation looking at runtime
-// memory
-type RuntimeMemoryMonitor struct {
-	MemoryMonitor
+// MemoryMonitor monitors capacity of memory
+type MemoryMonitor struct {
+	CapacityCheck
 	utils.DaemonSupport
 	limit uint64
 	free  uint64
@@ -43,8 +35,8 @@ type RuntimeMemoryMonitor struct {
 }
 
 // NewMemoryMonitor returns new memory monitor fascade
-func NewMemoryMonitor(ctx context.Context, limit uint64) *RuntimeMemoryMonitor {
-	return &RuntimeMemoryMonitor{
+func NewMemoryMonitor(ctx context.Context, limit uint64) *MemoryMonitor {
+	return &MemoryMonitor{
 		DaemonSupport: utils.NewDaemonSupport(ctx, "memory-check"),
 		limit:         limit,
 		free:          0,
@@ -54,23 +46,23 @@ func NewMemoryMonitor(ctx context.Context, limit uint64) *RuntimeMemoryMonitor {
 }
 
 // IsHealthy true if storage is healthy
-func (monitor *RuntimeMemoryMonitor) IsHealthy() bool {
+func (monitor *MemoryMonitor) IsHealthy() bool {
 	if monitor == nil {
 		return true
 	}
 	return atomic.LoadInt32(&(monitor.ok)) != 0
 }
 
-// GetFreeMemory returns free memory
-func (monitor *RuntimeMemoryMonitor) GetFreeMemory() uint64 {
+// GetFree returns free memory
+func (monitor *MemoryMonitor) GetFree() uint64 {
 	if monitor == nil {
 		return 0
 	}
 	return atomic.LoadUint64(&(monitor.free))
 }
 
-// GetUsedMemory returns allocated memory
-func (monitor *RuntimeMemoryMonitor) GetUsedMemory() uint64 {
+// GetUsed returns allocated memory
+func (monitor *MemoryMonitor) GetUsed() uint64 {
 	if monitor == nil {
 		return 0
 	}
@@ -78,7 +70,7 @@ func (monitor *RuntimeMemoryMonitor) GetUsedMemory() uint64 {
 }
 
 // CheckMemoryAllocation update memory allocation metric and determine if ok to operate
-func (monitor *RuntimeMemoryMonitor) CheckMemoryAllocation() {
+func (monitor *MemoryMonitor) CheckMemoryAllocation() {
 	if monitor == nil {
 		return
 	}
@@ -109,7 +101,7 @@ func (monitor *RuntimeMemoryMonitor) CheckMemoryAllocation() {
 }
 
 // Start handles everything needed to start memory daemon
-func (monitor *RuntimeMemoryMonitor) Start() {
+func (monitor *MemoryMonitor) Start() {
 	if monitor == nil {
 		return
 	}

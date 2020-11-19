@@ -11,8 +11,7 @@ import (
 )
 
 type mockMonitor struct {
-    system.MemoryMonitor
-    system.DiskMonitor
+    system.CapacityCheck
     healthy bool
 }
 
@@ -20,21 +19,14 @@ func (monitor mockMonitor) IsHealthy() bool {
     return monitor.healthy
 }
 
-func (monitor mockMonitor) GetFreeMemory() uint64 {
+func (monitor mockMonitor) GetFree() uint64 {
     return uint64(0)
 }
 
-func (monitor mockMonitor) GetUsedMemory() uint64 {
+func (monitor mockMonitor) GetUsed() uint64 {
     return uint64(0)
 }
 
-func (monitor mockMonitor) GetFreeDiskSpace() uint64 {
-    return uint64(0)
-}
-
-func (monitor mockMonitor) GetUsedDiskSpace() uint64 {
-    return uint64(0)
-}
 
 func TestHealthCheckHandler(t *testing.T) {
     t.Log("HEAD - healthy")

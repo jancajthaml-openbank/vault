@@ -20,17 +20,9 @@ import (
 	"time"
 )
 
-// Daemon contract for type using support
-type Daemon interface {
-	Start()
-	Stop()
-	GreenLight()
-	WaitStop()
-	WaitReady(time.Duration) error
-}
-
 // DaemonSupport provides support for graceful shutdown
 type DaemonSupport struct {
+	Daemon
 	name       string
 	ctx        context.Context
 	cancel     context.CancelFunc

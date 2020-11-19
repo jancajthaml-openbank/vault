@@ -148,8 +148,8 @@ func TestGetTenants(t *testing.T) {
     t.Log("happy path")
     {
         mockControl := new(mockSystemControl)
-        mockControl.units = append(mockControl.units, "vault-unit@a.service")
-        mockControl.units = append(mockControl.units, "vault-unit@b.service")
+        mockControl.units = append(mockControl.units, "unit@a.service")
+        mockControl.units = append(mockControl.units, "unit@b.service")
 
         router := echo.New()
         router.GET("/tenant", ListTenants(mockControl))

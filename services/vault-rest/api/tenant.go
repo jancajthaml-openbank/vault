@@ -25,14 +25,14 @@ import (
 )
 
 // CreateTenant enables vault-unit@{tenant}
-func CreateTenant(systemctl system.Control) func(c echo.Context) error {
+func CreateTenant(control system.Control) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		tenant := strings.TrimSpace(c.Param("tenant"))
 		if tenant == "" {
 			c.Response().WriteHeader(http.StatusNotFound)
 			return nil
 		}
-		err := systemctl.EnableUnit("vault-unit@" + tenant + ".service")
+		err := control.EnableUnit("unit@" + tenant + ".service")
 		if err != nil {
 			return err
 		}
@@ -42,14 +42,14 @@ func CreateTenant(systemctl system.Control) func(c echo.Context) error {
 }
 
 // DeleteTenant disables vault-unit@{tenant}
-func DeleteTenant(systemctl system.Control) func(c echo.Context) error {
+func DeleteTenant(control system.Control) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		tenant := strings.TrimSpace(c.Param("tenant"))
 		if tenant == "" {
 			c.Response().WriteHeader(http.StatusNotFound)
 			return nil
 		}
-		err := systemctl.DisableUnit("vault-unit@" + tenant + ".service")
+		err := control.DisableUnit("unit@" + tenant + ".service")
 		if err != nil {
 			return err
 		}
@@ -59,10 +59,10 @@ func DeleteTenant(systemctl system.Control) func(c echo.Context) error {
 }
 
 // ListTenants lists vault-unit@
-func ListTenants(systemctl system.Control) func(c echo.Context) error {
+func ListTenants(control system.Control) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
-		units, err := systemctl.ListUnits("vault-unit@")
+		units, err := control.ListUnits("unit@")
 		if err != nil {
 			fmt.Println(err.Error())
 			return err
