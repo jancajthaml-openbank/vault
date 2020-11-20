@@ -95,11 +95,33 @@ func TestCheckDiskSpace(t *testing.T) {
 }
 
 func TestDiskMonitorDaemonSupport(t *testing.T) {
-	t.Log("stop with cancelation of context")
+
+	t.Log("does not panic if nil")
+	{
+		var monitor *DiskMonitor
+		monitor.Start()
+		// FIXME panics
+		//monitor.Stop()
+	}
+
+	t.Log("parent context canceled before even started")
+	{
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		cancel()
+
+		monitor := NewDiskMonitor(ctx, uint64(0), "/tmp")
+
+		go monitor.Start()
+		<-monitor.IsReady
+		monitor.GreenLight()
+		monitor.WaitStop()
+	}
+
+	t.Log("parent context canceled while already running")
 	{
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 
-		monitor := NewMemoryMonitor(ctx, uint64(0))
+		monitor := NewDiskMonitor(ctx, uint64(0), "/tmp")
 
 		go monitor.Start()
 		<-monitor.IsReady
@@ -113,7 +135,7 @@ func TestDiskMonitorDaemonSupport(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		monitor := NewMemoryMonitor(ctx, uint64(0))
+		monitor := NewDiskMonitor(ctx, uint64(0), "/tmp")
 
 		go monitor.Start()
 		<-monitor.IsReady
