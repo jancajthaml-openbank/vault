@@ -1,6 +1,7 @@
 package system
 
 import (
+	"time"
 	"context"
 	"sync/atomic"
 	"testing"
@@ -90,5 +91,34 @@ func TestCheckMemoryAllocation(t *testing.T) {
 		monitor := NewMemoryMonitor(context.Background(), ^uint64(0))
 		monitor.CheckMemoryAllocation()
 		assert.Equal(t, false, monitor.IsHealthy())
+	}
+}
+
+func TestMemoryMonitorDaemonSupport(t *testing.T) {
+	t.Log("stop with cancelation of context")
+	{
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+
+		monitor := NewMemoryMonitor(ctx, uint64(0))
+
+		go monitor.Start()
+		<-monitor.IsReady
+		monitor.GreenLight()
+		cancel()
+		monitor.WaitStop()
+	}
+
+	t.Log("manual Start -> Stop")
+	{
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		monitor := NewMemoryMonitor(ctx, uint64(0))
+
+		go monitor.Start()
+		<-monitor.IsReady
+		monitor.GreenLight()
+		monitor.Stop()
+		monitor.WaitStop()
 	}
 }
