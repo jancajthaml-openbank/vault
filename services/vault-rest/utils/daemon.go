@@ -15,6 +15,7 @@
 package utils
 
 import (
+	"sync"
 	"context"
 	"fmt"
 	"time"
@@ -27,9 +28,11 @@ type DaemonSupport struct {
 	ctx        context.Context
 	cancel     context.CancelFunc
 	done       chan interface{}
+	doneOnce sync.Once
 	ExitSignal chan struct{}
 	IsReady    chan interface{}
 	CanStart   chan interface{}
+	closeCanStartOnce sync.Once
 }
 
 // NewDaemonSupport constructs new daemon support
@@ -79,12 +82,16 @@ func (daemon DaemonSupport) WaitStop() {
 
 // GreenLight signals daemon to start work
 func (daemon DaemonSupport) GreenLight() {
-	daemon.CanStart <- nil
+	daemon.closeCanStartOnce.Do(func() {
+		close(daemon.CanStart)
+	})
 }
 
 // MarkDone signals daemon is finished
 func (daemon DaemonSupport) MarkDone() {
-	close(daemon.done)
+	daemon.doneOnce.Do(func() {
+		close(daemon.done)
+	})
 }
 
 // IsCanceled returns if daemon is done

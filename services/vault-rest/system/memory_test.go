@@ -95,7 +95,20 @@ func TestCheckMemoryAllocation(t *testing.T) {
 }
 
 func TestMemoryMonitorDaemonSupport(t *testing.T) {
-	t.Log("stop with cancelation of context")
+	t.Log("parent context canceled before even started")
+	{
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		cancel()
+
+		monitor := NewMemoryMonitor(ctx, uint64(0))
+
+		go monitor.Start()
+		<-monitor.IsReady
+		monitor.GreenLight()
+		monitor.WaitStop()
+	}
+
+	t.Log("parent context canceled while already running")
 	{
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 
