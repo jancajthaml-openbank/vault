@@ -95,6 +95,15 @@ func TestCheckMemoryAllocation(t *testing.T) {
 }
 
 func TestMemoryMonitorDaemonSupport(t *testing.T) {
+
+	t.Log("does not panic if nil")
+	{
+		var monitor *MemoryMonitor
+		monitor.Start()
+		// FIXME panics
+		//monitor.Stop()
+	}
+
 	t.Log("parent context canceled before even started")
 	{
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
