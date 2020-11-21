@@ -13,7 +13,6 @@ Service responsible for account integrity, amount blockations and ledger promise
 
 Licensed under Apache 2.0 see LICENSE.md for details
 
-
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fjancajthaml-openbank%2Fvault.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fjancajthaml-openbank%2Fvault?ref=badge_large)
 
 ## Contributing

@@ -1,6 +1,6 @@
 module github.com/jancajthaml-openbank/vault-rest
 
-go 1.14
+go 1.15
 
 require (
 	github.com/coreos/go-systemd/v22 v22.1.0
