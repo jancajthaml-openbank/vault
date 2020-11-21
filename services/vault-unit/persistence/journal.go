@@ -115,19 +115,18 @@ func UpdateAccount(storage localfs.Storage, name string, original *model.Account
 	if original.SnapshotVersion == math.MaxInt32 {
 		return fmt.Errorf("reached maximum snapshot version")
 	}
-	entity := &model.Account{
-		Balance:         original.Balance,
-		Promised:        original.Promised,
-		Promises:        original.Promises,
-		SnapshotVersion: original.SnapshotVersion + 1,
-		EventCounter:    0,
-		Currency:        original.Currency,
-		Name:            original.Name,
-		Format:          original.Format,
-		IsBalanceCheck:  original.IsBalanceCheck,
-	}
-	data := entity.Serialize()
-	path := SnapshotPath(name, entity.SnapshotVersion)
+	updated := new(model.Account)
+	updated.Balance = original.Balance
+	updated.Promised = original.Promised
+	updated.Promises = original.Promises
+	updated.SnapshotVersion = original.SnapshotVersion + 1
+	updated.EventCounter = 0
+	updated.Currency = original.Currency
+	updated.Name = original.Name
+	updated.Format = original.Format
+	updated.IsBalanceCheck = original.IsBalanceCheck
+	data := updated.Serialize()
+	path := SnapshotPath(name, updated.SnapshotVersion)
 	err := storage.WriteFileExclusive(path, data)
 	if err != nil {
 		return err

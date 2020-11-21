@@ -15,18 +15,18 @@
 package utils
 
 import (
-  "time"
+	"time"
 
-  "github.com/jancajthaml-openbank/vault-unit/logging"
+	"github.com/jancajthaml-openbank/vault-unit/logging"
 )
 
 var log = logging.New("utils")
 
 // Daemon contract for type using support
 type Daemon interface {
-  Start()
-  Stop()
-  GreenLight()
-  WaitStop()
-  WaitReady(time.Duration) error
+	Start()
+	Stop()
+	GreenLight()
+	WaitStop()
+	WaitReady(time.Duration) error
 }

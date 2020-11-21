@@ -15,23 +15,23 @@
 package utils
 
 import (
-	"sync"
 	"context"
 	"fmt"
+	"sync"
 	"time"
 )
 
 // DaemonSupport provides support for graceful shutdown
 type DaemonSupport struct {
 	Daemon
-	name       string
-	ctx        context.Context
-	cancel     context.CancelFunc
-	done       chan interface{}
-	doneOnce sync.Once
-	ExitSignal chan struct{}
-	IsReady    chan interface{}
-	CanStart   chan interface{}
+	name              string
+	ctx               context.Context
+	cancel            context.CancelFunc
+	done              chan interface{}
+	doneOnce          sync.Once
+	ExitSignal        chan struct{}
+	IsReady           chan interface{}
+	CanStart          chan interface{}
 	closeCanStartOnce sync.Once
 }
 
