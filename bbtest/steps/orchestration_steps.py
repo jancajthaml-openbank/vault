@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import time
 from behave import *
 from helpers.shell import execute
 import os
@@ -63,6 +64,7 @@ def unit_running(context, unit):
     assert 'SubState=running' in result, result
 
   wait_for_unit_state_change()
+  time.sleep(1) # fixme better
 
 
 @given('unit "{unit}" is not running')

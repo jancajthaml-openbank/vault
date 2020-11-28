@@ -91,7 +91,7 @@ func GetAccount(sys *System, tenant string, name string) (result interface{}) {
 		case result = <-ch:
 			return
 
-		case <-time.After(10 * time.Second):
+		case <-time.After(3 * time.Second):
 			result = new(ReplyTimeout)
 			return
 		}

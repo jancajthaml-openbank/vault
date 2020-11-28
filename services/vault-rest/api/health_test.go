@@ -74,19 +74,19 @@ func TestHealthCheckHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.JSONEq(t, `
-            {
-                "storage": {
-                    "free": 0,
-                    "used": 0,
-                    "healthy": true
-                },
-                "memory": {
-                    "free": 0,
-                    "used": 0,
-                    "healthy": true
-                }
-            }
-        `, rec.Body.String())
+      {
+          "storage": {
+              "free": 0,
+              "used": 0,
+              "healthy": true
+          },
+          "memory": {
+              "free": 0,
+              "used": 0,
+              "healthy": true
+          }
+      }
+  	`, rec.Body.String())
 	}
 
 	t.Log("GET - unhealthy")
@@ -103,18 +103,18 @@ func TestHealthCheckHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
 		assert.JSONEq(t, `
-            {
-                "storage": {
-                    "free": 0,
-                    "used": 0,
-                    "healthy": false
-                },
-                "memory": {
-                    "free": 0,
-                    "used": 0,
-                    "healthy": false
-                }
-            }
-        `, rec.Body.String())
+      {
+          "storage": {
+              "free": 0,
+              "used": 0,
+              "healthy": false
+          },
+          "memory": {
+              "free": 0,
+              "used": 0,
+              "healthy": false
+          }
+      }
+  	`, rec.Body.String())
 	}
 }

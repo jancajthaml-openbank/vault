@@ -12,20 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package system
+package concurrent
 
 import "github.com/jancajthaml-openbank/vault-rest/support/logging"
 
-var log = logging.New("system")
-
-// HealthCheck gives insige into system health
-type HealthCheck interface {
-	IsHealthy() bool
-}
-
-// CapacityCheck gives insige into system capacity
-type CapacityCheck interface {
-	HealthCheck
-	GetFree() uint64
-	GetUsed() uint64
-}
+var log = logging.New("concurrent")
