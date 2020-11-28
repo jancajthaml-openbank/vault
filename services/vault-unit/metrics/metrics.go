@@ -23,6 +23,7 @@ import (
 type Metrics struct {
 	storage             localfs.Storage
 	tenant              string
+	continuous          bool
 	promisesAccepted    metrics.Counter
 	commitsAccepted     metrics.Counter
 	rollbacksAccepted   metrics.Counter
@@ -32,13 +33,14 @@ type Metrics struct {
 }
 
 // NewMetrics returns blank metrics holder
-func NewMetrics(output string, tenant string) *Metrics {
+func NewMetrics(output string, continuous bool, tenant string) *Metrics {
 	storage, err := localfs.NewPlaintextStorage(output)
 	if err != nil {
 		log.Error().Msgf("Failed to ensure storage %+v", err)
 		return nil
 	}
 	return &Metrics{
+		continuous:          continuous,
 		storage:             storage,
 		tenant:              tenant,
 		promisesAccepted:    metrics.NewCounter(),
@@ -80,16 +82,25 @@ func (metrics *Metrics) RollbackAccepted() {
 	metrics.rollbacksAccepted.Inc(1)
 }
 
+// Setup hydrates metrics from storage
 func (metrics *Metrics) Setup() error {
+	if metrics == nil {
+		return nil
+	}
+	if metrics.continuous {
+		metrics.Hydrate()
+	}
 	return nil
 }
 
+// Done returns always finished
 func (metrics *Metrics) Done() <-chan interface{} {
 	done := make(chan interface{})
 	close(done)
 	return done
 }
 
+// Cancel does nothing
 func (metrics *Metrics) Cancel() {
 }
 

@@ -29,6 +29,8 @@ type Configuration struct {
 	RootStorage string
 	// LogLevel ignorecase log level
 	LogLevel string
+	// MetricsContinuous determines if metrics should start from last state
+	MetricsContinuous bool
 	// MetricsRefreshRate represents interval in which in memory metrics should be
 	// persisted to disk
 	MetricsRefreshRate time.Duration
@@ -46,6 +48,7 @@ func LoadConfig() Configuration {
 		LakeHostname:               envString("VAULT_LAKE_HOSTNAME", "127.0.0.1"),
 		RootStorage:                envString("VAULT_STORAGE", "/data") + "/" + "t_" + envString("VAULT_TENANT", ""),
 		LogLevel:                   strings.ToUpper(envString("VAULT_LOG_LEVEL", "INFO")),
+		MetricsContinuous:          envBoolean("VAULT_METRICS_CONTINUOUS", true),
 		MetricsRefreshRate:         envDuration("VAULT_METRICS_REFRESHRATE", time.Second),
 		MetricsOutput:              envFilename("VAULT_METRICS_OUTPUT", "/tmp/vault-unit-metrics"),
 		SnapshotSaturationTreshold: envInteger("VAULT_SNAPSHOT_SATURATION_TRESHOLD", 100),

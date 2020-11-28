@@ -47,19 +47,19 @@ func NewActorSystem(tenant string, endpoint string, maxEventsInSnapshot int, roo
 	result.Storage = storage
 	result.System.RegisterOnMessage(ProcessMessage(result))
 	result.EventCounterTreshold = int64(maxEventsInSnapshot) - 1
-
 	return result
 }
 
 func (system *System) Setup() error {
-	if system == nil {
-		return nil
-	}
-	go system.System.Start()
 	return nil
 }
 
-func (system *System) Work() {}
+func (system *System) Work() {
+	if system == nil {
+		return
+	}
+	system.System.Start()
+}
 
 func (system *System) Cancel() {
 	if system == nil {

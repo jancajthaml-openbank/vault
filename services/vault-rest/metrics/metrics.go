@@ -22,12 +22,13 @@ import (
 // Metrics holds metrics counters
 type Metrics struct {
 	storage              localfs.Storage
+	continuous           bool
 	getAccountLatency    metrics.Timer
 	createAccountLatency metrics.Timer
 }
 
 // NewMetrics returns blank metrics holder
-func NewMetrics(output string) *Metrics {
+func NewMetrics(output string, continuous bool) *Metrics {
 	storage, err := localfs.NewPlaintextStorage(output)
 	if err != nil {
 		log.Error().Msgf("Failed to ensure storage %+v", err)
@@ -35,6 +36,7 @@ func NewMetrics(output string) *Metrics {
 	}
 	return &Metrics{
 		storage:              storage,
+		continuous:           continuous,
 		getAccountLatency:    metrics.NewTimer(),
 		createAccountLatency: metrics.NewTimer(),
 	}
@@ -56,16 +58,25 @@ func (metrics *Metrics) TimeCreateAccount(f func()) {
 	metrics.createAccountLatency.Time(f)
 }
 
+// Setup hydrates metrics from storage
 func (metrics *Metrics) Setup() error {
+	if metrics == nil {
+		return nil
+	}
+	if metrics.continuous {
+		metrics.Hydrate()
+	}
 	return nil
 }
 
+// Done returns always finished
 func (metrics *Metrics) Done() <-chan interface{} {
 	done := make(chan interface{})
 	close(done)
 	return done
 }
 
+// Cancel does nothing
 func (metrics *Metrics) Cancel() {
 }
 

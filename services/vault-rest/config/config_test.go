@@ -10,7 +10,7 @@ import (
 func TestGetConfig(t *testing.T) {
 	for _, v := range os.Environ() {
 		k := strings.Split(v, "=")[0]
-		if strings.HasPrefix(k, "LEDGER") {
+		if strings.HasPrefix(k, "VAULT") {
 			os.Unsetenv(k)
 		}
 	}
@@ -36,6 +36,9 @@ func TestGetConfig(t *testing.T) {
 		}
 		if config.LogLevel != "INFO" {
 			t.Errorf("LogLevel default value is not INFO")
+		}
+		if config.MetricsContinuous != true {
+			t.Errorf("MetricsContinuous default value is not true")
 		}
 		if config.MetricsRefreshRate != time.Second {
 			t.Errorf("MetricsRefreshRate default value is not 1s")

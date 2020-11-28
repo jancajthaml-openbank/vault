@@ -58,6 +58,7 @@ func (prog *Program) Setup() {
 
 	metricsWorker := metrics.NewMetrics(
 		prog.cfg.MetricsOutput,
+		prog.cfg.MetricsContinuous,
 		prog.cfg.Tenant,
 	)
 

@@ -11,6 +11,17 @@ Feature: Service can be configured
       Log level set to ERROR
     """
 
+  Scenario: configure log level to DEBUG
+    Given tenant CONFIGURATION_DEBUG is onboarded
+    And   vault is configured with
+      | property  | value |
+      | LOG_LEVEL | DEBUG |
+
+    Then journalctl of "vault-unit@CONFIGURATION_DEBUG.service" contains following
+    """
+      Log level set to DEBUG
+    """
+
   Scenario: configure log level to INFO
     Given tenant CONFIGURATION_INFO is onboarded
     And   vault is configured with
@@ -30,15 +41,4 @@ Feature: Service can be configured
     Then journalctl of "vault-unit@CONFIGURATION_INFO.service" contains following
     """
       Log level set to INFO
-    """
-
-  Scenario: configure log level to DEBUG
-    Given tenant CONFIGURATION_DEBUG is onboarded
-    And   vault is configured with
-      | property  | value |
-      | LOG_LEVEL | DEBUG |
-
-    Then journalctl of "vault-unit@CONFIGURATION_DEBUG.service" contains following
-    """
-      Log level set to DEBUG
     """

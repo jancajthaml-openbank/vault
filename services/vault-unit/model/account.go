@@ -95,6 +95,7 @@ func (entity Account) Serialize() []byte {
 		buffer.WriteString(entity.Promised.String())
 	}
 
+	// FIXME this is slow ( entity.Promises.Values() )
 	for _, v := range entity.Promises.Values() {
 		buffer.WriteString("\n")
 		buffer.WriteString(v)
