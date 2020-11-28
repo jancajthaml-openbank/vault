@@ -64,7 +64,7 @@ def unit_running(context, unit):
     assert 'SubState=running' in result, result
 
   wait_for_unit_state_change()
-  time.sleep(1) # fixme better
+  time.sleep(2) # fixme better
 
 
 @given('unit "{unit}" is not running')

@@ -38,10 +38,9 @@ class ZMQHelper(threading.Thread):
         if not data:
           continue
         self.__pub.send(data)
-        if data[-1] != 93:
-          self.__mutex.acquire()
-          self.backlog.append(data)
-          self.__mutex.release()
+        self.__mutex.acquire()
+        self.backlog.append(data)
+        self.__mutex.release()
       except Exception as ex:
         if ex.errno != 11:
           return
