@@ -73,7 +73,7 @@ def unit_running(context, unit):
 def unit_not_running(context, unit):
   (code, result, error) = execute(["systemctl", "show", "-p", "SubState", unit])
   assert code == 0, str(result) + ' ' + str(error)
-  assert 'SubState=dead' in result, str(result) + ' ' + str(error)
+  assert 'SubState=running' not in result, str(result) + ' ' + str(error)
 
 
 @given('{operation} unit "{unit}"')
