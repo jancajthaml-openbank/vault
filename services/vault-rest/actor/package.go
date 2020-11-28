@@ -14,6 +14,6 @@
 
 package actor
 
-import "github.com/jancajthaml-openbank/vault-rest/logging"
+import "github.com/jancajthaml-openbank/vault-rest/support/logging"
 
 var log = logging.New("actor")

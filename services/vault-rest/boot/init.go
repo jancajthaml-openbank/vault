@@ -21,17 +21,17 @@ import (
 	"github.com/jancajthaml-openbank/vault-rest/actor"
 	"github.com/jancajthaml-openbank/vault-rest/api"
 	"github.com/jancajthaml-openbank/vault-rest/config"
-	"github.com/jancajthaml-openbank/vault-rest/logging"
 	"github.com/jancajthaml-openbank/vault-rest/metrics"
+	"github.com/jancajthaml-openbank/vault-rest/support/concurrent"
+	"github.com/jancajthaml-openbank/vault-rest/support/logging"
 	"github.com/jancajthaml-openbank/vault-rest/system"
-	"github.com/jancajthaml-openbank/vault-rest/utils"
 )
 
 // Program encapsulate initialized application
 type Program struct {
 	interrupt chan os.Signal
 	cfg       config.Configuration
-	daemons   []utils.Daemon
+	daemons   []concurrent.Daemon
 	cancel    context.CancelFunc
 }
 
@@ -77,7 +77,7 @@ func NewProgram() Program {
 		memoryMonitorDaemon,
 	)
 
-	var daemons = make([]utils.Daemon, 0)
+	var daemons = make([]concurrent.Daemon, 0)
 	daemons = append(daemons, metricsDaemon)
 	daemons = append(daemons, actorSystemDaemon)
 	daemons = append(daemons, restDaemon)

@@ -21,7 +21,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/jancajthaml-openbank/vault-unit/utils"
+	"github.com/jancajthaml-openbank/vault-unit/support/concurrent"
+	"github.com/jancajthaml-openbank/vault-unit/support/host"
 )
 
 // WaitReady wait for daemons to be ready
@@ -30,7 +31,7 @@ func (prog Program) WaitReady(deadline time.Duration) error {
 	mux := new(sync.Mutex)
 
 	var wg sync.WaitGroup
-	waitWithDeadline := func(support utils.Daemon) {
+	waitWithDeadline := func(support concurrent.Daemon) {
 		if support == nil {
 			wg.Done()
 			return
@@ -102,14 +103,14 @@ func (prog Program) Start() {
 		log.Error().Msgf("Error when starting daemons: %+v", err)
 	} else {
 		log.Info().Msg("Program Started")
-		utils.NotifyServiceReady()
+		host.NotifyServiceReady()
 		prog.GreenLight()
 		signal.Notify(prog.interrupt, syscall.SIGINT, syscall.SIGTERM)
 		prog.WaitInterrupt()
 	}
 
 	log.Info().Msg("Program Stopping")
-	if err := utils.NotifyServiceStopping(); err != nil {
+	if err := host.NotifyServiceStopping(); err != nil {
 		log.Error().Msg(err.Error())
 	}
 

@@ -16,16 +16,16 @@ package metrics
 
 import (
 	"context"
+	"github.com/jancajthaml-openbank/vault-unit/support/concurrent"
 	"time"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
-	"github.com/jancajthaml-openbank/vault-unit/utils"
 	metrics "github.com/rcrowley/go-metrics"
 )
 
 // Metrics holds metrics counters
 type Metrics struct {
-	utils.DaemonSupport
+	concurrent.DaemonSupport
 	storage             localfs.Storage
 	tenant              string
 	refreshRate         time.Duration
@@ -45,7 +45,7 @@ func NewMetrics(ctx context.Context, output string, tenant string, refreshRate t
 		return nil
 	}
 	return &Metrics{
-		DaemonSupport:       utils.NewDaemonSupport(ctx, "metrics"),
+		DaemonSupport:       concurrent.NewDaemonSupport(ctx, "metrics"),
 		storage:             storage,
 		tenant:              tenant,
 		refreshRate:         refreshRate,

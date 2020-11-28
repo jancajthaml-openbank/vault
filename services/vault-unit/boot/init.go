@@ -20,16 +20,16 @@ import (
 
 	"github.com/jancajthaml-openbank/vault-unit/actor"
 	"github.com/jancajthaml-openbank/vault-unit/config"
-	"github.com/jancajthaml-openbank/vault-unit/logging"
 	"github.com/jancajthaml-openbank/vault-unit/metrics"
-	"github.com/jancajthaml-openbank/vault-unit/utils"
+	"github.com/jancajthaml-openbank/vault-unit/support/concurrent"
+	"github.com/jancajthaml-openbank/vault-unit/support/logging"
 )
 
 // Program encapsulate initialized application
 type Program struct {
 	interrupt chan os.Signal
 	cfg       config.Configuration
-	daemons   []utils.Daemon
+	daemons   []concurrent.Daemon
 	cancel    context.CancelFunc
 }
 
@@ -56,7 +56,7 @@ func NewProgram() Program {
 		metricsDaemon,
 	)
 
-	var daemons = make([]utils.Daemon, 0)
+	var daemons = make([]concurrent.Daemon, 0)
 	daemons = append(daemons, metricsDaemon)
 	daemons = append(daemons, actorSystemDaemon)
 
