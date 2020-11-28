@@ -46,8 +46,8 @@ type Configuration struct {
 	MinFreeMemory uint64
 }
 
-// GetConfig loads application configuration
-func GetConfig() Configuration {
+// LoadConfig loads application configuration
+func LoadConfig() Configuration {
 	return Configuration{
 		RootStorage:        envString("VAULT_STORAGE", "/data"),
 		ServerPort:         envInteger("VAULT_HTTP_PORT", 4400),

@@ -14,8 +14,6 @@
 
 package metrics
 
-import (
-	"github.com/jancajthaml-openbank/vault-rest/logging"
-)
+import "github.com/jancajthaml-openbank/vault-rest/logging"
 
 var log = logging.New("metrics")
