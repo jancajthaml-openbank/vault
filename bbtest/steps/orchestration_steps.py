@@ -14,7 +14,9 @@ def step_impl(context, package, operation):
     (code, result, error) = execute(["apt-get", "install", "-f", "-qq", "-o=Dpkg::Use-Pty=0", "-o=Dpkg::Options::=--force-confold", context.unit.binary])
     assert code == 0, "unable to install with code {} and {} {}".format(code, result, error)
     assert os.path.isfile('/etc/vault/conf.d/init.conf') is True
+    execute(['systemctl', 'start', package])
   elif operation == 'uninstalled':
+    execute(['systemctl', 'stop', package])
     (code, result, error) = execute(["apt-get", "-y", "remove", package])
     assert code == 0, "unable to uninstall with code {} and {} {}".format(code, result, error)
     assert os.path.isfile('/etc/vault/conf.d/init.conf') is False
