@@ -14,10 +14,7 @@
 
 package concurrent
 
-import (
-	"context"
-	"runtime"
-)
+import "context"
 
 // OneShotDaemon represent work happening only once
 type OneShotDaemon struct {
