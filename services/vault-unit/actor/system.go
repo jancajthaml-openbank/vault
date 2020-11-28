@@ -15,9 +15,6 @@
 package actor
 
 import (
-	"context"
-	"time"
-
 	"github.com/jancajthaml-openbank/vault-unit/metrics"
 
 	system "github.com/jancajthaml-openbank/actor-system"
@@ -33,62 +30,46 @@ type System struct {
 }
 
 // NewActorSystem returns actor system fascade
-func NewActorSystem(ctx context.Context, tenant string, lakeEndpoint string, maxEventsInSnapshot int, rootStorage string, metrics *metrics.Metrics) *System {
+func NewActorSystem(tenant string, endpoint string, maxEventsInSnapshot int, rootStorage string, metrics *metrics.Metrics) *System {
 	storage, err := localfs.NewPlaintextStorage(rootStorage)
 	if err != nil {
 		log.Error().Msgf("Failed to ensure storage %+v", err)
 		return nil
 	}
-	sys, err := system.New(ctx, "VaultUnit/"+tenant, lakeEndpoint)
+	sys, err := system.New("VaultUnit/"+tenant, endpoint)
 	if err != nil {
 		log.Error().Msgf("Failed to register actor system %+v", err)
 		return nil
 	}
 	result := new(System)
 	result.System = sys
-	result.System.RegisterOnMessage(ProcessMessage(result))
-	result.Storage = storage
 	result.Metrics = metrics
+	result.Storage = storage
+	result.System.RegisterOnMessage(ProcessMessage(result))
 	result.EventCounterTreshold = int64(maxEventsInSnapshot) - 1
+
 	return result
 }
 
-// Start daemon noop
-func (system *System) Start() {
+func (system *System) Setup() error {
 	if system == nil {
-		return
+		return nil
 	}
-	system.System.Start()
+	go system.System.Start()
+	return nil
 }
 
-// Stop daemon noop
-func (system *System) Stop() {
+func (system *System) Work() {}
+
+func (system *System) Cancel() {
 	if system == nil {
 		return
 	}
 	system.System.Stop()
 }
 
-// WaitStop daemon noop
-func (system *System) WaitStop() {
-	if system == nil {
-		return
-	}
-	system.System.WaitStop()
-}
-
-// GreenLight daemon noop
-func (system *System) GreenLight() {
-	if system == nil {
-		return
-	}
-	system.System.GreenLight()
-}
-
-// WaitReady wait for system to be ready
-func (system *System) WaitReady(deadline time.Duration) error {
-	if system == nil {
-		return nil
-	}
-	return system.System.WaitReady(deadline)
+func (system *System) Done() <-chan interface{} {
+	done := make(chan interface{})
+	close(done)
+	return done
 }

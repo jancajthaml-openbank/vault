@@ -15,7 +15,6 @@
 package boot
 
 import (
-	"context"
 	"os"
 
 	"github.com/jancajthaml-openbank/vault-unit/actor"
@@ -25,45 +24,59 @@ import (
 	"github.com/jancajthaml-openbank/vault-unit/support/logging"
 )
 
-// Program encapsulate initialized application
+// Program encapsulate program
 type Program struct {
 	interrupt chan os.Signal
 	cfg       config.Configuration
 	daemons   []concurrent.Daemon
-	cancel    context.CancelFunc
+}
+
+// Register daemon into program
+func (prog *Program) Register(daemon concurrent.Daemon) {
+	if prog == nil || daemon == nil {
+		return
+	}
+	prog.daemons = append(prog.daemons, daemon)
 }
 
 // NewProgram returns new program
 func NewProgram() Program {
-	ctx, cancel := context.WithCancel(context.Background())
-
-	cfg := config.LoadConfig()
-
-	logging.SetupLogger(cfg.LogLevel)
-
-	metricsDaemon := metrics.NewMetrics(
-		ctx,
-		cfg.MetricsOutput,
-		cfg.Tenant,
-		cfg.MetricsRefreshRate,
-	)
-	actorSystemDaemon := actor.NewActorSystem(
-		ctx,
-		cfg.Tenant,
-		cfg.LakeHostname,
-		cfg.SnapshotSaturationTreshold,
-		cfg.RootStorage,
-		metricsDaemon,
-	)
-
-	var daemons = make([]concurrent.Daemon, 0)
-	daemons = append(daemons, metricsDaemon)
-	daemons = append(daemons, actorSystemDaemon)
-
 	return Program{
 		interrupt: make(chan os.Signal, 1),
-		cfg:       cfg,
-		daemons:   daemons,
-		cancel:    cancel,
+		cfg:       config.LoadConfig(),
+		daemons:   make([]concurrent.Daemon, 0),
 	}
+}
+
+// Setup setups program
+func (prog *Program) Setup() {
+	if prog == nil {
+		return
+	}
+
+	logging.SetupLogger(prog.cfg.LogLevel)
+
+	metricsWorker := metrics.NewMetrics(
+		prog.cfg.MetricsOutput,
+		prog.cfg.Tenant,
+	)
+
+	actorSystem := actor.NewActorSystem(
+		prog.cfg.Tenant,
+		prog.cfg.LakeHostname,
+		prog.cfg.SnapshotSaturationTreshold,
+		prog.cfg.RootStorage,
+		metricsWorker,
+	)
+
+	prog.Register(concurrent.NewScheduledDaemon(
+		"metrics",
+		metricsWorker,
+		prog.cfg.MetricsRefreshRate,
+	))
+
+	prog.Register(concurrent.NewOneShotDaemon(
+		"actor-system",
+		actorSystem,
+	))
 }

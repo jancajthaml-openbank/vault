@@ -58,7 +58,7 @@ func (system *System) Cancel() {
 	system.System.Stop()
 }
 
-func (system *System) Done() <-chan interface{} {
+func (system *System) Done() <- chan interface{} {
 	done := make(chan interface{})
 	close(done)
 	return done
