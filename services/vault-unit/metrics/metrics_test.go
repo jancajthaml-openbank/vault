@@ -9,7 +9,7 @@ import (
 )
 
 func TestMetrics(t *testing.T) {
-	entity := NewMetrics("/tmp", "1")
+	entity := NewMetrics("/tmp", false, "1")
 	delay := 1e8
 	delta := 1e8
 
