@@ -90,6 +90,11 @@ func (prog *Program) Setup() {
 		memoryMonitorWorker,
 	)
 
+	prog.Register(concurrent.NewOneShotDaemon(
+		"actor-system",
+		actorSystem,
+	))
+
 	prog.Register(concurrent.NewScheduledDaemon(
 		"disk-monitor",
 		diskMonitorWorker,
@@ -106,11 +111,6 @@ func (prog *Program) Setup() {
 		"metrics",
 		metricsWorker,
 		prog.cfg.MetricsRefreshRate,
-	))
-
-	prog.Register(concurrent.NewOneShotDaemon(
-		"actor-system",
-		actorSystem,
 	))
 
 	prog.Register(concurrent.NewOneShotDaemon(

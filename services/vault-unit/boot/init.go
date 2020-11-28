@@ -69,14 +69,14 @@ func (prog *Program) Setup() {
 		metricsWorker,
 	)
 
+	prog.Register(concurrent.NewOneShotDaemon(
+		"actor-system",
+		actorSystem,
+	))
+
 	prog.Register(concurrent.NewScheduledDaemon(
 		"metrics",
 		metricsWorker,
 		prog.cfg.MetricsRefreshRate,
-	))
-
-	prog.Register(concurrent.NewOneShotDaemon(
-		"actor-system",
-		actorSystem,
 	))
 }
