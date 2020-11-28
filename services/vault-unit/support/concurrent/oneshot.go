@@ -51,11 +51,6 @@ func (daemon OneShotDaemon) Stop() {
 // Start starts worker's work once
 func (daemon OneShotDaemon) Start(parentContext context.Context, cancelFunction context.CancelFunc) {
 	defer cancelFunction()
-	runtime.LockOSThread()
-	defer func() {
-		recover()
-		runtime.UnlockOSThread()
-	}()
 	err := daemon.Setup()
 	if err != nil {
 		log.Error().Msgf("Setup daemon %s error %+v", daemon.name, err.Error())
