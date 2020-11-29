@@ -39,7 +39,7 @@ func NewProgram() Program {
 	return Program{
 		interrupt: make(chan os.Signal, 1),
 		cfg:       config.LoadConfig(),
-		daemons:   concurrent.NewDaemonPool("program"),
+		pool:      concurrent.NewDaemonPool("program"),
 	}
 }
 
