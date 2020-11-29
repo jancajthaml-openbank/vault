@@ -14,6 +14,6 @@
 
 package concurrent
 
-import "github.com/jancajthaml-openbank/vault-rest/support/logging"
+import "github.com/jancajthaml-openbank/vault-unit/support/logging"
 
 var log = logging.New("concurrent")

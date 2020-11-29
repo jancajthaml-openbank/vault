@@ -28,15 +28,7 @@ import (
 type Program struct {
 	interrupt chan os.Signal
 	cfg       config.Configuration
-	daemons   []concurrent.Daemon
-}
-
-// Register daemon into program
-func (prog *Program) Register(daemon concurrent.Daemon) {
-	if prog == nil || daemon == nil {
-		return
-	}
-	prog.daemons = append(prog.daemons, daemon)
+	pool      concurrent.DaemonPool
 }
 
 // NewProgram returns new program
@@ -44,7 +36,7 @@ func NewProgram() Program {
 	return Program{
 		interrupt: make(chan os.Signal, 1),
 		cfg:       config.LoadConfig(),
-		daemons:   make([]concurrent.Daemon, 0),
+		pool:      concurrent.NewDaemonPool("program"),
 	}
 }
 
@@ -70,12 +62,12 @@ func (prog *Program) Setup() {
 		metricsWorker,
 	)
 
-	prog.Register(concurrent.NewOneShotDaemon(
+	prog.pool.Register(concurrent.NewOneShotDaemon(
 		"actor-system",
 		actorSystem,
 	))
 
-	prog.Register(concurrent.NewScheduledDaemon(
+	prog.pool.Register(concurrent.NewScheduledDaemon(
 		"metrics",
 		metricsWorker,
 		prog.cfg.MetricsRefreshRate,
