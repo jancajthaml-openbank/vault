@@ -24,6 +24,7 @@ class UnitHelper(object):
       "HTTP_PORT": 443,
       "SERVER_KEY": "/etc/vault/secrets/domain.local.key",
       "SERVER_CERT": "/etc/vault/secrets/domain.local.crt",
+      "METRICS_CONTINUOUS": True,
       "METRICS_REFRESHRATE": "1h",
       "METRICS_OUTPUT": os.path.realpath('{}/../../reports/blackbox-tests/metrics'.format(os.path.dirname(__file__))),
       "STORAGE": "/data"

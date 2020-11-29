@@ -15,14 +15,12 @@
 package persistence
 
 import (
-	"github.com/jancajthaml-openbank/vault-rest/utils"
-
 	localfs "github.com/jancajthaml-openbank/local-fs"
 )
 
 // LoadAccounts returns account names
 func LoadAccounts(storage localfs.Storage, tenant string) ([]string, error) {
-	path := utils.AccountsPath(tenant)
+	path := "t_" + tenant + "/account"
 	ok, err := storage.Exists(path)
 	if err != nil || !ok {
 		return make([]string, 0), nil

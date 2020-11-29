@@ -12,9 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+package concurrent
 
-// AccountsPath returns filepath for accounts
-func AccountsPath(tenant string) string {
-	return "t_" + tenant + "/account"
+import "context"
+
+// Worker represents some scheduled task
+type Worker interface {
+	Setup() error
+	Work()
+	Cancel()
+	Done() <-chan interface{}
+}
+
+// Daemon represents background routine
+type Daemon interface {
+	Start(context.Context, context.CancelFunc)
+	Stop()
+	Done() <-chan interface{}
 }

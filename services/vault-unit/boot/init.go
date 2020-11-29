@@ -15,55 +15,61 @@
 package boot
 
 import (
-	"context"
 	"os"
 
 	"github.com/jancajthaml-openbank/vault-unit/actor"
 	"github.com/jancajthaml-openbank/vault-unit/config"
-	"github.com/jancajthaml-openbank/vault-unit/logging"
 	"github.com/jancajthaml-openbank/vault-unit/metrics"
-	"github.com/jancajthaml-openbank/vault-unit/utils"
+	"github.com/jancajthaml-openbank/vault-unit/support/concurrent"
+	"github.com/jancajthaml-openbank/vault-unit/support/logging"
 )
 
-// Program encapsulate initialized application
+// Program encapsulate program
 type Program struct {
 	interrupt chan os.Signal
 	cfg       config.Configuration
-	daemons   []utils.Daemon
-	cancel    context.CancelFunc
+	pool      concurrent.DaemonPool
 }
 
-// Initialize application
-func Initialize() Program {
-	ctx, cancel := context.WithCancel(context.Background())
-
-	cfg := config.GetConfig()
-
-	logging.SetupLogger(cfg.LogLevel)
-
-	metricsDaemon := metrics.NewMetrics(
-		ctx,
-		cfg.MetricsOutput,
-		cfg.Tenant,
-		cfg.MetricsRefreshRate,
-	)
-	actorSystemDaemon := actor.NewActorSystem(
-		ctx,
-		cfg.Tenant,
-		cfg.LakeHostname,
-		cfg.SnapshotSaturationTreshold,
-		cfg.RootStorage,
-		metricsDaemon,
-	)
-
-	var daemons = make([]utils.Daemon, 0)
-	daemons = append(daemons, metricsDaemon)
-	daemons = append(daemons, actorSystemDaemon)
-
+// NewProgram returns new program
+func NewProgram() Program {
 	return Program{
 		interrupt: make(chan os.Signal, 1),
-		cfg:       cfg,
-		daemons:   daemons,
-		cancel:    cancel,
+		cfg:       config.LoadConfig(),
+		pool:      concurrent.NewDaemonPool("program"),
 	}
+}
+
+// Setup setups program
+func (prog *Program) Setup() {
+	if prog == nil {
+		return
+	}
+
+	logging.SetupLogger(prog.cfg.LogLevel)
+
+	metricsWorker := metrics.NewMetrics(
+		prog.cfg.MetricsOutput,
+		prog.cfg.MetricsContinuous,
+		prog.cfg.Tenant,
+	)
+
+	actorSystem := actor.NewActorSystem(
+		prog.cfg.Tenant,
+		prog.cfg.LakeHostname,
+		prog.cfg.SnapshotSaturationTreshold,
+		prog.cfg.RootStorage,
+		metricsWorker,
+	)
+
+	prog.pool.Register(concurrent.NewOneShotDaemon(
+		"actor-system",
+		actorSystem,
+	))
+
+	prog.pool.Register(concurrent.NewScheduledDaemon(
+		"metrics",
+		metricsWorker,
+		prog.cfg.MetricsRefreshRate,
+	))
 }

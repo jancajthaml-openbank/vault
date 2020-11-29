@@ -15,8 +15,8 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/jancajthaml-openbank/vault-rest/system"
 
@@ -24,63 +24,55 @@ import (
 )
 
 // CreateTenant enables vault-unit@{tenant}
-func CreateTenant(systemctl *system.Control) func(c echo.Context) error {
+func CreateTenant(control system.Control) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		tenant := c.Param("tenant")
+		tenant := strings.TrimSpace(c.Param("tenant"))
 		if tenant == "" {
-			return fmt.Errorf("missing tenant")
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
 		}
-
-		err := systemctl.EnableUnit("vault-unit@" + tenant + ".service")
+		err := control.EnableUnit("unit@" + tenant + ".service")
 		if err != nil {
 			return err
 		}
-
 		c.Response().WriteHeader(http.StatusOK)
-
 		return nil
 	}
 }
 
 // DeleteTenant disables vault-unit@{tenant}
-func DeleteTenant(systemctl *system.Control) func(c echo.Context) error {
+func DeleteTenant(control system.Control) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
-
-		tenant := c.Param("tenant")
+		tenant := strings.TrimSpace(c.Param("tenant"))
 		if tenant == "" {
-			return fmt.Errorf("missing tenant")
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
 		}
-
-		err := systemctl.DisableUnit("vault-unit@" + tenant + ".service")
+		err := control.DisableUnit("unit@" + tenant + ".service")
 		if err != nil {
 			return err
 		}
-
 		c.Response().WriteHeader(http.StatusOK)
-
 		return nil
 	}
 }
 
 // ListTenants lists vault-unit@
-func ListTenants(systemctl *system.Control) func(c echo.Context) error {
+func ListTenants(control system.Control) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
-
-		units, err := systemctl.ListUnits("vault-unit@")
+		units, err := control.ListUnits("unit@")
 		if err != nil {
 			return err
 		}
-
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextPlainCharsetUTF8)
 		c.Response().WriteHeader(http.StatusOK)
-
 		for idx, unit := range units {
 			if idx == len(units)-1 {
 				c.Response().Write([]byte(unit))
 			} else {
-				c.Response().Write([]byte(unit + "\n"))
+				c.Response().Write([]byte(unit))
+				c.Response().Write([]byte("\n"))
 			}
 			c.Response().Flush()
 		}

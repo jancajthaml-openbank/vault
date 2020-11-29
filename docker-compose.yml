@@ -89,6 +89,7 @@ services:
 
   bbtest:
     image: jancajthaml/bbtest:amd64
+    tty: true
     environment:
       IMAGE_VERSION: ${IMAGE_VERSION:-}
       UNIT_VERSION: ${UNIT_VERSION:-}

@@ -21,15 +21,8 @@ type UnitStatus struct {
 	StatusChangedAt uint64 `json:"statusChangedAt"`
 }
 
-// StorageStatus represents current storage status
-type StorageStatus struct {
-	Free      uint64 `json:"free"`
-	Used      uint64 `json:"used"`
-	IsHealthy bool   `json:"healthy"`
-}
-
-// MemoryStatus represents current memory status
-type MemoryStatus struct {
+// CapacityStatus represents current capacity status
+type CapacityStatus struct {
 	Free      uint64 `json:"free"`
 	Used      uint64 `json:"used"`
 	IsHealthy bool   `json:"healthy"`
@@ -37,6 +30,6 @@ type MemoryStatus struct {
 
 // Status represents system status snapshot
 type Status struct {
-	Storage StorageStatus `json:"storage"`
-	Memory  MemoryStatus  `json:"memory"`
+	Storage CapacityStatus `json:"storage"`
+	Memory  CapacityStatus `json:"memory"`
 }

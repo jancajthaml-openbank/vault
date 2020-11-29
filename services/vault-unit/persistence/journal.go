@@ -15,12 +15,12 @@
 package persistence
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
 
 	"github.com/jancajthaml-openbank/vault-unit/model"
-	"github.com/jancajthaml-openbank/vault-unit/utils"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
 	money "gopkg.in/inf.v0"
@@ -28,7 +28,7 @@ import (
 
 // LoadAccount rehydrates account entity state from storage
 func LoadAccount(storage localfs.Storage, name string) (*model.Account, error) {
-	allPath := utils.SnapshotsPath(name)
+	allPath := SnapshotsPath(name)
 
 	snapshots, err := storage.ListDirectory(allPath, false)
 	if err != nil || len(snapshots) == 0 {
@@ -51,7 +51,7 @@ func LoadAccount(storage localfs.Storage, name string) (*model.Account, error) {
 	result.Deserialize(data)
 	result.EventCounter = 0
 
-	events, err := storage.ListDirectory(utils.EventPath(name, result.SnapshotVersion), false)
+	events, err := storage.ListDirectory(EventPath(name, result.SnapshotVersion), false)
 	if err == nil {
 		for _, event := range events {
 			s := strings.SplitN(event, "_", 3)
@@ -76,7 +76,7 @@ func LoadAccount(storage localfs.Storage, name string) (*model.Account, error) {
 
 			}
 
-			eventData, err := storage.ReadFileFully(utils.EventPath(name, result.SnapshotVersion) + "/" + event)
+			eventData, err := storage.ReadFileFully(EventPath(name, result.SnapshotVersion) + "/" + event)
 			if err != nil {
 				return nil, err
 			}
@@ -102,7 +102,7 @@ func CreateAccount(storage localfs.Storage, name string, format string, currency
 	entity.Currency = strings.ToUpper(currency)
 	entity.IsBalanceCheck = isBalanceCheck
 	data := entity.Serialize()
-	path := utils.SnapshotPath(name, entity.SnapshotVersion)
+	path := SnapshotPath(name, entity.SnapshotVersion)
 	err := storage.WriteFileExclusive(path, data)
 	if err != nil {
 		return nil, err
@@ -111,34 +111,33 @@ func CreateAccount(storage localfs.Storage, name string, format string, currency
 }
 
 // UpdateAccount persist account entity state with incremented version
-func UpdateAccount(storage localfs.Storage, name string, original *model.Account) (*model.Account, error) {
+func UpdateAccount(storage localfs.Storage, name string, original *model.Account) error {
 	if original.SnapshotVersion == math.MaxInt32 {
-		return original, nil
+		return fmt.Errorf("reached maximum snapshot version")
 	}
-	entity := &model.Account{
-		Balance:         original.Balance,
-		Promised:        original.Promised,
-		Promises:        original.Promises,
-		SnapshotVersion: original.SnapshotVersion + 1,
-		EventCounter:    0,
-		Currency:        original.Currency,
-		Name:            original.Name,
-		Format:          original.Format,
-		IsBalanceCheck:  original.IsBalanceCheck,
-	}
-	data := entity.Serialize()
-	path := utils.SnapshotPath(name, entity.SnapshotVersion)
+	updated := new(model.Account)
+	updated.Balance = original.Balance
+	updated.Promised = original.Promised
+	updated.Promises = original.Promises
+	updated.SnapshotVersion = original.SnapshotVersion + 1
+	updated.EventCounter = 0
+	updated.Currency = original.Currency
+	updated.Name = original.Name
+	updated.Format = original.Format
+	updated.IsBalanceCheck = original.IsBalanceCheck
+	data := updated.Serialize()
+	path := SnapshotPath(name, updated.SnapshotVersion)
 	err := storage.WriteFileExclusive(path, data)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return entity, nil
+	return nil
 }
 
 // PersistPromise persists promise event
 func PersistPromise(storage localfs.Storage, account model.Account, amount *money.Dec, transaction string) error {
 	event := EventPromise + "_" + amount.String() + "_" + transaction
-	fullPath := utils.EventPath(account.Name, account.SnapshotVersion) + "/" + event
+	fullPath := EventPath(account.Name, account.SnapshotVersion) + "/" + event
 	data := []byte(strconv.FormatInt(account.EventCounter, 10))
 	return storage.WriteFileExclusive(fullPath, data)
 }
@@ -146,7 +145,7 @@ func PersistPromise(storage localfs.Storage, account model.Account, amount *mone
 // PersistCommit persists commit event
 func PersistCommit(storage localfs.Storage, account model.Account, amount *money.Dec, transaction string) error {
 	event := EventCommit + "_" + amount.String() + "_" + transaction
-	fullPath := utils.EventPath(account.Name, account.SnapshotVersion) + "/" + event
+	fullPath := EventPath(account.Name, account.SnapshotVersion) + "/" + event
 	data := []byte(strconv.FormatInt(account.EventCounter, 10))
 	return storage.WriteFileExclusive(fullPath, data)
 }
@@ -154,7 +153,7 @@ func PersistCommit(storage localfs.Storage, account model.Account, amount *money
 // PersistRollback persists rollback event
 func PersistRollback(storage localfs.Storage, account model.Account, amount *money.Dec, transaction string) error {
 	event := EventRollback + "_" + amount.String() + "_" + transaction
-	fullPath := utils.EventPath(account.Name, account.SnapshotVersion) + "/" + event
+	fullPath := EventPath(account.Name, account.SnapshotVersion) + "/" + event
 	data := []byte(strconv.FormatInt(account.EventCounter, 10))
 	return storage.WriteFileExclusive(fullPath, data)
 }

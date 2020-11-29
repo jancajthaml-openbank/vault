@@ -14,8 +14,6 @@
 
 package persistence
 
-import (
-	"github.com/jancajthaml-openbank/vault-unit/logging"
-)
+import "github.com/jancajthaml-openbank/vault-unit/support/logging"
 
 var log = logging.New("persistence")

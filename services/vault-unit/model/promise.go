@@ -30,6 +30,7 @@ func NewPromises() Promises {
 		index:  make(map[string]int),
 		keys:   make([]int, 0),
 		values: make(map[int]string),
+		tail:   0,
 	}
 }
 
@@ -38,24 +39,21 @@ func (s *Promises) Add(items ...string) {
 	if s == nil {
 		return
 	}
-	for _, item := range items {
-		if _, found := s.index[item]; found {
+	for idx := range items {
+		if _, found := s.index[items[idx]]; found {
 			continue
 		}
 		s.keys = append(s.keys, s.tail)
-		s.values[s.tail] = item
-		s.index[item] = s.tail
+		s.values[s.tail] = items[idx]
+		s.index[items[idx]] = s.tail
 		s.tail++
 	}
 }
 
 // Contains returns true if all items are present in set
-func (s *Promises) Contains(items ...string) bool {
-	if s == nil {
-		return false
-	}
-	for _, item := range items {
-		if _, found := s.index[item]; !found {
+func (s Promises) Contains(items ...string) bool {
+	for idx := range items {
+		if _, found := s.index[items[idx]]; !found {
 			return false
 		}
 	}
@@ -67,17 +65,17 @@ func (s *Promises) Remove(items ...string) {
 	if s == nil {
 		return
 	}
-	for _, item := range items {
-		idx, found := s.index[item]
+	for idx := range items {
+		index, found := s.index[items[idx]]
 		if !found {
 			continue
 		}
 
-		delete(s.index, item)
-		delete(s.values, idx)
+		delete(s.index, items[idx])
+		delete(s.values, index)
 
 		for i := range s.keys {
-			if s.keys[i] == idx {
+			if s.keys[i] == index {
 				s.keys = append(s.keys[:i], s.keys[i+1:]...)
 				break
 			}
@@ -86,27 +84,22 @@ func (s *Promises) Remove(items ...string) {
 }
 
 // Values returns slice of items in order or insertion
-func (s *Promises) Values() []string {
-	if s == nil {
-		return make([]string, 0)
+func (s Promises) Values() []string {
+	result := make([]string, len(s.values))
+	for i := range s.keys {
+		result[i] = s.values[s.keys[i]]
 	}
-	values := make([]string, len(s.values))
-	for i, k := range s.keys {
-		values[i] = s.values[k]
-	}
-	return values
+	return result
 }
 
 // Size returns number of items in set
-func (s *Promises) Size() int {
-	if s == nil {
-		return 0
-	}
+func (s Promises) Size() int {
 	return len(s.values)
 }
 
-func (s *Promises) String() string {
-	if s == nil {
+// String serializes promises
+func (s Promises) String() string {
+	if len(s.keys) == 0 {
 		return "[]"
 	}
 	var buffer bytes.Buffer
@@ -116,6 +109,7 @@ func (s *Promises) String() string {
 		buffer.WriteString(s.values[k])
 		buffer.WriteString(",")
 	}
+	buffer.Truncate(buffer.Len() - 1)
 	buffer.WriteString("]")
 
 	return buffer.String()

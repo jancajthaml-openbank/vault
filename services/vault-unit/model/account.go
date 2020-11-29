@@ -33,21 +33,6 @@ type Account struct {
 	EventCounter    int64
 }
 
-// Copy returns copy of Account
-func (entity Account) Copy() Account {
-	return Account{
-		Name:            entity.Name,
-		Format:          entity.Format,
-		Currency:        entity.Currency,
-		IsBalanceCheck:  entity.IsBalanceCheck,
-		Balance:         new(money.Dec).Set(entity.Balance),
-		Promised:        new(money.Dec).Set(entity.Promised),
-		Promises:        entity.Promises, //.Copy(), // FIXME implement
-		SnapshotVersion: entity.SnapshotVersion,
-		EventCounter:    entity.EventCounter,
-	}
-}
-
 // NewAccount returns new Account
 func NewAccount(name string) Account {
 	return Account{
@@ -76,11 +61,11 @@ func (entity Account) Serialize() []byte {
 	case 0:
 		buffer.WriteString("???")
 	case 1:
+		buffer.WriteString(entity.Currency)
 		buffer.WriteString("??")
-		buffer.WriteString(entity.Currency)
 	case 2:
-		buffer.WriteString("?")
 		buffer.WriteString(entity.Currency)
+		buffer.WriteString("?")
 	default:
 		buffer.WriteString(entity.Currency[0:3])
 	}
@@ -110,6 +95,7 @@ func (entity Account) Serialize() []byte {
 		buffer.WriteString(entity.Promised.String())
 	}
 
+	// FIXME this is slow ( entity.Promises.Values() )
 	for _, v := range entity.Promises.Values() {
 		buffer.WriteString("\n")
 		buffer.WriteString(v)
@@ -129,31 +115,39 @@ func (entity *Account) Deserialize(data []byte) {
 
 	var (
 		i = 4
-		j = bytes.IndexByte(data[4:], '\n') + 4
+		j = bytes.IndexByte(data, '\n')
+		l = len(data)
 	)
 
-	format := string(data[i:j])
+	if j < i || j > l {
+		j = l
+	}
 
-	entity.IsBalanceCheck = (format[len(format)-1:] != "F")
-	entity.Format = format[:len(format)-2]
+	entity.IsBalanceCheck = (data[j-1] != byte('F'))
+	entity.Format = string(data[i : j-2])
+
+	if j >= l {
+		return
+	}
 
 	i = j + 1
-
 	j = bytes.IndexByte(data[i:], '\n')
+
 	if j < 0 {
-		if len(data) > 0 {
-			entity.Balance, _ = new(money.Dec).SetString(string(data[i]))
+		if i < l {
+			entity.Balance, _ = new(money.Dec).SetString(string(data[i:]))
 		}
 		return
 	}
 	j += i
+
 	entity.Balance, _ = new(money.Dec).SetString(string(data[i:j]))
 	i = j + 1
 
 	j = bytes.IndexByte(data[i:], '\n')
 	if j < 0 {
-		if len(data) > 0 {
-			entity.Promised, _ = new(money.Dec).SetString(string(data[i]))
+		if i < l {
+			entity.Promised, _ = new(money.Dec).SetString(string(data[i:]))
 		}
 		return
 	}
@@ -164,7 +158,7 @@ func (entity *Account) Deserialize(data []byte) {
 	for {
 		j = bytes.IndexByte(data[i:], '\n')
 		if j < 0 {
-			if len(data) > 0 {
+			if i < l {
 				entity.Promises.Add(string(data[i:]))
 			}
 			return
