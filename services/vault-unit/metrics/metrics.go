@@ -54,31 +54,50 @@ func NewMetrics(output string, continuous bool, tenant string) *Metrics {
 
 // TimeUpdateSaturatedSnapshots measures time of SaturatedSnapshots function run
 func (metrics *Metrics) TimeUpdateSaturatedSnapshots(f func()) {
+	if metrics == nil {
+		f()
+		return
+	}
 	metrics.snapshotCronLatency.Time(f)
 }
 
 // SnapshotsUpdated increments updated snapshots by given count
 func (metrics *Metrics) SnapshotsUpdated(count int64) {
+	if metrics == nil {
+		return
+	}
 	metrics.updatedSnapshots.Mark(count)
 }
 
 // AccountCreated increments account created by one
 func (metrics *Metrics) AccountCreated() {
+	if metrics == nil {
+		return
+	}
 	metrics.createdAccounts.Inc(1)
 }
 
 // PromiseAccepted increments accepted promises by one
 func (metrics *Metrics) PromiseAccepted() {
+	if metrics == nil {
+		return
+	}
 	metrics.promisesAccepted.Inc(1)
 }
 
 // CommitAccepted increments accepted commits by one
 func (metrics *Metrics) CommitAccepted() {
+	if metrics == nil {
+		return
+	}
 	metrics.commitsAccepted.Inc(1)
 }
 
 // RollbackAccepted increments accepted rollbacks by one
 func (metrics *Metrics) RollbackAccepted() {
+	if metrics == nil {
+		return
+	}
 	metrics.rollbacksAccepted.Inc(1)
 }
 
