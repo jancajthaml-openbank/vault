@@ -14,11 +14,7 @@
 
 package model
 
-import (
-	"bytes"
-
-	//money "gopkg.in/inf.v0"
-)
+import "bytes"
 
 // Account represents metadata of account entity
 type Account struct {

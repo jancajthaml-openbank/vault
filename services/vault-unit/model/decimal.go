@@ -39,21 +39,10 @@ var exp10cache [64]big.Int = func() [64]big.Int {
   return e10
 }()
 
-// NewDec allocates and returns a new Dec set to the given int64 unscaled value
-// and scale.
 func NewDec(unscaled int64, scale int32) *Dec {
   return new(Dec).SetUnscaled(unscaled).SetScale(scale)
 }
 
-// Scale returns the scale of x.
-func (x *Dec) Scale() int32 {
-  return x.scale
-}
-
-// Unscaled returns the unscaled value of x for u and true for ok when the
-// unscaled value can be represented as int64; otherwise it returns an undefined
-// int64 value for u and false for ok. Use x.UnscaledBig().Int64() to avoid
-// checking the validity of the value when the check is known to be redundant.
 func (x *Dec) Unscaled() (u int64, ok bool) {
   u = x.unscaled.Int64()
   var i big.Int
@@ -61,91 +50,64 @@ func (x *Dec) Unscaled() (u int64, ok bool) {
   return
 }
 
-// UnscaledBig returns the unscaled value of x as *big.Int.
 func (x *Dec) UnscaledBig() *big.Int {
   return &x.unscaled
 }
 
-// SetScale sets the scale of z, with the unscaled value unchanged, and returns
-// z.
-// The mathematical value of the Dec changes as if it was multiplied by
-// 10**(oldscale-scale).
 func (z *Dec) SetScale(scale int32) *Dec {
   z.scale = scale
   return z
 }
 
-// SetUnscaled sets the unscaled value of z, with the scale unchanged, and
-// returns z.
 func (z *Dec) SetUnscaled(unscaled int64) *Dec {
   z.unscaled.SetInt64(unscaled)
   return z
 }
 
-// SetUnscaledBig sets the unscaled value of z, with the scale unchanged, and
-// returns z.
 func (z *Dec) SetUnscaledBig(unscaled *big.Int) *Dec {
   z.unscaled.Set(unscaled)
   return z
 }
 
-// Set sets z to the value of x and returns z.
-// It does nothing if z == x.
 func (z *Dec) Set(x *Dec) *Dec {
   if z != x {
     z.SetUnscaledBig(x.UnscaledBig())
-    z.SetScale(x.Scale())
+    z.SetScale(x.scale)
   }
   return z
 }
 
-// Sign returns:
-//
-//  -1 if x <  0
-//   0 if x == 0
-//  +1 if x >  0
-//
 func (x *Dec) Sign() int {
   return x.UnscaledBig().Sign()
 }
 
-// Cmp compares x and y and returns:
-//
-//   -1 if x <  y
-//    0 if x == y
-//   +1 if x >  y
-//
 func (x *Dec) Cmp(y *Dec) int {
   xx, yy := upscale(x, y)
   return xx.UnscaledBig().Cmp(yy.UnscaledBig())
 }
 
-// Add sets z to the sum x+y and returns z.
-// The scale of z is the greater of the scales of x and y.
 func (z *Dec) Add(x, y *Dec) *Dec {
   xx, yy := upscale(x, y)
-  z.SetScale(xx.Scale())
+  z.SetScale(xx.scale)
   z.UnscaledBig().Add(xx.UnscaledBig(), yy.UnscaledBig())
   return z
 }
 
-// Sub sets z to the difference x-y and returns z.
-// The scale of z is the greater of the scales of x and y.
 func (z *Dec) Sub(x, y *Dec) *Dec {
   xx, yy := upscale(x, y)
-  z.SetScale(xx.Scale())
+  z.SetScale(xx.scale)
   z.UnscaledBig().Sub(xx.UnscaledBig(), yy.UnscaledBig())
   return z
 }
 
 func upscale(a, b *Dec) (*Dec, *Dec) {
-  if a.Scale() == b.Scale() {
+  if a.scale == b.scale {
     return a, b
   }
-  if a.Scale() > b.Scale() {
-    return a, b.rescale(a.Scale())
+  if a.scale > b.scale {
+    return a, b.rescale(a.scale)
   }
-  return a.rescale(b.Scale()), b
+  return a.rescale(b.scale), b
 }
 
 func exp10(x int32) *big.Int {
@@ -159,7 +121,7 @@ func (x *Dec) rescale(newScale int32) *Dec {
   if x == nil {
     return x
   }
-  shift := newScale - x.Scale()
+  shift := newScale - x.scale
   switch {
   case shift < 0:
     e := exp10(-shift)
@@ -186,38 +148,44 @@ func (x *Dec) String() string {
   if x == nil {
     return "<nil>"
   }
-  scale := x.Scale()
-  s := []byte(x.UnscaledBig().String())
-  if scale <= 0 {
-    if scale != 0 && x.unscaled.Sign() != 0 {
-      s = appendZeros(s, -scale)
+
+  s := []byte(x.UnscaledBig().Text(10))
+
+  if x.scale <= 0 {
+    if x.scale != 0 && x.unscaled.Sign() != 0 {
+      s = appendZeros(s, -x.scale)
     }
     return string(s)
   }
-  negbit := int32(-((x.Sign() - 1) / 2))
-  // scale > 0
+
+  var negbit int32
+  if x.unscaled.Sign() == -1 {
+    negbit = 1
+  }
+
   lens := int32(len(s))
-  if lens-negbit <= scale {
-    ss := make([]byte, 0, scale+2)
+  if lens-negbit <= x.scale {
+    ss := make([]byte, 0, x.scale+2)
     if negbit == 1 {
       ss = append(ss, '-')
     }
     ss = append(ss, '0', '.')
-    ss = appendZeros(ss, scale-lens+negbit)
+    ss = appendZeros(ss, x.scale-lens+negbit)
     ss = append(ss, s[negbit:]...)
     return string(ss)
   }
-  // lens > scale
+
   ss := make([]byte, 0, lens+1)
-  ss = append(ss, s[:lens-scale]...)
+  ss = append(ss, s[:lens-x.scale]...)
   ss = append(ss, '.')
-  ss = append(ss, s[lens-scale:]...)
+  ss = append(ss, s[lens-x.scale:]...)
+
   return string(ss)
 }
 
 func (z *Dec) scan(r io.RuneScanner) (*Dec, error) {
-  unscaled := make([]byte, 0, 256) // collects chars of unscaled as bytes
-  dp, dg := -1, -1                 // indexes of decimal point, first digit
+  unscaled := make([]byte, 0, 256)
+  dp, dg := -1, -1
 loop:
   for {
     ch, _, err := r.ReadRune()
@@ -229,7 +197,7 @@ loop:
     }
     switch {
     case ch == '+' || ch == '-':
-      if len(unscaled) > 0 || dp >= 0 { // must be first character
+      if len(unscaled) > 0 || dp >= 0 {
         r.UnreadRune()
         break loop
       }
@@ -239,7 +207,7 @@ loop:
         break loop
       }
       dp = len(unscaled)
-      continue // don't add to unscaled
+      continue
     case ch >= '0' && ch <= '9':
       if dg == -1 {
         dg = len(unscaled)
@@ -265,11 +233,6 @@ loop:
   return z, nil
 }
 
-// SetString sets z to the value of s, interpreted as a decimal (base 10),
-// and returns z and a boolean indicating success. The scale of z is the
-// number of digits after the decimal point (including any trailing 0s),
-// or 0 if there is no decimal point. If SetString fails, the value of z
-// is undefined but the returned value is nil.
 func (z *Dec) SetString(s string) (*Dec, bool) {
   r := strings.NewReader(s)
   _, err := z.scan(r)
