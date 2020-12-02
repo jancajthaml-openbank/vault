@@ -82,7 +82,7 @@ func TestAccount_Deserialize(t *testing.T) {
 		assert.Equal(t, "1.0", entity.Balance.String())
 		assert.NotNil(t, entity.Promised)
 		assert.Equal(t, "2.0", entity.Promised.String())
-		assert.Equal(t, []string{"A", "B"}, entity.Promises.Values())
+		assert.Equal(t, "[A,B]", entity.Promises.String())
 		assert.Equal(t, int64(0), entity.SnapshotVersion)
 		assert.Equal(t, int64(0), entity.EventCounter)
 	}

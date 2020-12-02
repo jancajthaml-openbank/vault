@@ -99,12 +99,12 @@ test:
 	@docker-compose \
 		run \
 		--rm test \
-		--source /go/src/github.com/jancajthaml-openbank/vault-rest \
+		--source /go/src/github.com/jancajthaml-openbank/vault-unit \
 		--output /project/reports/unit-tests
 	@docker-compose \
 		run \
 		--rm test \
-		--source /go/src/github.com/jancajthaml-openbank/vault-unit \
+		--source /go/src/github.com/jancajthaml-openbank/vault-rest \
 		--output /project/reports/unit-tests
 
 .PHONY: release

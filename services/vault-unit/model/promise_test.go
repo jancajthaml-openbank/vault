@@ -28,26 +28,19 @@ func TestPromises_Add(t *testing.T) {
 	s := NewPromises()
 	s.Add("A", "B", "C", "D", "X", "Y", "E", "F")
 	s.Add("G")
-	actualOutput := s.Values()
-	expectedOutput := []string{"A", "B", "C", "D", "X", "Y", "E", "F", "G"}
+	actualOutput := s.String()
+	expectedOutput := "[A,B,C,D,X,Y,E,F,G]"
 	assert.Equal(t, expectedOutput, actualOutput)
 }
 
 func TestPromises_Remove(t *testing.T) {
 	s := NewPromises()
 	s.Add("A", "B", "C", "D", "X", "Y", "E", "F")
-	s.Add("G")
 
 	s.Remove("X", "Y")
 
-	actualOutput := s.Values()
-	expectedOutput := []string{"A", "B", "C", "D", "E", "F", "G"}
-	assert.Equal(t, expectedOutput, actualOutput)
-
-	s.Remove("X", "Y")
-	actualOutput = s.Values()
-	expectedOutput = []string{"A", "B", "C", "D", "E", "F", "G"}
-
+	actualOutput := s.String()
+	expectedOutput := "[A,B,C,D,E,F]"
 	assert.Equal(t, expectedOutput, actualOutput)
 }
 
@@ -75,8 +68,8 @@ func TestPromises_Values(t *testing.T) {
 	s.Add("A", "B", "C", "D", "X", "Y", "E", "F")
 	s.Add("G")
 
-	actualOutput := s.Values()
-	expectedOutput := []string{"A", "B", "C", "D", "X", "Y", "E", "F", "G"}
+	actualOutput := s.String()
+	expectedOutput := "[A,B,C,D,X,Y,E,F,G]"
 
 	assert.Equal(t, expectedOutput, actualOutput)
 }
@@ -156,19 +149,6 @@ func BenchmarkPromises_Size(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		s.Size()
-	}
-}
-
-func BenchmarkPromises_Values(b *testing.B) {
-	s := NewPromises()
-	for i := 0; i < 10000; i++ {
-		s.Add(fmt.Sprintf("%d", i))
-	}
-
-	b.ReportAllocs()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		s.Values()
 	}
 }
 
