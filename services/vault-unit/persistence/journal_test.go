@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
-	money "gopkg.in/inf.v0"
 
 	"github.com/jancajthaml-openbank/vault-unit/model"
 )
@@ -74,8 +73,8 @@ func TestSnapshot_RefuseOverflow(t *testing.T) {
 	isBalanceCheck := true
 
 	snapshotLast := &model.Account{
-		Balance:         new(money.Dec),
-		Promised:        new(money.Dec),
+		Balance:         new(model.Dec),
+		Promised:        new(model.Dec),
 		Promises:        model.NewPromises(),
 		SnapshotVersion: int64(math.MaxInt32),
 		EventCounter:    0,
@@ -104,8 +103,8 @@ func TestSnapshot_Promises(t *testing.T) {
 	expectedPromises := []string{"A", "B", "C", "D"}
 
 	var snapshot = &model.Account{
-		Balance:         new(money.Dec),
-		Promised:        new(money.Dec),
+		Balance:         new(model.Dec),
+		Promised:        new(model.Dec),
 		Promises:        model.NewPromises(),
 		SnapshotVersion: 0,
 		Name:            name,

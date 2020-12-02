@@ -20,7 +20,6 @@ import (
 	"github.com/jancajthaml-openbank/vault-unit/model"
 
 	system "github.com/jancajthaml-openbank/actor-system"
-	money "gopkg.in/inf.v0"
 )
 
 func parseMessage(msg string) (interface{}, error) {
@@ -65,7 +64,7 @@ func parseMessage(msg string) (interface{}, error) {
 
 	case PromiseOrder:
 		if idx == 4 {
-			if amount, ok := new(money.Dec).SetString(parts[2]); ok {
+			if amount, ok := new(model.Dec).SetString(parts[2]); ok {
 				return Promise{
 					Transaction: parts[1],
 					Amount:      amount,
@@ -77,7 +76,7 @@ func parseMessage(msg string) (interface{}, error) {
 
 	case CommitOrder:
 		if idx == 4 {
-			if amount, ok := new(money.Dec).SetString(parts[2]); ok {
+			if amount, ok := new(model.Dec).SetString(parts[2]); ok {
 				return Commit{
 					Transaction: parts[1],
 					Amount:      amount,
@@ -90,7 +89,7 @@ func parseMessage(msg string) (interface{}, error) {
 
 	case RollbackOrder:
 		if idx == 4 {
-			if amount, ok := new(money.Dec).SetString(parts[2]); ok {
+			if amount, ok := new(model.Dec).SetString(parts[2]); ok {
 				return Rollback{
 					Transaction: parts[1],
 					Amount:      amount,

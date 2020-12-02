@@ -15,7 +15,7 @@
 package actor
 
 import (
-	money "gopkg.in/inf.v0"
+	"github.com/jancajthaml-openbank/vault-unit/model"
 )
 
 // CreateAccount is inbound request for creation of new account
@@ -32,21 +32,21 @@ type GetAccountState struct {
 // Promise is inbound request for transaction promise
 type Promise struct {
 	Transaction string
-	Amount      *money.Dec
+	Amount      *model.Dec
 	Currency    string
 }
 
 // Commit is inbound request for transaction commit
 type Commit struct {
 	Transaction string
-	Amount      *money.Dec
+	Amount      *model.Dec
 	Currency    string
 }
 
 // Rollback is inbound request for transaction rollback
 type Rollback struct {
 	Transaction string
-	Amount      *money.Dec
+	Amount      *model.Dec
 	Currency    string
 }
 

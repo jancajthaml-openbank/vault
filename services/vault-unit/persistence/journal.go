@@ -23,7 +23,6 @@ import (
 	"github.com/jancajthaml-openbank/vault-unit/model"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
-	money "gopkg.in/inf.v0"
 )
 
 // LoadAccount rehydrates account entity state from storage
@@ -57,22 +56,22 @@ func LoadAccount(storage localfs.Storage, name string) (*model.Account, error) {
 			s := strings.SplitN(event, "_", 3)
 			kind, amountString, transaction := s[0], s[1], s[2]
 
-			amount, _ := new(money.Dec).SetString(amountString)
+			amount, _ := new(model.Dec).SetString(amountString)
 
 			switch kind {
 
 			case EventPromise:
 				result.Promises.Add(transaction)
-				result.Promised = new(money.Dec).Add(result.Promised, amount)
+				result.Promised = new(model.Dec).Add(result.Promised, amount)
 
 			case EventCommit:
 				result.Promises.Remove(transaction)
-				result.Promised = new(money.Dec).Sub(result.Promised, amount)
-				result.Balance = new(money.Dec).Add(result.Balance, amount)
+				result.Promised = new(model.Dec).Sub(result.Promised, amount)
+				result.Balance = new(model.Dec).Add(result.Balance, amount)
 
 			case EventRollback:
 				result.Promises.Remove(transaction)
-				result.Promised = new(money.Dec).Sub(result.Promised, amount)
+				result.Promised = new(model.Dec).Sub(result.Promised, amount)
 
 			}
 
@@ -135,7 +134,7 @@ func UpdateAccount(storage localfs.Storage, name string, original *model.Account
 }
 
 // PersistPromise persists promise event
-func PersistPromise(storage localfs.Storage, account model.Account, amount *money.Dec, transaction string) error {
+func PersistPromise(storage localfs.Storage, account model.Account, amount *model.Dec, transaction string) error {
 	event := EventPromise + "_" + amount.String() + "_" + transaction
 	fullPath := EventPath(account.Name, account.SnapshotVersion) + "/" + event
 	data := []byte(strconv.FormatInt(account.EventCounter, 10))
@@ -143,7 +142,7 @@ func PersistPromise(storage localfs.Storage, account model.Account, amount *mone
 }
 
 // PersistCommit persists commit event
-func PersistCommit(storage localfs.Storage, account model.Account, amount *money.Dec, transaction string) error {
+func PersistCommit(storage localfs.Storage, account model.Account, amount *model.Dec, transaction string) error {
 	event := EventCommit + "_" + amount.String() + "_" + transaction
 	fullPath := EventPath(account.Name, account.SnapshotVersion) + "/" + event
 	data := []byte(strconv.FormatInt(account.EventCounter, 10))
@@ -151,7 +150,7 @@ func PersistCommit(storage localfs.Storage, account model.Account, amount *money
 }
 
 // PersistRollback persists rollback event
-func PersistRollback(storage localfs.Storage, account model.Account, amount *money.Dec, transaction string) error {
+func PersistRollback(storage localfs.Storage, account model.Account, amount *model.Dec, transaction string) error {
 	event := EventRollback + "_" + amount.String() + "_" + transaction
 	fullPath := EventPath(account.Name, account.SnapshotVersion) + "/" + event
 	data := []byte(strconv.FormatInt(account.EventCounter, 10))
