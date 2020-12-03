@@ -12,10 +12,8 @@ type Dec struct {
   scale    int32
 }
 
-var zeros = []byte("0000000000000000000000000000000000000000000000000000000000000000")
-
+var zeros = "0000000000000000000000000000000000000000000000000000000000000000"
 var lzeros = int32(len(zeros))
-
 var bigInt = [...]*big.Int{
   big.NewInt(0),
   big.NewInt(1),
@@ -133,29 +131,25 @@ func (x *Dec) rescale(newScale int32) *Dec {
   return x
 }
 
-func appendZeros(s []byte, n int32) []byte {
-  for i := int32(0); i < n; i += lzeros {
-    if n > i+lzeros {
-      s = append(s, zeros...)
-    } else {
-      s = append(s, zeros[0:n-i]...)
-    }
-  }
-  return s
-}
-
 func (x *Dec) String() string {
   if x == nil {
     return "<nil>"
   }
 
-  s := []byte(x.UnscaledBig().Text(10))
+  numbers := x.UnscaledBig().Text(10)
 
   if x.scale <= 0 {
     if x.scale != 0 && x.unscaled.Sign() != 0 {
-      s = appendZeros(s, -x.scale)
+      n := -x.scale
+      for i := int32(0); i < n; i += lzeros {
+        if n > i+lzeros {
+          numbers += zeros
+        } else {
+          numbers += zeros[0:n-i]
+        }
+      }
     }
-    return string(s)
+    return numbers
   }
 
   var negbit int32
@@ -163,24 +157,31 @@ func (x *Dec) String() string {
     negbit = 1
   }
 
-  lens := int32(len(s))
-  if lens-negbit <= x.scale {
-    ss := make([]byte, 0, x.scale+2)
-    if negbit == 1 {
-      ss = append(ss, '-')
-    }
-    ss = append(ss, '0', '.')
-    ss = appendZeros(ss, x.scale-lens+negbit)
-    ss = append(ss, s[negbit:]...)
-    return string(ss)
+  lens := int32(len(numbers))
+
+  if lens-negbit > x.scale {
+    return numbers[:lens-x.scale] + "." + numbers[lens-x.scale:]
   }
 
-  ss := make([]byte, 0, lens+1)
-  ss = append(ss, s[:lens-x.scale]...)
-  ss = append(ss, '.')
-  ss = append(ss, s[lens-x.scale:]...)
+  var result string
+  if negbit == 1 {
+    result = "-0."
+  } else {
+    result = "0."
+  }
 
-  return string(ss)
+  n := x.scale-lens+negbit
+  for i := int32(0); i < n; i += lzeros {
+    if n > i+lzeros {
+      result += zeros
+    } else {
+      result += zeros[0:n-i]
+    }
+  }
+
+  result += numbers[negbit:]
+
+  return result
 }
 
 func (z *Dec) scan(r io.RuneScanner) (*Dec, error) {
