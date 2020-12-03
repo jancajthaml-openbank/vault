@@ -133,7 +133,7 @@ func (x *Dec) rescale(newScale int32) *Dec {
 
 func (x *Dec) String() string {
   if x == nil {
-    return "<nil>"
+    return "0.0"
   }
 
   numbers := x.UnscaledBig().Text(10)

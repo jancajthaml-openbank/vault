@@ -77,19 +77,11 @@ func (entity Account) Serialize() []byte {
 
 	buffer.WriteString("\n")
 
-	if entity.Balance == nil {
-		buffer.WriteString("0.0")
-	} else {
-		buffer.WriteString(entity.Balance.String())	// allos
-	}
+	buffer.WriteString(entity.Balance.String())	// alloc
 
 	buffer.WriteString("\n")
 
-	if entity.Promised == nil {
-		buffer.WriteString("0.0")
-	} else {
-		buffer.WriteString(entity.Promised.String())	// alloc
-	}
+	buffer.WriteString(entity.Promised.String()) // alloc
 
 	for i := 0; i < len(entity.Promises.keys); i++ {
 		buffer.WriteString("\n")
@@ -101,7 +93,7 @@ func (entity Account) Serialize() []byte {
 
 // Deserialize Account entity from persistable data
 func (entity *Account) Deserialize(data []byte) {
-	if entity == nil {
+	if entity == nil || len(data) < 3 {
 		return
 	}
 

@@ -86,7 +86,7 @@ func Test_Sub(t *testing.T) {
 }
 
 func BenchmarkDec_String(b *testing.B) {
-  entity := new(Dec)
+  entity, _ := new(Dec).SetString("300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")
 
   b.ReportAllocs()
   b.ResetTimer()
