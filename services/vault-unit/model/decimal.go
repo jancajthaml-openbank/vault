@@ -1,3 +1,17 @@
+// Copyright (c) 2016-2020, Jan Cajthaml <jan.cajthaml@gmail.com>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package model
 
 import (
@@ -79,33 +93,34 @@ func (x *Dec) Sign() int {
   return x.UnscaledBig().Sign()
 }
 
-func (x *Dec) Cmp(y *Dec) int {
-  xx, yy := upscale(x, y)
-  return xx.UnscaledBig().Cmp(yy.UnscaledBig())
-}
-
-func (z *Dec) Add(x, y *Dec) *Dec {
-  xx, yy := upscale(x, y)
-  z.SetScale(xx.scale)
-  z.UnscaledBig().Add(xx.UnscaledBig(), yy.UnscaledBig())
-  return z
-}
-
-func (z *Dec) Sub(x, y *Dec) *Dec {
-  xx, yy := upscale(x, y)
-  z.SetScale(xx.scale)
-  z.UnscaledBig().Sub(xx.UnscaledBig(), yy.UnscaledBig())
-  return z
-}
-
-func upscale(a, b *Dec) (*Dec, *Dec) {
-  if a.scale == b.scale {
-    return a, b
+func (x *Dec) Add(y *Dec) {
+  if x == nil || y == nil{
+    return
   }
-  if a.scale > b.scale {
-    return a, b.rescale(a.scale)
+  if x.scale == y.scale {
+    x.UnscaledBig().Add(x.UnscaledBig(), y.UnscaledBig())
+  } else if x.scale > y.scale {
+    y.rescale(x.scale)
+    x.UnscaledBig().Add(x.UnscaledBig(), y.UnscaledBig())
+  } else {
+    x.rescale(y.scale)
+    x.UnscaledBig().Add(x.UnscaledBig(), y.UnscaledBig())
   }
-  return a.rescale(b.scale), b
+}
+
+func (x *Dec) Sub(y *Dec) {
+  if x == nil || y == nil{
+    return
+  }
+  if x.scale == y.scale {
+    x.UnscaledBig().Sub(x.UnscaledBig(), y.UnscaledBig())
+  } else if x.scale > y.scale {
+    y.rescale(x.scale)
+    x.UnscaledBig().Sub(x.UnscaledBig(), y.UnscaledBig())
+  } else {
+    x.rescale(y.scale)
+    x.UnscaledBig().Sub(x.UnscaledBig(), y.UnscaledBig())
+  }
 }
 
 func exp10(x int32) *big.Int {
@@ -115,24 +130,23 @@ func exp10(x int32) *big.Int {
   return new(big.Int).Exp(bigInt[10], big.NewInt(int64(x)), nil)
 }
 
-func (x *Dec) rescale(newScale int32) *Dec {
+func (x *Dec) rescale(newScale int32) {
   if x == nil {
-    return x
+    return
   }
   shift := newScale - x.scale
   switch {
   case shift < 0:
     e := exp10(-shift)
-    return new(Dec).SetUnscaledBig(new(big.Int).Quo(x.UnscaledBig(), e)).SetScale(newScale)
+    x.SetUnscaledBig(new(big.Int).Quo(x.UnscaledBig(), e)).SetScale(newScale)
   case shift > 0:
     e := exp10(shift)
-    return new(Dec).SetUnscaledBig(new(big.Int).Mul(x.UnscaledBig(), e)).SetScale(newScale)
+    x.SetUnscaledBig(new(big.Int).Mul(x.UnscaledBig(), e)).SetScale(newScale)
   }
-  return x
 }
 
 func (x *Dec) String() string {
-  if x == nil {
+  if x == nil || x.Sign() == 0 {
     return "0.0"
   }
 
@@ -234,15 +248,15 @@ loop:
   return z, nil
 }
 
-func (z *Dec) SetString(s string) (*Dec, bool) {
+func (z *Dec) SetString(s string) bool {
   r := strings.NewReader(s)
   _, err := z.scan(r)
   if err != nil {
-    return nil, false
+    return false
   }
   _, _, err = r.ReadRune()
   if err != io.EOF {
-    return nil, false
+    return false
   }
-  return z, true
+  return true
 }

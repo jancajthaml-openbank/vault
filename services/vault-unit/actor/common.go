@@ -64,7 +64,8 @@ func parseMessage(msg string) (interface{}, error) {
 
 	case PromiseOrder:
 		if idx == 4 {
-			if amount, ok := new(model.Dec).SetString(parts[2]); ok {
+			amount := new(model.Dec)
+			if amount.SetString(parts[2]) {
 				return Promise{
 					Transaction: parts[1],
 					Amount:      amount,
@@ -76,7 +77,8 @@ func parseMessage(msg string) (interface{}, error) {
 
 	case CommitOrder:
 		if idx == 4 {
-			if amount, ok := new(model.Dec).SetString(parts[2]); ok {
+			amount := new(model.Dec)
+			if amount.SetString(parts[2]) {
 				return Commit{
 					Transaction: parts[1],
 					Amount:      amount,
@@ -89,7 +91,8 @@ func parseMessage(msg string) (interface{}, error) {
 
 	case RollbackOrder:
 		if idx == 4 {
-			if amount, ok := new(model.Dec).SetString(parts[2]); ok {
+			amount := new(model.Dec)
+			if amount.SetString(parts[2]) {
 				return Rollback{
 					Transaction: parts[1],
 					Amount:      amount,

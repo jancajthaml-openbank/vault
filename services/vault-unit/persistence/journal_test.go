@@ -37,8 +37,8 @@ func TestSnapshot_Update(t *testing.T) {
 
 	t.Log("Initial matches loaded")
 	{
-		assert.Equal(t, snapshotInitial.Balance, loadedInitial.Balance)
-		assert.Equal(t, snapshotInitial.Promised, loadedInitial.Promised)
+		assert.Equal(t, snapshotInitial.Balance.String(), loadedInitial.Balance.String())
+		assert.Equal(t, snapshotInitial.Promised.String(), loadedInitial.Promised.String())
 		assert.Equal(t, snapshotInitial.Promises, loadedInitial.Promises)
 		assert.Equal(t, snapshotInitial.SnapshotVersion, loadedInitial.SnapshotVersion)
 	}
@@ -52,8 +52,8 @@ func TestSnapshot_Update(t *testing.T) {
 
 	t.Log("Updated is increment of version of initial by 1")
 	{
-		assert.Equal(t, snapshotInitial.Balance, loadedVersion1.Balance)
-		assert.Equal(t, snapshotInitial.Promised, loadedVersion1.Promised)
+		assert.Equal(t, snapshotInitial.Balance.String(), loadedVersion1.Balance.String())
+		assert.Equal(t, snapshotInitial.Promised.String(), loadedVersion1.Promised.String())
 		assert.Equal(t, snapshotInitial.Promises, loadedVersion1.Promises)
 		assert.Equal(t, snapshotInitial.SnapshotVersion+1, loadedVersion1.SnapshotVersion)
 		assert.Equal(t, int64(0), loadedVersion1.EventCounter)
@@ -73,8 +73,8 @@ func TestSnapshot_RefuseOverflow(t *testing.T) {
 	isBalanceCheck := true
 
 	snapshotLast := &model.Account{
-		Balance:         new(model.Dec),
-		Promised:        new(model.Dec),
+		Balance:         *new(model.Dec),
+		Promised:        *new(model.Dec),
 		Promises:        model.NewPromises(),
 		SnapshotVersion: int64(math.MaxInt32),
 		EventCounter:    0,
@@ -103,8 +103,8 @@ func TestSnapshot_Promises(t *testing.T) {
 	expectedPromises := []string{"A", "B", "C", "D"}
 
 	var snapshot = &model.Account{
-		Balance:         new(model.Dec),
-		Promised:        new(model.Dec),
+		Balance:         *new(model.Dec),
+		Promised:        *new(model.Dec),
 		Promises:        model.NewPromises(),
 		SnapshotVersion: 0,
 		Name:            name,
@@ -125,8 +125,8 @@ func TestSnapshot_Promises(t *testing.T) {
 		return
 	}
 
-	assert.Equal(t, snapshot.Balance, loaded.Balance)
-	assert.Equal(t, snapshot.Promised, loaded.Promised)
+	assert.Equal(t, snapshot.Balance.String(), loaded.Balance.String())
+	assert.Equal(t, snapshot.Promised.String(), loaded.Promised.String())
 	assert.Equal(t, snapshot.SnapshotVersion+1, loaded.SnapshotVersion)
 	assert.Equal(t, snapshot.Name, loaded.Name)
 	assert.Equal(t, snapshot.Format, loaded.Format)

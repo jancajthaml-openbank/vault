@@ -56,22 +56,25 @@ func LoadAccount(storage localfs.Storage, name string) (*model.Account, error) {
 			s := strings.SplitN(event, "_", 3)
 			kind, amountString, transaction := s[0], s[1], s[2]
 
-			amount, _ := new(model.Dec).SetString(amountString)
+			amount := new(model.Dec)
+			if !amount.SetString(amountString) {
+				return nil, fmt.Errorf("invalid amount %s", amountString)
+			}
 
 			switch kind {
 
 			case EventPromise:
 				result.Promises.Add(transaction)
-				result.Promised = new(model.Dec).Add(result.Promised, amount)
+				result.Promised.Add(amount)
 
 			case EventCommit:
 				result.Promises.Remove(transaction)
-				result.Promised = new(model.Dec).Sub(result.Promised, amount)
-				result.Balance = new(model.Dec).Add(result.Balance, amount)
+				result.Promised.Sub(amount)
+				result.Balance.Add(amount)
 
 			case EventRollback:
 				result.Promises.Remove(transaction)
-				result.Promised = new(model.Dec).Sub(result.Promised, amount)
+				result.Promised.Sub(amount)
 
 			}
 

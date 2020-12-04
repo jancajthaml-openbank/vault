@@ -22,8 +22,8 @@ type Account struct {
 	Format          string `json:"format"`
 	Currency        string `json:"currency"`
 	IsBalanceCheck  bool   `json:"isBalanceCheck"`
-	Balance         *Dec
-	Promised        *Dec
+	Balance         Dec
+	Promised        Dec
 	Promises        Promises
 	SnapshotVersion int64
 	EventCounter    int64
@@ -36,8 +36,8 @@ func NewAccount(name string) Account {
 		Format:          "???",
 		Currency:        "???",
 		IsBalanceCheck:  true,
-		Balance:         new(Dec),
-		Promised:        new(Dec),
+		Balance:         *new(Dec),
+		Promised:        *new(Dec),
 		SnapshotVersion: 0,
 		EventCounter:    0,
 		Promises:        NewPromises(),
@@ -122,24 +122,23 @@ func (entity *Account) Deserialize(data []byte) {
 
 	if j < 0 {
 		if i < l {
-			entity.Balance, _ = new(Dec).SetString(string(data[i:]))
+			_ = entity.Balance.SetString(string(data[i:]))
 		}
 		return
 	}
 	j += i
-
-	entity.Balance, _ = new(Dec).SetString(string(data[i:j]))
+	_ = entity.Balance.SetString(string(data[i:j]))
 	i = j + 1
 
 	j = bytes.IndexByte(data[i:], '\n')
 	if j < 0 {
 		if i < l {
-			entity.Promised, _ = new(Dec).SetString(string(data[i:]))
+			_ = entity.Promised.SetString(string(data[i:]))
 		}
 		return
 	}
 	j += i
-	entity.Promised, _ = new(Dec).SetString(string(data[i:j]))
+	_ = entity.Promised.SetString(string(data[i:j]))
 	i = j + 1
 
 	for {
