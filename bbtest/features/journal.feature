@@ -10,8 +10,8 @@ Feature: Persistent journal
     Then snapshot JOURNAL/Euro version 0 should be
       | key            | value |
       | version        |     0 |
-      | balance        |     0 |
-      | promised       |     0 |
+      | balance        |   0.0 |
+      | promised       |   0.0 |
       | promiseBuffer  |       |
       | accountName    |  Euro |
       | isBalanceCheck | false |
@@ -22,8 +22,8 @@ Feature: Persistent journal
     Then snapshot JOURNAL/Ripple version 0 should be
       | key            |  value |
       | version        |      0 |
-      | balance        |      0 |
-      | promised       |      0 |
+      | balance        |    0.0 |
+      | promised       |    0.0 |
       | promiseBuffer  |        |
       | accountName    | Ripple |
       | isBalanceCheck |   true |
