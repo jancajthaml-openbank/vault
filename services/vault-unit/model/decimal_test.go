@@ -83,6 +83,24 @@ func Test_Add(t *testing.T) {
     assert.Equal(t, "1", a.String())
   }
 
+  t.Log("1 + 2 + 5 + 7 = 15")
+  {
+    a := new(Dec)
+    b := new(Dec)
+    c := new(Dec)
+    d := new(Dec)
+
+    a.SetString("1")
+    b.SetString("2")
+    c.SetString("5")
+    d.SetString("7")
+
+    a.Add(b)
+    a.Add(c)
+    a.Add(d)
+    assert.Equal(t, "15", a.String())
+  }
+
   t.Log("0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003")
   {
     a := new(Dec)
