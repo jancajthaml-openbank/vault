@@ -81,7 +81,7 @@ func (entity Account) Serialize() []byte {
 
 	buffer.WriteString("\n")
 
-	buffer.WriteString(entity.Balance.String())	// alloc
+	buffer.WriteString(entity.Balance.String()) // alloc
 
 	buffer.WriteString("\n")
 
