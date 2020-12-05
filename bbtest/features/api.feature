@@ -180,8 +180,8 @@ Feature: REST
       {
         "format": "TEST",
         "currency": "XXX",
-        "balance": "0",
-        "blocking": "0",
+        "balance": "0.0",
+        "blocking": "0.0",
         "isBalanceCheck": false
       }
       """

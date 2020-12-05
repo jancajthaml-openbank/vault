@@ -83,15 +83,6 @@ func (s *Promises) Remove(items ...string) {
 	}
 }
 
-// Values returns slice of items in order or insertion
-func (s Promises) Values() []string {
-	result := make([]string, len(s.values))
-	for i := range s.keys {
-		result[i] = s.values[s.keys[i]]
-	}
-	return result
-}
-
 // Size returns number of items in set
 func (s Promises) Size() int {
 	return len(s.values)
@@ -105,8 +96,8 @@ func (s Promises) String() string {
 	var buffer bytes.Buffer
 
 	buffer.WriteString("[")
-	for _, k := range s.keys {
-		buffer.WriteString(s.values[k])
+	for idx := range s.keys {
+		buffer.WriteString(s.values[s.keys[idx]])
 		buffer.WriteString(",")
 	}
 	buffer.Truncate(buffer.Len() - 1)

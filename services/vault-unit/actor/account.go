@@ -19,7 +19,6 @@ import (
 	"github.com/jancajthaml-openbank/vault-unit/persistence"
 
 	system "github.com/jancajthaml-openbank/actor-system"
-	money "gopkg.in/inf.v0"
 )
 
 // NilAccount represents account that is neither existing neither non existing
@@ -113,11 +112,15 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 				return
 			}
 
-			state.Promised = new(money.Dec).Add(state.Promised, msg.Amount)
+			nextBalance := new(model.Dec)
+			nextBalance.Add(&state.Balance)
+			nextBalance.Add(&state.Promised)
+
+			state.Promised.Add(msg.Amount)
 			state.Promises.Add(msg.Transaction)
 			state.EventCounter++
 
-			if !state.IsBalanceCheck || new(money.Dec).Add(state.Balance, state.Promised).Sign() >= 0 {
+			if !state.IsBalanceCheck || nextBalance.Sign() >= 0 {
 				err := persistence.PersistPromise(s.Storage, state, msg.Amount, msg.Transaction)
 				if err != nil {
 					s.SendMessage(
@@ -126,7 +129,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 						context.Receiver,
 					)
 					log.Warn().Msgf("%s/Exist/Promise Error could not persist %+v", state.Name, err)
-					state.Promised = new(money.Dec).Sub(state.Promised, msg.Amount)
+					state.Promised.Sub(msg.Amount)
 					state.Promises.Remove(msg.Transaction)
 					state.EventCounter--
 					return
@@ -153,7 +156,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 				return
 			}
 
-			if new(money.Dec).Sub(state.Balance, msg.Amount).Sign() < 0 {
+			if nextBalance.Sign() < 0 {
 				s.SendMessage(
 					PromiseRejected+" INSUFFICIESNT_FUNDS",
 					context.Sender,
@@ -176,8 +179,8 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 				return
 			}
 
-			state.Balance = new(money.Dec).Add(state.Balance, msg.Amount)
-			state.Promised = new(money.Dec).Sub(state.Promised, msg.Amount)
+			state.Balance.Add(msg.Amount)
+			state.Promised.Sub(msg.Amount)
 			state.Promises.Remove(msg.Transaction)
 			state.EventCounter++
 
@@ -189,8 +192,8 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 					context.Receiver,
 				)
 				log.Warn().Msgf("%s/Exist/Commit Error could not persist %+v", state.Name, err)
-				state.Balance = new(money.Dec).Sub(state.Balance, msg.Amount)
-				state.Promised = new(money.Dec).Add(state.Promised, msg.Amount)
+				state.Balance.Sub(msg.Amount)
+				state.Promised.Add(msg.Amount)
 				state.Promises.Add(msg.Transaction)
 				state.EventCounter--
 				return
@@ -222,7 +225,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 				return
 			}
 
-			state.Promised = new(money.Dec).Sub(state.Promised, msg.Amount)
+			state.Promised.Sub(msg.Amount)
 			state.Promises.Remove(msg.Transaction)
 			state.EventCounter++
 
@@ -234,7 +237,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 					context.Receiver,
 				)
 				log.Warn().Msgf("%s/Exist/Rollback Error could not persist %+v", state.Name, err)
-				state.Promised = new(money.Dec).Add(state.Promised, msg.Amount)
+				state.Promised.Add(msg.Amount)
 				state.Promises.Add(msg.Transaction)
 				state.EventCounter--
 				return

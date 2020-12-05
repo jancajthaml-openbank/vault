@@ -5,8 +5,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	money "gopkg.in/inf.v0"
 )
 
 func TestAccount_Deserialize(t *testing.T) {
@@ -27,8 +25,8 @@ func TestAccount_Deserialize(t *testing.T) {
 		assert.Equal(t, "FOR", entity.Format)
 		assert.Equal(t, "CUR", entity.Currency)
 		assert.Equal(t, true, entity.IsBalanceCheck)
-		assert.Nil(t, entity.Balance)
-		assert.Nil(t, entity.Promised)
+		assert.Equal(t, "0.0", entity.Balance.String())
+		assert.Equal(t, "0.0", entity.Promised.String())
 		assert.Equal(t, int64(0), entity.SnapshotVersion)
 		assert.Equal(t, int64(0), entity.EventCounter)
 	}
@@ -43,9 +41,8 @@ func TestAccount_Deserialize(t *testing.T) {
 		assert.Equal(t, "FOR", entity.Format)
 		assert.Equal(t, "CUR", entity.Currency)
 		assert.Equal(t, true, entity.IsBalanceCheck)
-		assert.NotNil(t, entity.Balance)
 		assert.Equal(t, "1.0", entity.Balance.String())
-		assert.Nil(t, entity.Promised)
+		assert.Equal(t, "0.0", entity.Promised.String())
 		assert.Equal(t, int64(0), entity.SnapshotVersion)
 		assert.Equal(t, int64(0), entity.EventCounter)
 	}
@@ -60,9 +57,7 @@ func TestAccount_Deserialize(t *testing.T) {
 		assert.Equal(t, "FOR", entity.Format)
 		assert.Equal(t, "CUR", entity.Currency)
 		assert.Equal(t, true, entity.IsBalanceCheck)
-		assert.NotNil(t, entity.Balance)
 		assert.Equal(t, "1.0", entity.Balance.String())
-		assert.NotNil(t, entity.Promised)
 		assert.Equal(t, "2.0", entity.Promised.String())
 		assert.Equal(t, int64(0), entity.SnapshotVersion)
 		assert.Equal(t, int64(0), entity.EventCounter)
@@ -78,11 +73,9 @@ func TestAccount_Deserialize(t *testing.T) {
 		assert.Equal(t, "FOR", entity.Format)
 		assert.Equal(t, "CUR", entity.Currency)
 		assert.Equal(t, true, entity.IsBalanceCheck)
-		assert.NotNil(t, entity.Balance)
 		assert.Equal(t, "1.0", entity.Balance.String())
-		assert.NotNil(t, entity.Promised)
 		assert.Equal(t, "2.0", entity.Promised.String())
-		assert.Equal(t, []string{"A", "B"}, entity.Promises.Values())
+		assert.Equal(t, "[A,B]", entity.Promises.String())
 		assert.Equal(t, int64(0), entity.SnapshotVersion)
 		assert.Equal(t, int64(0), entity.EventCounter)
 	}
@@ -101,10 +94,10 @@ func TestAccount_Serialize(t *testing.T) {
 
 		var ok bool
 
-		entity.Balance, ok = new(money.Dec).SetString("1.0")
+		ok = entity.Balance.SetString("1.0")
 		require.True(t, ok)
 
-		entity.Promised, ok = new(money.Dec).SetString("2.0")
+		ok = entity.Promised.SetString("2.0")
 		require.True(t, ok)
 
 		entity.Promises = NewPromises()
@@ -179,8 +172,8 @@ func BenchmarkAccount_Serialize(b *testing.B) {
 	entity.Format = "accountFormat"
 	entity.Currency = "CUR"
 	entity.IsBalanceCheck = false
-	entity.Balance = new(money.Dec)
-	entity.Promised = new(money.Dec)
+	entity.Balance = *new(Dec)
+	entity.Promised = *new(Dec)
 	entity.Promises = NewPromises()
 	entity.Promises.Add("A", "B", "C", "D", "E", "F", "G", "H")
 	entity.SnapshotVersion = 0
@@ -200,8 +193,8 @@ func BenchmarkAccount_Deserialize(b *testing.B) {
 	entity.Currency = "CUR"
 	entity.IsBalanceCheck = false
 
-	entity.Balance = new(money.Dec)
-	entity.Promised = new(money.Dec)
+	entity.Balance = *new(Dec)
+	entity.Promised = *new(Dec)
 	entity.Promises = NewPromises()
 	entity.Promises.Add("A", "B", "C", "D", "E", "F", "G", "H")
 	entity.SnapshotVersion = 0

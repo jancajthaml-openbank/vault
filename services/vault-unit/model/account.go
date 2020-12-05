@@ -17,7 +17,7 @@ package model
 import (
 	"bytes"
 
-	money "gopkg.in/inf.v0"
+	"github.com/jancajthaml-openbank/vault-unit/support/cast"
 )
 
 // Account represents metadata of account entity
@@ -26,8 +26,8 @@ type Account struct {
 	Format          string `json:"format"`
 	Currency        string `json:"currency"`
 	IsBalanceCheck  bool   `json:"isBalanceCheck"`
-	Balance         *money.Dec
-	Promised        *money.Dec
+	Balance         Dec
+	Promised        Dec
 	Promises        Promises
 	SnapshotVersion int64
 	EventCounter    int64
@@ -40,8 +40,8 @@ func NewAccount(name string) Account {
 		Format:          "???",
 		Currency:        "???",
 		IsBalanceCheck:  true,
-		Balance:         new(money.Dec),
-		Promised:        new(money.Dec),
+		Balance:         *new(Dec),
+		Promised:        *new(Dec),
 		SnapshotVersion: 0,
 		EventCounter:    0,
 		Promises:        NewPromises(),
@@ -50,7 +50,7 @@ func NewAccount(name string) Account {
 
 // Serialize Account entity to persistable data
 func (entity Account) Serialize() []byte {
-	var buffer bytes.Buffer
+	var buffer bytes.Buffer // alloc
 
 	// [CURRENCY FORMAT_IS-CHECK]
 	// [BALANCE]
@@ -81,24 +81,15 @@ func (entity Account) Serialize() []byte {
 
 	buffer.WriteString("\n")
 
-	if entity.Balance == nil {
-		buffer.WriteString("0.0")
-	} else {
-		buffer.WriteString(entity.Balance.String())
-	}
+	buffer.WriteString(entity.Balance.String()) // alloc
 
 	buffer.WriteString("\n")
 
-	if entity.Promised == nil {
-		buffer.WriteString("0.0")
-	} else {
-		buffer.WriteString(entity.Promised.String())
-	}
+	buffer.WriteString(entity.Promised.String()) // alloc
 
-	// FIXME this is slow ( entity.Promises.Values() )
-	for _, v := range entity.Promises.Values() {
+	for i := 0; i < len(entity.Promises.keys); i++ {
 		buffer.WriteString("\n")
-		buffer.WriteString(v)
+		buffer.WriteString(entity.Promises.values[entity.Promises.keys[i]])
 	}
 
 	return buffer.Bytes()
@@ -106,12 +97,12 @@ func (entity Account) Serialize() []byte {
 
 // Deserialize Account entity from persistable data
 func (entity *Account) Deserialize(data []byte) {
-	if entity == nil {
+	if entity == nil || len(data) < 3 {
 		return
 	}
 
 	entity.Promises = NewPromises()
-	entity.Currency = string(data[0:3])
+	entity.Currency = cast.BytesToString(data[0:3])
 
 	var (
 		i = 4
@@ -124,7 +115,7 @@ func (entity *Account) Deserialize(data []byte) {
 	}
 
 	entity.IsBalanceCheck = (data[j-1] != byte('F'))
-	entity.Format = string(data[i : j-2])
+	entity.Format = cast.BytesToString(data[i : j-2])
 
 	if j >= l {
 		return
@@ -135,36 +126,35 @@ func (entity *Account) Deserialize(data []byte) {
 
 	if j < 0 {
 		if i < l {
-			entity.Balance, _ = new(money.Dec).SetString(string(data[i:]))
+			_ = entity.Balance.SetString(cast.BytesToString(data[i:]))
 		}
 		return
 	}
 	j += i
-
-	entity.Balance, _ = new(money.Dec).SetString(string(data[i:j]))
+	_ = entity.Balance.SetString(cast.BytesToString(data[i:j]))
 	i = j + 1
 
 	j = bytes.IndexByte(data[i:], '\n')
 	if j < 0 {
 		if i < l {
-			entity.Promised, _ = new(money.Dec).SetString(string(data[i:]))
+			_ = entity.Promised.SetString(cast.BytesToString(data[i:]))
 		}
 		return
 	}
 	j += i
-	entity.Promised, _ = new(money.Dec).SetString(string(data[i:j]))
+	_ = entity.Promised.SetString(cast.BytesToString(data[i:j]))
 	i = j + 1
 
 	for {
 		j = bytes.IndexByte(data[i:], '\n')
 		if j < 0 {
 			if i < l {
-				entity.Promises.Add(string(data[i:]))
+				entity.Promises.Add(cast.BytesToString(data[i:]))
 			}
 			return
 		}
 		j += i
-		entity.Promises.Add(string(data[i:j]))
+		entity.Promises.Add(cast.BytesToString(data[i:j]))
 		i = j + 1
 	}
 }
