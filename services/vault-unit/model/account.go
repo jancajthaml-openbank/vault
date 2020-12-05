@@ -14,7 +14,11 @@
 
 package model
 
-import "bytes"
+import (
+	"bytes"
+
+	"github.com/jancajthaml-openbank/vault-unit/support/cast"
+)
 
 // Account represents metadata of account entity
 type Account struct {
@@ -98,7 +102,7 @@ func (entity *Account) Deserialize(data []byte) {
 	}
 
 	entity.Promises = NewPromises()
-	entity.Currency = string(data[0:3])
+	entity.Currency = cast.BytesToString(data[0:3])
 
 	var (
 		i = 4
@@ -111,7 +115,7 @@ func (entity *Account) Deserialize(data []byte) {
 	}
 
 	entity.IsBalanceCheck = (data[j-1] != byte('F'))
-	entity.Format = string(data[i : j-2])
+	entity.Format = cast.BytesToString(data[i : j-2])
 
 	if j >= l {
 		return
@@ -122,35 +126,35 @@ func (entity *Account) Deserialize(data []byte) {
 
 	if j < 0 {
 		if i < l {
-			_ = entity.Balance.SetString(string(data[i:]))
+			_ = entity.Balance.SetString(cast.BytesToString(data[i:]))
 		}
 		return
 	}
 	j += i
-	_ = entity.Balance.SetString(string(data[i:j]))
+	_ = entity.Balance.SetString(cast.BytesToString(data[i:j]))
 	i = j + 1
 
 	j = bytes.IndexByte(data[i:], '\n')
 	if j < 0 {
 		if i < l {
-			_ = entity.Promised.SetString(string(data[i:]))
+			_ = entity.Promised.SetString(cast.BytesToString(data[i:]))
 		}
 		return
 	}
 	j += i
-	_ = entity.Promised.SetString(string(data[i:j]))
+	_ = entity.Promised.SetString(cast.BytesToString(data[i:j]))
 	i = j + 1
 
 	for {
 		j = bytes.IndexByte(data[i:], '\n')
 		if j < 0 {
 			if i < l {
-				entity.Promises.Add(string(data[i:]))
+				entity.Promises.Add(cast.BytesToString(data[i:]))
 			}
 			return
 		}
 		j += i
-		entity.Promises.Add(string(data[i:j]))
+		entity.Promises.Add(cast.BytesToString(data[i:j]))
 		i = j + 1
 	}
 }

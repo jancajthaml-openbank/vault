@@ -115,7 +115,7 @@ func BenchmarkPromises_Add(b *testing.B) {
 
 func BenchmarkPromises_Remove(b *testing.B) {
 	s := NewPromises()
-	for i := 0; i < 10000; i++ {
+	for i := 0; i < 1000; i++ {
 		s.Add(fmt.Sprintf("%d", i))
 	}
 
@@ -128,7 +128,7 @@ func BenchmarkPromises_Remove(b *testing.B) {
 
 func BenchmarkPromises_Contains(b *testing.B) {
 	s := NewPromises()
-	for i := 0; i < 10000; i++ {
+	for i := 0; i < 1000; i++ {
 		s.Add(fmt.Sprintf("%d", i))
 	}
 
@@ -141,7 +141,7 @@ func BenchmarkPromises_Contains(b *testing.B) {
 
 func BenchmarkPromises_Size(b *testing.B) {
 	s := NewPromises()
-	for i := 0; i < 10000; i++ {
+	for i := 0; i < 1000; i++ {
 		s.Add(fmt.Sprintf("%d", i))
 	}
 
@@ -154,7 +154,7 @@ func BenchmarkPromises_Size(b *testing.B) {
 
 func BenchmarkPromises_String(b *testing.B) {
 	s := NewPromises()
-	for i := 0; i < 10000; i++ {
+	for i := 0; i < 1000; i++ {
 		s.Add(fmt.Sprintf("%d", i))
 	}
 
