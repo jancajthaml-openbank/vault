@@ -25,76 +25,70 @@ import (
 
 // CreateAccount creates new account for target tenant vault
 func CreateAccount(sys *System, tenant string, account model.Account) (result interface{}) {
-	sys.Metrics.TimeCreateAccount(func() {
-		ch := make(chan interface{})
-		defer close(ch)
+	ch := make(chan interface{})
+	defer close(ch)
 
-		envelope := system.NewActor("relay/"+xid.New().String(), nil)
-		defer sys.UnregisterActor(envelope.Name)
+	envelope := system.NewActor("relay/"+xid.New().String(), nil)
+	defer sys.UnregisterActor(envelope.Name)
 
-		sys.RegisterActor(envelope, func(state interface{}, context system.Context) {
-			ch <- context.Data
-		})
-
-		sys.SendMessage(
-			CreateAccountMessage(account.Format, account.Currency, account.IsBalanceCheck),
-			system.Coordinates{
-				Region: "VaultUnit/" + tenant,
-				Name:   account.Name,
-			},
-			system.Coordinates{
-				Region: "VaultRest",
-				Name:   envelope.Name,
-			},
-		)
-
-		select {
-
-		case result = <-ch:
-			return
-
-		case <-time.After(10 * time.Second):
-			result = new(ReplyTimeout)
-			return
-		}
+	sys.RegisterActor(envelope, func(state interface{}, context system.Context) {
+		ch <- context.Data
 	})
-	return
+
+	sys.SendMessage(
+		CreateAccountMessage(account.Format, account.Currency, account.IsBalanceCheck),
+		system.Coordinates{
+			Region: "VaultUnit/" + tenant,
+			Name:   account.Name,
+		},
+		system.Coordinates{
+			Region: "VaultRest",
+			Name:   envelope.Name,
+		},
+	)
+
+	select {
+
+	case result = <-ch:
+		return
+
+	case <-time.After(10 * time.Second):
+		result = new(ReplyTimeout)
+		return
+	}
 }
 
 // GetAccount retrives account state from target tenant vault
 func GetAccount(sys *System, tenant string, name string) (result interface{}) {
-	sys.Metrics.TimeGetAccount(func() {
-		ch := make(chan interface{})
-		defer close(ch)
+	ch := make(chan interface{})
+	defer close(ch)
 
-		envelope := system.NewActor("relay/"+xid.New().String(), nil)
-		defer sys.UnregisterActor(envelope.Name)
+	envelope := system.NewActor("relay/"+xid.New().String(), nil)
+	defer sys.UnregisterActor(envelope.Name)
 
-		sys.RegisterActor(envelope, func(state interface{}, context system.Context) {
-			ch <- context.Data
-		})
-
-		sys.SendMessage(
-			ReqAccountState,
-			system.Coordinates{
-				Region: "VaultUnit/" + tenant,
-				Name:   name,
-			},
-			system.Coordinates{
-				Region: "VaultRest",
-				Name:   envelope.Name,
-			},
-		)
-
-		select {
-
-		case result = <-ch:
-			return
-
-		case <-time.After(3 * time.Second):
-			result = new(ReplyTimeout)
-			return
-		}
+	sys.RegisterActor(envelope, func(state interface{}, context system.Context) {
+		ch <- context.Data
 	})
-	return
+
+	sys.SendMessage(
+		ReqAccountState,
+		system.Coordinates{
+			Region: "VaultUnit/" + tenant,
+			Name:   name,
+		},
+		system.Coordinates{
+			Region: "VaultRest",
+			Name:   envelope.Name,
+		},
+	)
+
+	select {
+
+	case result = <-ch:
+		return
+
+	case <-time.After(3 * time.Second):
+		result = new(ReplyTimeout)
+		return
+	}
 }

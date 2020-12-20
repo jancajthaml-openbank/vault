@@ -15,115 +15,121 @@
 package metrics
 
 import (
-	localfs "github.com/jancajthaml-openbank/local-fs"
-	metrics "github.com/rcrowley/go-metrics"
+	"sync/atomic"
+
+	"github.com/DataDog/datadog-go/statsd"
 )
 
-// Metrics holds metrics counters
-type Metrics struct {
-	storage             localfs.Storage
-	tenant              string
-	continuous          bool
-	promisesAccepted    metrics.Counter
-	commitsAccepted     metrics.Counter
-	rollbacksAccepted   metrics.Counter
-	createdAccounts     metrics.Counter
-	updatedSnapshots    metrics.Meter
-	snapshotCronLatency metrics.Timer
+type Metrics interface {
+	SnapshotsUpdated(count int64)
+	AccountCreated()
+	PromiseAccepted()
+	CommitAccepted()
+	RollbackAccepted()
+}
+
+type metrics struct {
+	client *statsd.Client
+	promisesAccepted   int64
+	commitsAccepted  int64
+	rollbacksAccepted  int64
+	createdAccounts  int64
+	updatedSnapshots  int64
 }
 
 // NewMetrics returns blank metrics holder
-func NewMetrics(output string, continuous bool, tenant string) *Metrics {
-	storage, err := localfs.NewPlaintextStorage(output)
+func NewMetrics(endpoint string) *metrics {
+	client, err := statsd.New(endpoint)
 	if err != nil {
-		log.Error().Msgf("Failed to ensure storage %+v", err)
+		log.Error().Msgf("Failed to ensure statsd client %+v", err)
 		return nil
 	}
-	return &Metrics{
-		continuous:          continuous,
-		storage:             storage,
-		tenant:              tenant,
-		promisesAccepted:    metrics.NewCounter(),
-		commitsAccepted:     metrics.NewCounter(),
-		rollbacksAccepted:   metrics.NewCounter(),
-		createdAccounts:     metrics.NewCounter(),
-		updatedSnapshots:    metrics.NewMeter(),
-		snapshotCronLatency: metrics.NewTimer(),
+	return &metrics{
+		client: client,
+		promisesAccepted:   int64(0),
+		commitsAccepted:   int64(0),
+		rollbacksAccepted:   int64(0),
+		createdAccounts  :   int64(0),
+		updatedSnapshots :   int64(0),
 	}
-}
-
-// TimeUpdateSaturatedSnapshots measures time of SaturatedSnapshots function run
-func (metrics *Metrics) TimeUpdateSaturatedSnapshots(f func()) {
-	if metrics == nil {
-		f()
-		return
-	}
-	metrics.snapshotCronLatency.Time(f)
 }
 
 // SnapshotsUpdated increments updated snapshots by given count
-func (metrics *Metrics) SnapshotsUpdated(count int64) {
-	if metrics == nil {
+func (instance *metrics) SnapshotsUpdated(count int64) {
+	if instance == nil {
 		return
 	}
-	metrics.updatedSnapshots.Mark(count)
+	atomic.AddInt64(&(instance.updatedSnapshots), count)
 }
 
 // AccountCreated increments account created by one
-func (metrics *Metrics) AccountCreated() {
-	if metrics == nil {
+func (instance *metrics) AccountCreated() {
+	if instance == nil {
 		return
 	}
-	metrics.createdAccounts.Inc(1)
+	atomic.AddInt64(&(instance.createdAccounts), 1)
 }
 
 // PromiseAccepted increments accepted promises by one
-func (metrics *Metrics) PromiseAccepted() {
-	if metrics == nil {
+func (instance *metrics) PromiseAccepted() {
+	if instance == nil {
 		return
 	}
-	metrics.promisesAccepted.Inc(1)
+	atomic.AddInt64(&(instance.promisesAccepted), 1)
 }
 
 // CommitAccepted increments accepted commits by one
-func (metrics *Metrics) CommitAccepted() {
-	if metrics == nil {
+func (instance *metrics) CommitAccepted() {
+	if instance == nil {
 		return
 	}
-	metrics.commitsAccepted.Inc(1)
+	atomic.AddInt64(&(instance.commitsAccepted), 1)
 }
 
 // RollbackAccepted increments accepted rollbacks by one
-func (metrics *Metrics) RollbackAccepted() {
-	if metrics == nil {
+func (instance *metrics) RollbackAccepted() {
+	if instance == nil {
 		return
 	}
-	metrics.rollbacksAccepted.Inc(1)
+	atomic.AddInt64(&(instance.rollbacksAccepted), 1)
 }
 
-// Setup hydrates metrics from storage
-func (metrics *Metrics) Setup() error {
-	if metrics == nil {
-		return nil
-	}
-	if metrics.continuous {
-		metrics.Hydrate()
-	}
+// Setup does nothing
+func (_ *metrics) Setup() error {
 	return nil
 }
 
 // Done returns always finished
-func (metrics *Metrics) Done() <-chan interface{} {
+func (_ *metrics) Done() <-chan interface{} {
 	done := make(chan interface{})
 	close(done)
 	return done
 }
 
 // Cancel does nothing
-func (metrics *Metrics) Cancel() {
+func (_ *metrics) Cancel() {
 }
 
 // Work represents metrics worker work
-func (metrics *Metrics) Work() {
-	metrics.Persist()
+func (instance *metrics) Work() {
+	if instance == nil {
+		return
+	}
+
+	accountCreated := instance.createdAccounts
+	atomic.AddInt64(&(instance.createdAccounts), -accountCreated)
+	accountUpdated := instance.updatedSnapshots
+	atomic.AddInt64(&(instance.updatedSnapshots), -accountUpdated)
+	promisesAccepted := instance.promisesAccepted
+	atomic.AddInt64(&(instance.promisesAccepted), -promisesAccepted)
+	commitsAccepted := instance.commitsAccepted
+	atomic.AddInt64(&(instance.commitsAccepted), -commitsAccepted)
+	rollbacksAccepted := instance.rollbacksAccepted
+	atomic.AddInt64(&(instance.rollbacksAccepted), -rollbacksAccepted)
+
+	instance.client.Count("openbank.vault.account.created", accountCreated, nil, 1)
+	instance.client.Count("openbank.vault.account.updated", accountUpdated, nil, 1)
+	instance.client.Count("openbank.vault.promise.accepted", promisesAccepted, nil, 1)
+	instance.client.Count("openbank.vault.promise.committed", commitsAccepted, nil, 1)
+	instance.client.Count("openbank.vault.promise.rollbacked", rollbacksAccepted, nil, 1)
 }

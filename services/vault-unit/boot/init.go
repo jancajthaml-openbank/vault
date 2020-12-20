@@ -16,6 +16,7 @@ package boot
 
 import (
 	"os"
+	"time"
 
 	"github.com/jancajthaml-openbank/vault-unit/actor"
 	"github.com/jancajthaml-openbank/vault-unit/config"
@@ -49,9 +50,7 @@ func (prog *Program) Setup() {
 	logging.SetupLogger(prog.cfg.LogLevel)
 
 	metricsWorker := metrics.NewMetrics(
-		prog.cfg.MetricsOutput,
-		prog.cfg.MetricsContinuous,
-		prog.cfg.Tenant,
+		prog.cfg.MetricsStastdEndpoint,
 	)
 
 	actorSystem := actor.NewActorSystem(
@@ -70,6 +69,6 @@ func (prog *Program) Setup() {
 	prog.pool.Register(concurrent.NewScheduledDaemon(
 		"metrics",
 		metricsWorker,
-		prog.cfg.MetricsRefreshRate,
+		time.Second,
 	))
 }
