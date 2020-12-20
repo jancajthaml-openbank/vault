@@ -156,6 +156,10 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 				return
 			}
 
+			nextBalance = new(model.Dec)
+			nextBalance.Add(&state.Balance)
+			state.Promised.Add(msg.Amount)
+
 			if nextBalance.Sign() < 0 {
 				s.SendMessage(
 					PromiseRejected+" INSUFFICIESNT_FUNDS",
@@ -163,12 +167,19 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 					context.Receiver,
 				)
 				log.Debug().Msgf("%s/Exist/Promise Error insufficient funds", state.Name)
+				state.Promised.Sub(msg.Amount)
+				state.Promises.Remove(msg.Transaction)
+				state.EventCounter--
 				return
 			}
 
-			// FIXME boucing not handled
-			s.SendMessage(FatalError, context.Sender, context.Receiver)
-			log.Warn().Msgf("%s/Exist/Promise Error possible bounce", state.Name)
+			s.SendMessage(
+				PromiseBounced,
+				context.Sender,
+				context.Receiver,
+			)
+
+			log.Warn().Msgf("%s/Exist/Promise bounced", state.Name)
 			return
 
 		case Commit:
