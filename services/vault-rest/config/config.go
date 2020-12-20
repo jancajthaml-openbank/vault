@@ -41,13 +41,13 @@ type Configuration struct {
 // LoadConfig loads application configuration
 func LoadConfig() Configuration {
 	return Configuration{
-		RootStorage:        envString("VAULT_STORAGE", "/data"),
-		ServerPort:         envInteger("VAULT_HTTP_PORT", 4400),
-		ServerKey:          envString("VAULT_SERVER_KEY", ""),
-		ServerCert:         envString("VAULT_SERVER_CERT", ""),
-		LakeHostname:       envString("VAULT_LAKE_HOSTNAME", "127.0.0.1"),
-		LogLevel:           strings.ToUpper(envString("VAULT_LOG_LEVEL", "INFO")),
-		MinFreeDiskSpace:   uint64(envInteger("VAULT_STORAGE_THRESHOLD", 0)),
-		MinFreeMemory:      uint64(envInteger("VAULT_MEMORY_THRESHOLD", 0)),
+		RootStorage:      envString("VAULT_STORAGE", "/data"),
+		ServerPort:       envInteger("VAULT_HTTP_PORT", 4400),
+		ServerKey:        envString("VAULT_SERVER_KEY", ""),
+		ServerCert:       envString("VAULT_SERVER_CERT", ""),
+		LakeHostname:     envString("VAULT_LAKE_HOSTNAME", "127.0.0.1"),
+		LogLevel:         strings.ToUpper(envString("VAULT_LOG_LEVEL", "INFO")),
+		MinFreeDiskSpace: uint64(envInteger("VAULT_STORAGE_THRESHOLD", 0)),
+		MinFreeMemory:    uint64(envInteger("VAULT_MEMORY_THRESHOLD", 0)),
 	}
 }

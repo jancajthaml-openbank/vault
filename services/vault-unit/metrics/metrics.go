@@ -29,11 +29,11 @@ type Metrics interface {
 }
 
 type metrics struct {
-	client *statsd.Client
-	promisesAccepted   int64
-	commitsAccepted  int64
-	rollbacksAccepted  int64
-	createdAccounts  int64
+	client            *statsd.Client
+	promisesAccepted  int64
+	commitsAccepted   int64
+	rollbacksAccepted int64
+	createdAccounts   int64
 	updatedSnapshots  int64
 }
 
@@ -45,12 +45,12 @@ func NewMetrics(endpoint string) *metrics {
 		return nil
 	}
 	return &metrics{
-		client: client,
-		promisesAccepted:   int64(0),
+		client:            client,
+		promisesAccepted:  int64(0),
 		commitsAccepted:   int64(0),
-		rollbacksAccepted:   int64(0),
-		createdAccounts  :   int64(0),
-		updatedSnapshots :   int64(0),
+		rollbacksAccepted: int64(0),
+		createdAccounts:   int64(0),
+		updatedSnapshots:  int64(0),
 	}
 }
 

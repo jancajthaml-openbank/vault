@@ -41,6 +41,6 @@ func LoadConfig() Configuration {
 		RootStorage:                envString("VAULT_STORAGE", "/data") + "/" + "t_" + envString("VAULT_TENANT", ""),
 		LogLevel:                   strings.ToUpper(envString("VAULT_LOG_LEVEL", "INFO")),
 		SnapshotSaturationTreshold: envInteger("VAULT_SNAPSHOT_SATURATION_TRESHOLD", 100),
-		MetricsStastdEndpoint:  envString("VAULT_STATSD_ENDPOINT", "127.0.0.1:8125"),
+		MetricsStastdEndpoint:      envString("VAULT_STATSD_ENDPOINT", "127.0.0.1:8125"),
 	}
 }
