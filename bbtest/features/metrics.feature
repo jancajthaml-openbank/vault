@@ -4,15 +4,15 @@ Feature: Metrics test
     Given tenant M2 is onboarded
 
     Then metrics reports:
-      | key                                  | type  | value |
-      | openbank.vault.M2.account.created    | count |     0 |
-      | openbank.vault.M2.account.updated    | count |     0 |
-      | openbank.vault.M2.promise.accepted   | count |     0 |
-      | openbank.vault.M2.promise.committed  | count |     0 |
-      | openbank.vault.M2.promise.rollbacked | count |     0 |
+      | key                               | type  |      tags | value |
+      | openbank.vault.account.created    | count | tenant:M2 |     0 |
+      | openbank.vault.account.updated    | count | tenant:M2 |     0 |
+      | openbank.vault.promise.accepted   | count | tenant:M2 |     0 |
+      | openbank.vault.promise.committed  | count | tenant:M2 |     0 |
+      | openbank.vault.promise.rollbacked | count | tenant:M2 |     0 |
 
     When active EUR account M2/Credit is created
 
     Then metrics reports:
-      | key                                  | type  | value |
-      | openbank.vault.M2.account.created    | count |     1 |
+      | key                            | type  |      tags | value |
+      | openbank.vault.account.created | count | tenant:M2 |     1 |
