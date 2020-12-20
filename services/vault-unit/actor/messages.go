@@ -36,8 +36,8 @@ const (
 	PromiseAccepted = "P1"
 	// PromiseRejected vault message response code for "Promise" rejected
 	PromiseRejected = "P2"
-	// PromiseBounce vault message response code for "Promise" bounce
-	PromiseBounce = "P3"
+	// PromiseBounced vault message response code for "Promise" bounce
+	PromiseBounced = "P3"
 
 	// CommitOrder vault message request code for "Commit"
 	CommitOrder = "NC"

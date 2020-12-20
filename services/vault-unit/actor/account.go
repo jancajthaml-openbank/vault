@@ -174,7 +174,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 			}
 
 			s.SendMessage(
-				PromiseBounce,
+				PromiseBounced,
 				context.Sender,
 				context.Receiver,
 			)
