@@ -30,6 +30,7 @@ type Metrics interface {
 
 type metrics struct {
 	client            *statsd.Client
+	tenant            string
 	promisesAccepted  int64
 	commitsAccepted   int64
 	rollbacksAccepted int64
@@ -38,7 +39,7 @@ type metrics struct {
 }
 
 // NewMetrics returns blank metrics holder
-func NewMetrics(endpoint string) *metrics {
+func NewMetrics(tenant string, endpoint string) *metrics {
 	client, err := statsd.New(endpoint)
 	if err != nil {
 		log.Error().Msgf("Failed to ensure statsd client %+v", err)
@@ -46,6 +47,7 @@ func NewMetrics(endpoint string) *metrics {
 	}
 	return &metrics{
 		client:            client,
+		tenant:            tenant,
 		promisesAccepted:  int64(0),
 		commitsAccepted:   int64(0),
 		rollbacksAccepted: int64(0),
@@ -128,9 +130,9 @@ func (instance *metrics) Work() {
 	atomic.AddInt64(&(instance.commitsAccepted), -commitsAccepted)
 	atomic.AddInt64(&(instance.rollbacksAccepted), -rollbacksAccepted)
 
-	instance.client.Count("openbank.vault.account.created", accountCreated, nil, 1)
-	instance.client.Count("openbank.vault.account.updated", accountUpdated, nil, 1)
-	instance.client.Count("openbank.vault.promise.accepted", promisesAccepted, nil, 1)
-	instance.client.Count("openbank.vault.promise.committed", commitsAccepted, nil, 1)
-	instance.client.Count("openbank.vault.promise.rollbacked", rollbacksAccepted, nil, 1)
+	instance.client.Count("openbank.vault."+instance.tenant+".account.created", accountCreated, nil, 1)
+	instance.client.Count("openbank.vault."+instance.tenant+".account.updated", accountUpdated, nil, 1)
+	instance.client.Count("openbank.vault."+instance.tenant+".promise.accepted", promisesAccepted, nil, 1)
+	instance.client.Count("openbank.vault."+instance.tenant+".promise.committed", commitsAccepted, nil, 1)
+	instance.client.Count("openbank.vault."+instance.tenant+".promise.rollbacked", rollbacksAccepted, nil, 1)
 }

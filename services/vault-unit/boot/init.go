@@ -50,6 +50,7 @@ func (prog *Program) Setup() {
 	logging.SetupLogger(prog.cfg.LogLevel)
 
 	metricsWorker := metrics.NewMetrics(
+		prog.cfg.Tenant,
 		prog.cfg.MetricsStastdEndpoint,
 	)
 
