@@ -117,14 +117,15 @@ func (instance *metrics) Work() {
 	}
 
 	accountCreated := instance.createdAccounts
-	atomic.AddInt64(&(instance.createdAccounts), -accountCreated)
 	accountUpdated := instance.updatedSnapshots
-	atomic.AddInt64(&(instance.updatedSnapshots), -accountUpdated)
 	promisesAccepted := instance.promisesAccepted
-	atomic.AddInt64(&(instance.promisesAccepted), -promisesAccepted)
 	commitsAccepted := instance.commitsAccepted
-	atomic.AddInt64(&(instance.commitsAccepted), -commitsAccepted)
 	rollbacksAccepted := instance.rollbacksAccepted
+
+	atomic.AddInt64(&(instance.createdAccounts), -accountCreated)
+	atomic.AddInt64(&(instance.updatedSnapshots), -accountUpdated)
+	atomic.AddInt64(&(instance.promisesAccepted), -promisesAccepted)
+	atomic.AddInt64(&(instance.commitsAccepted), -commitsAccepted)
 	atomic.AddInt64(&(instance.rollbacksAccepted), -rollbacksAccepted)
 
 	instance.client.Count("openbank.vault.account.created", accountCreated, nil, 1)
