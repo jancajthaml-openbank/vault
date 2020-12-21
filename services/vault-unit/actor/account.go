@@ -96,7 +96,9 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 			log.Debug().Msgf("%s/Exist/CreateAccount Error", state.Name)
 
 		case Promise:
-			if state.Promises.Contains(msg.Transaction) {
+			promiseHash := msg.Transaction + "_" + msg.Currency + "_" + msg.Amount.String()
+
+			if state.Promises.Contains(promiseHash) {
 				s.SendMessage(PromiseAccepted, context.Sender, context.Receiver)
 				log.Debug().Msgf("%s/Exist/Promise OK Already Accepted", state.Name)
 				return
@@ -115,12 +117,14 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 			nextBalance := new(model.Dec)
 			nextBalance.Add(&state.Balance)
 			nextBalance.Add(&state.Promised)
+			nextBalance.Add(msg.Amount)
 
 			state.Promised.Add(msg.Amount)
-			state.Promises.Add(msg.Transaction)
+			state.Promises.Add(promiseHash)
 			state.EventCounter++
 
 			if !state.IsBalanceCheck || nextBalance.Sign() >= 0 {
+
 				err := persistence.PersistPromise(s.Storage, state, msg.Amount, msg.Transaction)
 				if err != nil {
 					s.SendMessage(
@@ -130,7 +134,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 					)
 					log.Warn().Msgf("%s/Exist/Promise Error could not persist %+v", state.Name, err)
 					state.Promised.Sub(msg.Amount)
-					state.Promises.Remove(msg.Transaction)
+					state.Promises.Remove(promiseHash)
 					state.EventCounter--
 					return
 				}
@@ -158,17 +162,17 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 
 			nextBalance = new(model.Dec)
 			nextBalance.Add(&state.Balance)
-			state.Promised.Add(msg.Amount)
+			nextBalance.Add(msg.Amount)
 
 			if nextBalance.Sign() < 0 {
 				s.SendMessage(
-					PromiseRejected+" INSUFFICIESNT_FUNDS",
+					PromiseRejected+" INSUFFICIENT_FUNDS",
 					context.Sender,
 					context.Receiver,
 				)
 				log.Debug().Msgf("%s/Exist/Promise Error insufficient funds", state.Name)
 				state.Promised.Sub(msg.Amount)
-				state.Promises.Remove(msg.Transaction)
+				state.Promises.Remove(promiseHash)
 				state.EventCounter--
 				return
 			}
@@ -184,7 +188,9 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 
 		case Commit:
 
-			if !state.Promises.Contains(msg.Transaction) {
+			promiseHash := msg.Transaction + "_" + msg.Currency + "_" + msg.Amount.String()
+
+			if !state.Promises.Contains(promiseHash) {
 				s.SendMessage(CommitAccepted, context.Sender, context.Receiver)
 				log.Debug().Msgf("%s/Exist/Commit OK already accepted", state.Name)
 				return
@@ -192,7 +198,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 
 			state.Balance.Add(msg.Amount)
 			state.Promised.Sub(msg.Amount)
-			state.Promises.Remove(msg.Transaction)
+			state.Promises.Remove(promiseHash)
 			state.EventCounter++
 
 			err := persistence.PersistCommit(s.Storage, state, msg.Amount, msg.Transaction)
@@ -205,7 +211,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 				log.Warn().Msgf("%s/Exist/Commit Error could not persist %+v", state.Name, err)
 				state.Balance.Sub(msg.Amount)
 				state.Promised.Add(msg.Amount)
-				state.Promises.Add(msg.Transaction)
+				state.Promises.Add(promiseHash)
 				state.EventCounter--
 				return
 			}
@@ -230,14 +236,17 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 			return
 
 		case Rollback:
-			if !state.Promises.Contains(msg.Transaction) {
+
+			promiseHash := msg.Transaction + "_" + msg.Currency + "_" + msg.Amount.String()
+
+			if !state.Promises.Contains(promiseHash) {
 				s.SendMessage(RollbackAccepted, context.Sender, context.Receiver)
 				log.Debug().Msgf("%s/Exist/Rollback OK Already Accepted", state.Name)
 				return
 			}
 
 			state.Promised.Sub(msg.Amount)
-			state.Promises.Remove(msg.Transaction)
+			state.Promises.Remove(promiseHash)
 			state.EventCounter++
 
 			err := persistence.PersistRollback(s.Storage, state, msg.Amount, msg.Transaction)
@@ -249,7 +258,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 				)
 				log.Warn().Msgf("%s/Exist/Rollback Error could not persist %+v", state.Name, err)
 				state.Promised.Add(msg.Amount)
-				state.Promises.Add(msg.Transaction)
+				state.Promises.Add(promiseHash)
 				state.EventCounter--
 				return
 			}
