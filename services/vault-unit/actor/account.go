@@ -171,9 +171,6 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 					context.Receiver,
 				)
 				log.Debug().Msgf("%s/Exist/Promise Error insufficient funds", state.Name)
-				state.Promised.Sub(msg.Amount)
-				state.Promises.Remove(promiseHash)
-				state.EventCounter--
 				return
 			}
 
