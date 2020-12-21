@@ -130,7 +130,7 @@ func (instance *metrics) Work() {
 	atomic.AddInt64(&(instance.commitsAccepted), -commitsAccepted)
 	atomic.AddInt64(&(instance.rollbacksAccepted), -rollbacksAccepted)
 
-	tags := []string{"tenant:" +instance.tenant}
+	tags := []string{"tenant:" + instance.tenant}
 
 	instance.client.Count("openbank.vault.account.created", accountCreated, tags, 1)
 	instance.client.Count("openbank.vault.account.updated", accountUpdated, tags, 1)
