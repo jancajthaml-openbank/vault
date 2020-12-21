@@ -188,8 +188,8 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 			promiseHash := msg.Transaction + "_" + msg.Currency + "_" + msg.Amount.String()
 
 			if !state.Promises.Contains(promiseHash) {
-				s.SendMessage(CommitAccepted, context.Sender, context.Receiver)
-				log.Debug().Msgf("%s/Exist/Commit OK already accepted", state.Name)
+				s.SendMessage(FatalError, context.Sender, context.Receiver)
+				log.Debug().Msgf("%s/Exist/Commit Error unknown promise to commit", state.Name)
 				return
 			}
 
@@ -237,8 +237,8 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 			promiseHash := msg.Transaction + "_" + msg.Currency + "_" + msg.Amount.String()
 
 			if !state.Promises.Contains(promiseHash) {
-				s.SendMessage(RollbackAccepted, context.Sender, context.Receiver)
-				log.Debug().Msgf("%s/Exist/Rollback OK Already Accepted", state.Name)
+				s.SendMessage(FatalError, context.Sender, context.Receiver)
+				log.Debug().Msgf("%s/Exist/Rollback Error unknown promise to rollback", state.Name)
 				return
 			}
 
