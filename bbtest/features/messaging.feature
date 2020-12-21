@@ -9,14 +9,14 @@ Feature: Messaging behaviour
   Scenario: get balance
     Given tenant MSG2 is onboarded
 
-    When lake recieves "VaultUnit/MSG2 VaultRest account_name_3 req_id_3 NA test EUR f"
-    Then lake responds with "VaultRest VaultUnit/MSG2 req_id_3 account_name_3 AN"
+    When lake recieves "VaultUnit/MSG2 VaultRest account req NA test EUR f"
+    Then lake responds with "VaultRest VaultUnit/MSG2 req account AN"
 
-    When lake recieves "VaultUnit/MSG2 VaultRest account_name_3 req_id_3 GS"
-    Then lake responds with "VaultRest VaultUnit/MSG2 req_id_3 account_name_3 S0 TEST EUR f 0.0 0.0"
+    When lake recieves "VaultUnit/MSG2 VaultRest account req GS"
+    Then lake responds with "VaultRest VaultUnit/MSG2 req account S0 TEST EUR f 0.0 0.0"
 
-    When lake recieves "VaultUnit/MSG2 VaultRest account_name_4 req_id_3 GS"
-    Then lake responds with "VaultRest VaultUnit/MSG2 req_id_3 account_name_4 S1"
+    When lake recieves "VaultUnit/MSG2 VaultRest account_x req GS"
+    Then lake responds with "VaultRest VaultUnit/MSG2 req account_x S1"
 
   Scenario: negotiate transaction commit
     Given tenant MSG3 is onboarded
@@ -67,15 +67,39 @@ Feature: Messaging behaviour
     Then lake responds with "VaultRest VaultUnit/MSG6 req account P1"
 
     When lake recieves "VaultUnit/MSG6 VaultRest account req NC trn 2.0 CZK"
-    Then lake responds with "VaultRest VaultUnit/MSG6 req account C1"
+    Then lake responds with "VaultRest VaultUnit/MSG6 req account EE"
 
     When lake recieves "VaultUnit/MSG6 VaultRest account req GS"
     Then lake responds with "VaultRest VaultUnit/MSG6 req account S0 TEST CZK f 0.0 1.0"
 
-  Scenario: exactly once delivery
+  Scenario: negotiate transaction refuse to commit unknown promise
     Given tenant MSG7 is onboarded
 
-    When lake recieves "VaultUnit/MSG7 VaultRest account_name_2 req_id_2 NA test EUR f"
-    And lake recieves "VaultUnit/MSG7 VaultRest account_name_2 req_id_2 NA test EUR f"
-    Then lake responds with "VaultRest VaultUnit/MSG7 req_id_2 account_name_2 AN"
-    And lake responds with "VaultRest VaultUnit/MSG7 req_id_2 account_name_2 EE"
+    When lake recieves "VaultUnit/MSG7 VaultRest account req NA test CZK t"
+    Then lake responds with "VaultRest VaultUnit/MSG7 req account AN"
+
+    When lake recieves "VaultUnit/MSG7 VaultRest account req NC trn -1.0 CZK"
+    Then lake responds with "VaultRest VaultUnit/MSG7 req account EE"
+
+    When lake recieves "VaultUnit/MSG7 VaultRest account req GS"
+    Then lake responds with "VaultRest VaultUnit/MSG7 req account S0 TEST CZK t 0.0 0.0"
+
+  Scenario: negotiate transaction refuse to rollback unknown promise
+    Given tenant MSG8 is onboarded
+
+    When lake recieves "VaultUnit/MSG8 VaultRest account req NA test CZK t"
+    Then lake responds with "VaultRest VaultUnit/MSG8 req account AN"
+
+    When lake recieves "VaultUnit/MSG8 VaultRest account req NR trn -1.0 CZK"
+    Then lake responds with "VaultRest VaultUnit/MSG8 req account EE"
+
+    When lake recieves "VaultUnit/MSG8 VaultRest account req GS"
+    Then lake responds with "VaultRest VaultUnit/MSG8 req account S0 TEST CZK t 0.0 0.0"
+
+  Scenario: exactly once delivery
+    Given tenant MSG9 is onboarded
+
+    When lake recieves "VaultUnit/MSG9 VaultRest account req NA test EUR f"
+    And lake recieves "VaultUnit/MSG9 VaultRest account req NA test EUR f"
+    Then lake responds with "VaultRest VaultUnit/MSG9 req account AN"
+    And lake responds with "VaultRest VaultUnit/MSG9 req account EE"
