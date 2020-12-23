@@ -14,9 +14,7 @@
 
 package actor
 
-import (
-	"github.com/jancajthaml-openbank/vault-unit/model"
-)
+import "github.com/jancajthaml-openbank/vault-unit/model"
 
 // CreateAccount is inbound request for creation of new account
 type CreateAccount struct {
