@@ -14,9 +14,7 @@
 
 package persistence
 
-import (
-	"strconv"
-)
+import "strconv"
 
 // RootPath returns filepath for accounts
 func RootPath() string {

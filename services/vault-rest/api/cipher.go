@@ -14,9 +14,7 @@
 
 package api
 
-import (
-	"crypto/tls"
-)
+import "crypto/tls"
 
 // CipherSuites list of trusted tls cipher suites
 var CipherSuites = []uint16{

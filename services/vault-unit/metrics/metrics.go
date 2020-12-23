@@ -20,6 +20,7 @@ import (
 	"github.com/DataDog/datadog-go/statsd"
 )
 
+// Metrics provides helper function for metrics
 type Metrics interface {
 	SnapshotsUpdated(count int64)
 	AccountCreated()
@@ -28,7 +29,8 @@ type Metrics interface {
 	RollbackAccepted()
 }
 
-type metrics struct {
+// StatsdMetrics provides metrics helper with statsd client
+type StatsdMetrics struct {
 	client            *statsd.Client
 	tenant            string
 	promisesAccepted  int64
@@ -38,14 +40,14 @@ type metrics struct {
 	updatedSnapshots  int64
 }
 
-// NewMetrics returns blank metrics holder
-func NewMetrics(tenant string, endpoint string) *metrics {
+// NewMetrics helper function for metrics with statsd client
+func NewMetrics(tenant string, endpoint string) *StatsdMetrics {
 	client, err := statsd.New(endpoint, statsd.WithClientSideAggregation(), statsd.WithoutTelemetry())
 	if err != nil {
 		log.Error().Msgf("Failed to ensure statsd client %+v", err)
 		return nil
 	}
-	return &metrics{
+	return &StatsdMetrics{
 		client:            client,
 		tenant:            tenant,
 		promisesAccepted:  int64(0),
@@ -57,7 +59,7 @@ func NewMetrics(tenant string, endpoint string) *metrics {
 }
 
 // SnapshotsUpdated increments updated snapshots by given count
-func (instance *metrics) SnapshotsUpdated(count int64) {
+func (instance *StatsdMetrics) SnapshotsUpdated(count int64) {
 	if instance == nil {
 		return
 	}
@@ -65,7 +67,7 @@ func (instance *metrics) SnapshotsUpdated(count int64) {
 }
 
 // AccountCreated increments account created by one
-func (instance *metrics) AccountCreated() {
+func (instance *StatsdMetrics) AccountCreated() {
 	if instance == nil {
 		return
 	}
@@ -73,7 +75,7 @@ func (instance *metrics) AccountCreated() {
 }
 
 // PromiseAccepted increments accepted promises by one
-func (instance *metrics) PromiseAccepted() {
+func (instance *StatsdMetrics) PromiseAccepted() {
 	if instance == nil {
 		return
 	}
@@ -81,7 +83,7 @@ func (instance *metrics) PromiseAccepted() {
 }
 
 // CommitAccepted increments accepted commits by one
-func (instance *metrics) CommitAccepted() {
+func (instance *StatsdMetrics) CommitAccepted() {
 	if instance == nil {
 		return
 	}
@@ -89,7 +91,7 @@ func (instance *metrics) CommitAccepted() {
 }
 
 // RollbackAccepted increments accepted rollbacks by one
-func (instance *metrics) RollbackAccepted() {
+func (instance *StatsdMetrics) RollbackAccepted() {
 	if instance == nil {
 		return
 	}
@@ -97,23 +99,23 @@ func (instance *metrics) RollbackAccepted() {
 }
 
 // Setup does nothing
-func (_ *metrics) Setup() error {
+func (*StatsdMetrics) Setup() error {
 	return nil
 }
 
 // Done returns always finished
-func (_ *metrics) Done() <-chan interface{} {
+func (*StatsdMetrics) Done() <-chan interface{} {
 	done := make(chan interface{})
 	close(done)
 	return done
 }
 
 // Cancel does nothing
-func (_ *metrics) Cancel() {
+func (*StatsdMetrics) Cancel() {
 }
 
 // Work represents metrics worker work
-func (instance *metrics) Work() {
+func (instance *StatsdMetrics) Work() {
 	if instance == nil {
 		return
 	}

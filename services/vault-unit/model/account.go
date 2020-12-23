@@ -50,7 +50,7 @@ func NewAccount(name string) Account {
 
 // Serialize Account entity to persistable data
 func (entity Account) Serialize() []byte {
-	var buffer bytes.Buffer // alloc
+	var buffer bytes.Buffer
 
 	// [CURRENCY FORMAT_IS-CHECK]
 	// [BALANCE]
@@ -81,11 +81,11 @@ func (entity Account) Serialize() []byte {
 
 	buffer.WriteString("\n")
 
-	buffer.WriteString(entity.Balance.String()) // alloc
+	buffer.WriteString(entity.Balance.String())
 
 	buffer.WriteString("\n")
 
-	buffer.WriteString(entity.Promised.String()) // alloc
+	buffer.WriteString(entity.Promised.String())
 
 	for i := 0; i < len(entity.Promises.keys); i++ {
 		buffer.WriteString("\n")
