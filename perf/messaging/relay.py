@@ -45,10 +45,22 @@ class Relay(threading.Thread):
         data = self.__pull.recv(zmq.NOBLOCK)
         if not data:
           continue
+        chunks = data.decode('utf-8').split(' ')
 
+        # fixme regex
+        if chunks[0].startswith('VaultUnit'):
+          # react
+          print('should react to {}'.format(chunks))
+
+        else:
+          # relay
+          print('relays {}'.format(chunks))
+          self.__pub.send(data)
+
+        #VaultUnit/one VaultRest x relay/bvlh4fohm0hk880p2m7g NA perf CZK f
         # FIXME implement happy path reaction
 
-        self.__pub.send(data)
+
       except Exception as ex:
         if ex.errno != 11:
           return

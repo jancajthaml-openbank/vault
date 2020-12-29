@@ -55,9 +55,6 @@ class MetricsAggregator(threading.Thread):
       elif key == 'openbank.lake.memory.bytes':
         self.__store[ts]['m'] = int(value)
 
-      #print(self.__store)
-
-
   def stop(self):
     if self.__cancel.is_set():
       return

@@ -11,6 +11,7 @@ from utils import warn, info, interrupt_stdout, timeit
 from metrics.decorator import metrics
 from metrics.fascade import Metrics
 from metrics.plot import Graph
+from integration.http import Integration
 from appliance_manager import ApplianceManager
 from messaging.relay import Relay
 from logs.collector import LogsCollector
@@ -46,6 +47,7 @@ def main():
 
   logs_collector = LogsCollector()
   relay = Relay()
+  integration = Integration()
 
   manager = ApplianceManager()
   manager.bootstrap()
@@ -54,6 +56,8 @@ def main():
   logs_collector.start()
 
   info("start")
+
+  integration.create_account('one', 'x')
 
   #messages_to_push = int(os.environ.get('MESSAGES_PUSHED', '100000'))
 
