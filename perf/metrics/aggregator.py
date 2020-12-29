@@ -40,20 +40,16 @@ class MetricsAggregator(threading.Thread):
       key   = match.group(1)
       value = match.group(2)
 
+      print(key, value)
+
       ts = str(int(time.time()))
 
       if not ts in self.__store:
         self.__store[ts] = {
-          'e': 0,
-          'i': 0,
-          'm': 0,
+          'c': 0,
         }
-      if key == 'openbank.lake.message.ingress':
-        self.__store[ts]['i'] += int(value)
-      elif key == 'openbank.lake.message.egress':
-        self.__store[ts]['e'] += int(value)
-      elif key == 'openbank.lake.memory.bytes':
-        self.__store[ts]['m'] = int(value)
+      if key == 'openbank.vault.account.created':
+        self.__store[ts]['c'] += int(value)
 
   def stop(self):
     if self.__cancel.is_set():

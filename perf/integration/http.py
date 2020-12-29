@@ -4,6 +4,7 @@
 import ssl
 import urllib.request
 import socket
+import http
 
 
 class Integration(object):
@@ -29,8 +30,8 @@ class Integration(object):
     request.add_header('Accept', 'application/json')
     request.add_header('Content-Type', 'application/json')
     request.data = payload.encode('utf-8')
-    try:
-      response = urllib.request.urlopen(request, timeout=10, context=ctx)
-    except socket.timeout:
-      raise AssertionError('timeout')
+    #try:
+    response = urllib.request.urlopen(request, timeout=120, context=ctx)
     assert response.status == 200
+    #except (http.client.RemoteDisconnected, socket.timeout):
+    #self.create_account(tenant, name)

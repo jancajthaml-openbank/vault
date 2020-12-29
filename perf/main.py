@@ -57,22 +57,11 @@ def main():
 
   info("start")
 
-  integration.create_account('one', 'x')
-
-  #messages_to_push = int(os.environ.get('MESSAGES_PUSHED', '100000'))
-
-  #i = 1000
-  #while i <= messages_to_push:
-    #info('pushing {:,.0f} messages throught ZMQ'.format(i))
-    #with timeit('{:,.0f} messages'.format(i)):
-      #with metrics(manager, 'count_{}'.format(i)):
-        #Publisher(i)
-
-    #info('generating graph for {:,.0f} messages'.format(i))
-    #with timeit('{:,.0f} graph'.format(i)):
-      #Graph(Metrics('{}/../reports/perf-tests/metrics/metrics.count_{}.json'.format(cwd, i)))
-
-    #i *= 10
+  i = 100
+  with timeit('{:,.0f} messages'.format(i)):
+    with metrics(manager, 'count_{}'.format(i)):
+      for j in range(i):
+        integration.create_account('one', 'a-{}'.format(j))
 
   info("stopping")
 

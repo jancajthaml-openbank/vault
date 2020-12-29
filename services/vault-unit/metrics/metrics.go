@@ -110,8 +110,9 @@ func (*StatsdMetrics) Done() <-chan interface{} {
 	return done
 }
 
-// Cancel does nothing
-func (*StatsdMetrics) Cancel() {
+// Cancel triggers work once
+func (instance *StatsdMetrics) Cancel() {
+	instance.Work()
 }
 
 // Work represents metrics worker work
