@@ -123,3 +123,9 @@ bbtest:
 		docker-compose up -d bbtest
 	@docker exec -t $$(docker-compose ps -q bbtest) python3 /opt/app/bbtest/main.py
 	@docker-compose down -v
+
+.PHONY: perf
+perf:
+	@META=$(META) VERSION=$(VERSION) docker-compose up -d perf
+	@docker exec -t $$(docker-compose ps -q perf) python3 /opt/app/perf/main.py
+	@docker-compose down -v
