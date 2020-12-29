@@ -39,7 +39,7 @@ func (prog Program) Start(parentContext context.Context, cancelFunction context.
 	if err := host.NotifyServiceStopping(); err != nil {
 		log.Error().Msg(err.Error())
 	}
-	cancelFunction()
+	prog.pool.Stop()
 	<-prog.pool.Done()
 	log.Info().Msg("Program Stopped")
 }
