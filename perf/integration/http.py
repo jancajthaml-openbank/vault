@@ -14,12 +14,13 @@ class Integration(object):
   def create_account(self, tenant, name):
     payload = """
       {
-        "name": "{}",
+        "name": "%s",
         "format": "perf",
         "currency": "CZK",
         "isBalanceCheck": false
       }
-    """.format(name)
+    """ % (name)
+
     uri = "{}/account/{}".format(self.__endpoint, tenant)
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
