@@ -16,9 +16,9 @@ def step_impl(context, package, operation):
     assert os.path.isfile('/etc/vault/conf.d/init.conf') is True
     execute(['systemctl', 'start', package])
   elif operation == 'uninstalled':
-    (code, result, error) = execute(["apt-get", "-y", "remove", package])
+    (code, result, error) = execute(["apt-get", "-y", "purge", package])
     assert code == 0, "unable to uninstall with code {} and {} {}".format(code, result, error)
-    assert os.path.isfile('/etc/vault/conf.d/init.conf') is False
+    assert os.path.isfile('/etc/vault/conf.d/init.conf') is False, 'config file still exists'
   else:
     assert False
 
