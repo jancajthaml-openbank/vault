@@ -20,14 +20,14 @@ def step_impl(context, package, operation):
     assert code == 0, "unable to uninstall with code {} and {} {}".format(code, result, error)
     assert os.path.isfile('/etc/vault/conf.d/init.conf') is False, 'config file still exists'
   else:
-    assert False
+    assert False, 'unknown operation {}'.format(operation)
 
 
 @given('systemctl contains following active units')
 @then('systemctl contains following active units')
 def step_impl(context):
   (code, result, error) = execute(["systemctl", "list-units", "--no-legend", "--state=active"])
-  assert code == 0
+  assert code == 0, str(result) + ' ' + str(error)
 
   items = []
   for row in context.table:
@@ -43,7 +43,7 @@ def step_impl(context):
 @then('systemctl does not contain following active units')
 def step_impl(context):
   (code, result, error) = execute(["systemctl", "list-units", "--no-legend", "--state=active"])
-  assert code == 0
+  assert code == 0, str(result) + ' ' + str(error)
 
   items = []
   for row in context.table:
@@ -61,7 +61,7 @@ def unit_running(context, unit):
   @eventually(10)
   def wait_for_unit_state_change():
     (code, result, error) = execute(["systemctl", "show", "-p", "SubState", unit])
-    assert code == 0, code
+    assert code == 0, str(result) + ' ' + str(error)
     assert 'SubState=running' in result, result
 
   wait_for_unit_state_change()
@@ -97,9 +97,7 @@ def unit_is_configured(context, unit):
     params[row['property']] = row['value'].strip()
   context.unit.configure(params)
 
-  (code, result, error) = execute([
-    'systemctl', 'list-units', '--no-legend'
-  ])
+  (code, result, error) = execute(["systemctl", "list-units", "--no-legend", "--state=active"])
   result = [item.split(' ')[0].strip() for item in result.split(os.linesep)]
   result = [item for item in result if ("{}-".format(unit) in item and ".service" in item)]
 
@@ -117,7 +115,7 @@ def offboard_unit(context, tenant):
     with open(logfile, 'w') as f:
       f.write(result)
 
-  execute(['systemctl', 'kill', '-s' 'SIGTERM', 'vault-unit@{}.service'.format(tenant)])
+  execute(['systemctl', 'stop', 'vault-unit@{}.service'.format(tenant)])
 
   (code, result, error) = execute(['journalctl', '-o', 'cat', '-u', 'vault-unit@{}.service'.format(tenant), '--no-pager'])
   if code == 0 and result:
