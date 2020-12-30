@@ -26,7 +26,7 @@ def step_impl(context, package, operation):
 @given('systemctl contains following active units')
 @then('systemctl contains following active units')
 def step_impl(context):
-  (code, result, error) = execute(["systemctl", "list-units", "--no-legend"])
+  (code, result, error) = execute(["systemctl", "list-units", "--no-legend", "--state=active"])
   assert code == 0
 
   items = []
@@ -42,7 +42,7 @@ def step_impl(context):
 @given('systemctl does not contain following active units')
 @then('systemctl does not contain following active units')
 def step_impl(context):
-  (code, result, error) = execute(["systemctl", "list-units", "--no-legend"])
+  (code, result, error) = execute(["systemctl", "list-units", "--no-legend", "--state=active"])
   assert code == 0
 
   items = []
@@ -124,7 +124,7 @@ def offboard_unit(context, tenant):
     with open(logfile, 'w') as fd:
       fd.write(result)
 
-  execute(['systemctl', 'mask', 'vault-unit@{}.service'.format(tenant)])
+  execute(['systemctl', 'disable', 'vault-unit@{}.service'.format(tenant)])
 
   unit_not_running(context, 'vault-unit@{}'.format(tenant))
 
