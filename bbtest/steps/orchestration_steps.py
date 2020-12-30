@@ -42,6 +42,7 @@ def step_impl(context):
 @given('systemctl does not contain following active units')
 @then('systemctl does not contain following active units')
 def step_impl(context):
+  execute(["systemctl", "daemon-reload"])
   (code, result, error) = execute(["systemctl", "list-units", "--no-legend"])
   assert code == 0
 
