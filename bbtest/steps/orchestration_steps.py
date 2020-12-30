@@ -42,7 +42,6 @@ def step_impl(context):
 @given('systemctl does not contain following active units')
 @then('systemctl does not contain following active units')
 def step_impl(context):
-  execute(["systemctl", "daemon-reload"])
   (code, result, error) = execute(["systemctl", "list-units", "--no-legend"])
   assert code == 0
 
@@ -126,7 +125,10 @@ def offboard_unit(context, tenant):
       fd.write(result)
 
   execute(['systemctl', 'mask', 'vault-unit@{}.service'.format(tenant)])
+
   unit_not_running(context, 'vault-unit@{}'.format(tenant))
+
+  execute(["systemctl", "daemon-reload"])
 
 
 @given('tenant {tenant} is onboarded')
