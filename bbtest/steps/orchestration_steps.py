@@ -16,7 +16,6 @@ def step_impl(context, package, operation):
     assert os.path.isfile('/etc/vault/conf.d/init.conf') is True
     execute(['systemctl', 'start', package])
   elif operation == 'uninstalled':
-    execute(['systemctl', 'stop', package])
     (code, result, error) = execute(["apt-get", "-y", "remove", package])
     assert code == 0, "unable to uninstall with code {} and {} {}".format(code, result, error)
     assert os.path.isfile('/etc/vault/conf.d/init.conf') is False
@@ -73,9 +72,13 @@ def unit_running(context, unit):
 @given('unit "{unit}" is not running')
 @then('unit "{unit}" is not running')
 def unit_not_running(context, unit):
-  (code, result, error) = execute(["systemctl", "show", "-p", "SubState", unit])
-  assert code == 0, str(result) + ' ' + str(error)
-  assert 'SubState=running' not in result, str(result) + ' ' + str(error)
+  @eventually(20)
+  def wait_for_unit_state_change():
+    (code, result, error) = execute(["systemctl", "show", "-p", "SubState", unit])
+    assert code == 0, str(result) + ' ' + str(error)
+    assert 'SubState=running' not in result, str(result) + ' ' + str(error)
+
+  wait_for_unit_state_change()
 
 
 @given('{operation} unit "{unit}"')
@@ -91,7 +94,7 @@ def operation_unit(context, operation, unit):
 def unit_is_configured(context, unit):
   params = dict()
   for row in context.table:
-    params[row['property']] = row['value']
+    params[row['property']] = row['value'].strip()
   context.unit.configure(params)
 
   (code, result, error) = execute([
@@ -113,14 +116,14 @@ def offboard_unit(context, tenant):
     with open(logfile, 'w') as f:
       f.write(result)
 
-  execute(['systemctl', 'stop', 'vault-unit@{}.service'.format(tenant)])
+  execute(['systemctl', 'kill', '-s' 'SIGTERM', 'vault-unit@{}.service'.format(tenant)])
 
   (code, result, error) = execute(['journalctl', '-o', 'cat', '-u', 'vault-unit@{}.service'.format(tenant), '--no-pager'])
   if code == 0 and result:
     with open(logfile, 'w') as fd:
       fd.write(result)
 
-  execute(['systemctl', 'disable', 'vault-unit@{}.service'.format(tenant)])
+  execute(['systemctl', 'mask', 'vault-unit@{}.service'.format(tenant)])
   unit_not_running(context, 'vault-unit@{}'.format(tenant))
 
 
