@@ -58,11 +58,10 @@ def main():
 
   info("start")
 
-  i = 100
-  with timeit('{:,.0f} messages'.format(i)):
-    with metrics(manager, 'count_{}'.format(i)):
-      for j in range(i):
-        integration.create_account('one', 'a-{}'.format(j))
+  i = 10000
+  with timeit('create {:,.0f} accounts'.format(i)):
+    with metrics(manager, 'create_accounts_{}'.format(i)):
+      integration.create_random_accounts('one', i)
 
   info("stopping")
 
