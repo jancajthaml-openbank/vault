@@ -10,6 +10,7 @@ Feature: Service can be configured
     """
       Log level set to ERROR
     """
+    And tenant CONFIGURATION_ERROR is offboarded
 
   Scenario: configure log level to DEBUG
     Given tenant CONFIGURATION_DEBUG is onboarded
@@ -21,6 +22,7 @@ Feature: Service can be configured
     """
       Log level set to DEBUG
     """
+    And tenant CONFIGURATION_DEBUG is offboarded
 
   Scenario: configure log level to INFO
     Given tenant CONFIGURATION_INFO is onboarded
@@ -32,13 +34,16 @@ Feature: Service can be configured
     """
       Log level set to INFO
     """
+    And tenant CONFIGURATION_INFO is offboarded
 
   Scenario: configure log level to INVALID
-    Given lake is configured with
+    Given tenant CONFIGURATION_INVALID is onboarded
+    And   vault is configured with
       | property  | value   |
       | LOG_LEVEL | INVALID |
 
-    Then journalctl of "vault-unit@CONFIGURATION_INFO.service" contains following
+    Then journalctl of "vault-unit@CONFIGURATION_INVALID.service" contains following
     """
       Log level set to INFO
     """
+    And tenant CONFIGURATION_INVALID is offboarded
