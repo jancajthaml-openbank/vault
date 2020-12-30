@@ -108,6 +108,7 @@ def unit_is_configured(context, unit):
     operation_unit(context, 'restart', unit)
 
 
+@then('tenant {tenant} is offboarded')
 @given('tenant {tenant} is offboarded')
 def offboard_unit(context, tenant):
   logfile = os.path.realpath('{}/../../reports/blackbox-tests/logs/vault-unit.{}.log'.format(os.path.dirname(__file__), tenant))
