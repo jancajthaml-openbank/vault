@@ -40,8 +40,6 @@ class MetricsAggregator(threading.Thread):
       key   = match.group(1)
       value = match.group(2)
 
-      print(key, value)
-
       ts = str(int(time.time()))
 
       if not ts in self.__store:

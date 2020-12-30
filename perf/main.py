@@ -46,6 +46,8 @@ def main():
   info("setup")
 
   logs_collector = LogsCollector()
+  logs_collector.start()
+
   relay = Relay()
   integration = Integration()
 
@@ -53,7 +55,6 @@ def main():
   manager.bootstrap()
 
   relay.start()
-  logs_collector.start()
 
   info("start")
 
