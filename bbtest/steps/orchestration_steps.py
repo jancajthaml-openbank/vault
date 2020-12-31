@@ -16,8 +16,10 @@ def step_impl(context, package, operation):
     assert os.path.isfile('/etc/vault/conf.d/init.conf') is True
     execute(['systemctl', 'start', package])
   elif operation == 'uninstalled':
-    (code, result, error) = execute(["apt-get", "-y", "purge", package])
+    (code, result, error) = execute(["apt-get", "-y", "remove", package])
     assert code == 0, "unable to uninstall with code {} and {} {}".format(code, result, error)
+    (code, result, error) = execute(["apt-get", "-y", "purge", package])
+    assert code == 0, "unable to purge with code {} and {} {}".format(code, result, error)
     assert os.path.isfile('/etc/vault/conf.d/init.conf') is False, 'config file still exists'
   else:
     assert False, 'unknown operation {}'.format(operation)
@@ -28,14 +30,11 @@ def step_impl(context, package, operation):
 def step_impl(context):
   (code, result, error) = execute(["systemctl", "list-units", "--no-legend", "--state=active"])
   assert code == 0, str(result) + ' ' + str(error)
-
   items = []
   for row in context.table:
     items.append(row['name'] + '.' + row['type'])
-
   result = [item.split(' ')[0].strip() for item in result.split(os.linesep)]
   result = [item for item in result if item in items]
-
   assert len(result) > 0, 'units not found\n{}'.format(result)
 
 
@@ -44,14 +43,11 @@ def step_impl(context):
 def step_impl(context):
   (code, result, error) = execute(["systemctl", "list-units", "--no-legend", "--state=active"])
   assert code == 0, str(result) + ' ' + str(error)
-
   items = []
   for row in context.table:
     items.append(row['name'] + '.' + row['type'])
-
   result = [item.split(' ')[0].strip() for item in result.split(os.linesep)]
   result = [item for item in result if item in items]
-
   assert len(result) == 0, 'units found\n{}'.format(result)
 
 
@@ -97,44 +93,28 @@ def unit_is_configured(context, unit):
     params[row['property']] = row['value'].strip()
   context.unit.configure(params)
 
-  (code, result, error) = execute(["systemctl", "list-units", "--no-legend", "--state=active"])
-  result = [item.split(' ')[0].strip() for item in result.split(os.linesep)]
-  result = [item for item in result if ("{}-".format(unit) in item and ".service" in item)]
-
-  for unit in result:
-    operation_unit(context, 'restart', unit)
-
 
 @then('tenant {tenant} is offboarded')
 @given('tenant {tenant} is offboarded')
 def offboard_unit(context, tenant):
   logfile = os.path.realpath('{}/../../reports/blackbox-tests/logs/vault-unit.{}.log'.format(os.path.dirname(__file__), tenant))
-
   (code, result, error) = execute(['journalctl', '-o', 'cat', '-u', 'vault-unit@{}.service'.format(tenant), '--no-pager'])
   if code == 0 and result:
     with open(logfile, 'w') as f:
       f.write(result)
-
   execute(['systemctl', 'stop', 'vault-unit@{}.service'.format(tenant)])
-
   (code, result, error) = execute(['journalctl', '-o', 'cat', '-u', 'vault-unit@{}.service'.format(tenant), '--no-pager'])
   if code == 0 and result:
     with open(logfile, 'w') as fd:
       fd.write(result)
-
   execute(['systemctl', 'disable', 'vault-unit@{}.service'.format(tenant)])
-
   unit_not_running(context, 'vault-unit@{}'.format(tenant))
-
-  execute(["systemctl", "daemon-reload"])
 
 
 @given('tenant {tenant} is onboarded')
 def onboard_unit(context, tenant):
   (code, result, error) = execute(["systemctl", 'enable', 'vault-unit@{}'.format(tenant)])
   assert code == 0, str(result) + ' ' + str(error)
-
   (code, result, error) = execute(["systemctl", 'start', 'vault-unit@{}'.format(tenant)])
   assert code == 0, str(result) + ' ' + str(error)
-
   unit_running(context, 'vault-unit@{}'.format(tenant))
