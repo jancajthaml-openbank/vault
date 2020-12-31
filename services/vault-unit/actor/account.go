@@ -54,9 +54,8 @@ func NonExistAccount(s *System) func(interface{}, system.Context) {
 				return
 			}
 
-			s.SendMessage(RespCreateAccount, context.Sender, context.Receiver)
-
 			s.Metrics.AccountCreated()
+			s.SendMessage(RespCreateAccount, context.Sender, context.Receiver)
 
 			log.Info().Msgf("Account %s created", state.Name)
 			log.Debug().Msgf("%s/NonExist/CreateAccount OK", state.Name)
@@ -140,7 +139,6 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 				}
 
 				s.Metrics.PromiseAccepted()
-
 				s.SendMessage(PromiseAccepted, context.Sender, context.Receiver)
 
 				if state.EventCounter >= s.EventCounterTreshold {
@@ -214,7 +212,6 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 			}
 
 			s.Metrics.CommitAccepted()
-
 			s.SendMessage(CommitAccepted, context.Sender, context.Receiver)
 
 			if state.EventCounter >= s.EventCounterTreshold {
@@ -260,9 +257,8 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 				return
 			}
 
-			s.Metrics.RollbackAccepted()
-
 			s.SendMessage(RollbackAccepted, context.Sender, context.Receiver)
+			s.Metrics.RollbackAccepted()
 
 			if state.EventCounter >= s.EventCounterTreshold {
 				err := persistence.UpdateAccount(s.Storage, state.Name, &state)
