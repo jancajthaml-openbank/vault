@@ -15,6 +15,13 @@ class ZMQHelper(threading.Thread):
     self.__mutex = threading.Lock()
     self.backlog = []
     self.context = context
+    self.working = True
+
+  def clear(self):
+    self.working = True
+
+  def silence(self):
+    self.working = False
 
   def start(self):
     ctx = zmq.Context.instance()
@@ -35,7 +42,7 @@ class ZMQHelper(threading.Thread):
     while not self.__cancel.is_set():
       try:
         data = self.__pull.recv(zmq.NOBLOCK)
-        if not data:
+        if not (data and self.working):
           continue
         self.__pub.send(data)
         self.__mutex.acquire()
