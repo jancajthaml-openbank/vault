@@ -494,8 +494,14 @@ jobs:
             VERSION=$(cat /mnt/ramdisk/VERSION)
             META=$(cat /mnt/ramdisk/META)
 
-            docker build -t docker.io/openbank/vault:${VERSION}-${META} .
-            docker build -t docker.pkg.github.com/jancajthaml-openbank/vault/vault:${VERSION} .
+            docker build \
+              -t docker.io/openbank/vault:${VERSION}-${META} \
+              -f packaging/docker/Dockerfile \
+              .
+            docker build \
+              -t docker.pkg.github.com/jancajthaml-openbank/vault/vault:${VERSION} \
+              -f packaging/docker/Dockerfile \
+              .
       - run:
           name: Publish to docker.io
           command: |
