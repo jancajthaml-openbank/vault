@@ -91,7 +91,7 @@ services:
     image: jancajthaml/bbtest:amd64
     tty: true
     environment:
-      IMAGE_VERSION: ${VERSION:-latest}-${META:-main}
+      IMAGE_VERSION: v${VERSION:-latest}-${META:-main}
       UNIT_VERSION: ${VERSION:-latest}
       UNIT_ARCH: amd64
       CI: ${CI:-false}
@@ -109,7 +109,7 @@ services:
   perf:
     image: jancajthaml/bbtest:amd64
     environment:
-      IMAGE_VERSION: ${VERSION:-latest}-${META:-main}
+      IMAGE_VERSION: v${VERSION:-latest}-${META:-main}
       UNIT_VERSION: ${VERSION:-latest}
       UNIT_ARCH: amd64
     volumes:
