@@ -97,6 +97,13 @@ sync:
 		--rm sync \
 		--source /go/src/github.com/jancajthaml-openbank/vault-unit
 
+.PHONY: scan
+scan:
+	docker scan \
+	  openbank/vault:$(VERSION)-$(META) \
+	  --file ./packaging/docker/Dockerfile \
+	  --exclude-base
+
 .PHONY: test
 test:
 	@docker-compose \
