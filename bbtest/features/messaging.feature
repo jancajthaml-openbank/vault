@@ -95,11 +95,3 @@ Feature: Messaging behaviour
 
     When lake recieves "VaultUnit/MSG8 VaultRest account req GS"
     Then lake responds with "VaultRest VaultUnit/MSG8 req account S0 TEST CZK t 0.0 0.0"
-
-  Scenario: exactly once delivery
-    Given tenant MSG9 is onboarded
-
-    When lake recieves "VaultUnit/MSG9 VaultRest account req NA test EUR f"
-    And lake recieves "VaultUnit/MSG9 VaultRest account req NA test EUR f"
-    Then lake responds with "VaultRest VaultUnit/MSG9 req account AN"
-    And lake responds with "VaultRest VaultUnit/MSG9 req account EE"
