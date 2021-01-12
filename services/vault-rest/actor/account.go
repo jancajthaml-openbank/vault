@@ -24,9 +24,8 @@ import (
 )
 
 // CreateAccount creates new account for target tenant vault
-func CreateAccount(sys *System, tenant string, account model.Account) (result interface{}) {
+func CreateAccount(sys *System, tenant string, account model.Account) interface{} {
 	ch := make(chan interface{})
-	defer close(ch)
 
 	envelope := system.NewActor("relay/"+xid.New().String(), nil)
 	defer sys.UnregisterActor(envelope.Name)
@@ -48,20 +47,16 @@ func CreateAccount(sys *System, tenant string, account model.Account) (result in
 	)
 
 	select {
-
-	case result = <-ch:
-		return
-
+	case result := <-ch:
+		return result
 	case <-time.After(10 * time.Second):
-		result = new(ReplyTimeout)
-		return
+		return new(ReplyTimeout)
 	}
 }
 
 // GetAccount retrives account state from target tenant vault
-func GetAccount(sys *System, tenant string, name string) (result interface{}) {
+func GetAccount(sys *System, tenant string, name string) interface{} {
 	ch := make(chan interface{})
-	defer close(ch)
 
 	envelope := system.NewActor("relay/"+xid.New().String(), nil)
 	defer sys.UnregisterActor(envelope.Name)
@@ -83,12 +78,9 @@ func GetAccount(sys *System, tenant string, name string) (result interface{}) {
 	)
 
 	select {
-
-	case result = <-ch:
-		return
-
-	case <-time.After(3 * time.Second):
-		result = new(ReplyTimeout)
-		return
+	case result := <-ch:
+		return result
+	case <-time.After(5 * time.Second):
+		return new(ReplyTimeout)
 	}
 }
