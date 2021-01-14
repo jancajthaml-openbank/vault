@@ -80,31 +80,34 @@ func CreateAccount(system *actor.System) func(c echo.Context) error {
 			return nil
 		}
 
-		req, err := ioutil.ReadAll(c.Request().Body)
+		b, err := ioutil.ReadAll(c.Request().Body)
 		defer c.Request().Body.Close()
 		if err != nil {
 			c.Response().WriteHeader(http.StatusBadRequest)
 			return err
 		}
 
-		var account = new(model.Account)
-		if json.Unmarshal(req, account) != nil {
+		var req = new(model.Account)
+		if json.Unmarshal(b, req) != nil {
 			c.Response().WriteHeader(http.StatusBadRequest)
 			return nil
 		}
 
-		switch actor.CreateAccount(system, tenant, *account).(type) {
+		switch actor.CreateAccount(system, tenant, *req).(type) {
 
 		case *actor.AccountCreated:
+			log.Info().Msgf("Account %s/%s Created", tenant, req.Name)
 			c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 			c.Response().WriteHeader(http.StatusOK)
 			return nil
 
 		case *actor.ReplyTimeout:
+			log.Warn().Msgf("Account %s/%s Accepted for Processing (Timeout)", tenant, req.Name)
 			c.Response().WriteHeader(http.StatusGatewayTimeout)
 			return nil
 
 		default:
+			log.Info().Msgf("Transaction %s/%s Created", tenant, req.Name)
 			c.Response().WriteHeader(http.StatusConflict)
 			return nil
 
