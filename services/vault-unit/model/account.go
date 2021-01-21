@@ -40,8 +40,8 @@ func NewAccount(name string) Account {
 		Format:          "???",
 		Currency:        "???",
 		IsBalanceCheck:  true,
-		Balance:         *new(Dec),
-		Promised:        *new(Dec),
+		Balance:         Dec{},
+		Promised:        Dec{},
 		SnapshotVersion: 0,
 		EventCounter:    0,
 		Promises:        NewPromises(),
@@ -95,66 +95,76 @@ func (entity Account) Serialize() []byte {
 	return buffer.Bytes()
 }
 
+/*
+original:
+BenchmarkAccount_Deserialize 	  717120	      1725 ns/op	     768 B/op	      14 allocs/op
+new:
+BenchmarkAccount_Deserialize 	  714952	      1600 ns/op	     704 B/op	      12 allocs/op
+*/
+
 // Deserialize Account entity from persistable data
 func (entity *Account) Deserialize(data []byte) {
-	if entity == nil || len(data) < 3 {
+	var (
+		i = 0
+		j = 4
+		l = len(data)
+	)
+
+	if entity == nil {
 		return
 	}
 
 	entity.Promises = NewPromises()
-	entity.Currency = cast.BytesToString(data[0:3])
 
-	var (
-		i = 4
-		j = bytes.IndexByte(data, '\n')
-		l = len(data)
-	)
-
-	if j < i || j > l {
-		j = l
+	if l < 3 {
+		return
 	}
+
+	entity.Currency = cast.BytesToString(data[0 : 3])
+
+	i = j
+	for ;j < l && data[j] != '\n' ; j++ {}
 
 	entity.IsBalanceCheck = (data[j-1] != byte('F'))
 	entity.Format = cast.BytesToString(data[i : j-2])
 
+	j++
 	if j >= l {
 		return
 	}
 
-	i = j + 1
-	j = bytes.IndexByte(data[i:], '\n')
-
-	if j < 0 {
-		if i < l {
-			_ = entity.Balance.SetString(cast.BytesToString(data[i:]))
-		}
-		return
+	i = j
+	for ;j < l && data[j] != '\n' ; j++ {}
+	if j < l {
+		j++
 	}
-	j += i
+
 	_ = entity.Balance.SetString(cast.BytesToString(data[i:j]))
-	i = j + 1
-
-	j = bytes.IndexByte(data[i:], '\n')
-	if j < 0 {
-		if i < l {
-			_ = entity.Promised.SetString(cast.BytesToString(data[i:]))
-		}
+	if j >= l {
 		return
 	}
-	j += i
-	_ = entity.Promised.SetString(cast.BytesToString(data[i:j]))
-	i = j + 1
+	
+	i = j
+	for ;j < l && data[j] != '\n' ; j++ {}
+	if j < l {
+		j++
+	}
 
-	for {
-		j = bytes.IndexByte(data[i:], '\n')
-		if j < 0 {
-			if i < l {
-				entity.Promises.Add(cast.BytesToString(data[i:]))
-			}
-			return
+	_ = entity.Promised.SetString(cast.BytesToString(data[i:j]))
+	if j >= l {
+		return
+	}
+	
+
+	i = j
+	for ;j < l; j++ {
+		if data[j] == '\n' {
+			entity.Promises.Add(cast.BytesToString(data[i:j]))
+			i = j + 1
 		}
-		j += i
-		entity.Promises.Add(cast.BytesToString(data[i:j]))
-		i = j + 1
+	}
+
+	if j >= l && i < l {
+		entity.Promises.Add(cast.BytesToString(data[i:]))
 	}
 }
