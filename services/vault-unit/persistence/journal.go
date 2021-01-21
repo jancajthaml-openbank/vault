@@ -97,6 +97,7 @@ func LoadAccount(storage localfs.Storage, name string) (*model.Account, error) {
 			return nil, err
 		}
 
+		// FIXME improve perf
 		eventCounter, err := strconv.ParseInt(string(eventData), 10, 64)
 		if err != nil {
 			return nil, err
