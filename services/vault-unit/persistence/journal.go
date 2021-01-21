@@ -25,20 +25,29 @@ import (
 	localfs "github.com/jancajthaml-openbank/local-fs"
 )
 
+/*
+old:
+BenchmarkAccountLoad   	   62396	     20020 ns/op	    9153 B/op	      19 allocs/op
+
+new:
+BenchmarkAccountLoad   	   61527	     18577 ns/op	    9153 B/op	      19 allocs/op
+*/
+
 // LoadAccount rehydrates account entity state from storage
 func LoadAccount(storage localfs.Storage, name string) (*model.Account, error) {
-	allPath := SnapshotsPath(name)
+	path := SnapshotsPath(name)
 
-	snapshots, err := storage.ListDirectory(allPath, false)
+	snapshots, err := storage.ListDirectory(path, false)
 	if err != nil || len(snapshots) == 0 {
 		return nil, err
 	}
 
-	data, err := storage.ReadFileFully(allPath + "/" + snapshots[0])
+	data, err := storage.ReadFileFully(path + "/" + snapshots[0])
 	if err != nil {
 		return nil, err
 	}
 
+	// FIXME improve perf
 	version, err := strconv.ParseInt(snapshots[0], 10, 64)
 	if err != nil {
 		return nil, err
@@ -51,46 +60,50 @@ func LoadAccount(storage localfs.Storage, name string) (*model.Account, error) {
 	result.EventCounter = 0
 
 	events, err := storage.ListDirectory(EventPath(name, result.SnapshotVersion), false)
-	if err == nil {
-		for _, event := range events {
-			s := strings.SplitN(event, "_", 3)
-			kind, amountString, transaction := s[0], s[1], s[2]
+	if err != nil {
+		return result, nil
+	}
 
-			amount := new(model.Dec)
-			if !amount.SetString(amountString) {
-				return nil, fmt.Errorf("invalid amount %s", amountString)
-			}
+	for idx := range events {
+		// FIXME improve perf
+		s := strings.SplitN(events[idx], "_", 3)
 
-			switch kind {
+		kind, amountString, transaction := s[0], s[1], s[2]
 
-			case EventPromise:
-				result.Promises.Add(transaction)
-				result.Promised.Add(amount)
+		amount := new(model.Dec)
+		if !amount.SetString(amountString) {
+			return nil, fmt.Errorf("invalid amount %s", amountString)
+		}
 
-			case EventCommit:
-				result.Promises.Remove(transaction)
-				result.Promised.Sub(amount)
-				result.Balance.Add(amount)
+		switch kind {
 
-			case EventRollback:
-				result.Promises.Remove(transaction)
-				result.Promised.Sub(amount)
+		case EventPromise:
+			result.Promises.Add(transaction)
+			result.Promised.Add(amount)
 
-			}
+		case EventCommit:
+			result.Promises.Remove(transaction)
+			result.Promised.Sub(amount)
+			result.Balance.Add(amount)
 
-			eventData, err := storage.ReadFileFully(EventPath(name, result.SnapshotVersion) + "/" + event)
-			if err != nil {
-				return nil, err
-			}
+		case EventRollback:
+			result.Promises.Remove(transaction)
+			result.Promised.Sub(amount)
 
-			eventCounter, err := strconv.ParseInt(string(eventData), 10, 64)
-			if err != nil {
-				return nil, err
-			}
+		}
 
-			if eventCounter > result.EventCounter {
-				result.EventCounter = eventCounter
-			}
+		eventData, err := storage.ReadFileFully(EventPath(name, result.SnapshotVersion) + "/" + events[idx])
+		if err != nil {
+			return nil, err
+		}
+
+		eventCounter, err := strconv.ParseInt(string(eventData), 10, 64)
+		if err != nil {
+			return nil, err
+		}
+
+		if eventCounter > result.EventCounter {
+			result.EventCounter = eventCounter
 		}
 	}
 
