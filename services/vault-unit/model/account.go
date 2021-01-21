@@ -95,13 +95,6 @@ func (entity Account) Serialize() []byte {
 	return buffer.Bytes()
 }
 
-/*
-original:
-BenchmarkAccount_Deserialize 	  717120	      1725 ns/op	     768 B/op	      14 allocs/op
-new:
-BenchmarkAccount_Deserialize 	  714952	      1600 ns/op	     704 B/op	      12 allocs/op
-*/
-
 // Deserialize Account entity from persistable data
 func (entity *Account) Deserialize(data []byte) {
 	var (
