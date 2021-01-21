@@ -192,9 +192,8 @@ func BenchmarkAccount_Deserialize(b *testing.B) {
 	entity.Format = "accountFormat"
 	entity.Currency = "CUR"
 	entity.IsBalanceCheck = false
-
-	entity.Balance = *new(Dec)
-	entity.Promised = *new(Dec)
+	entity.Balance = Dec{}
+	entity.Promised = Dec{}
 	entity.Promises = NewPromises()
 	entity.Promises.Add("A", "B", "C", "D", "E", "F", "G", "H")
 	entity.SnapshotVersion = 0
