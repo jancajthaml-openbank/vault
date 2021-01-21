@@ -107,7 +107,7 @@ func CreateAccount(system *actor.System) func(c echo.Context) error {
 			return nil
 
 		default:
-			log.Info().Msgf("Transaction %s/%s Created", tenant, req.Name)
+			log.Info().Msgf("Account %s/%s Already Exists", tenant, req.Name)
 			c.Response().WriteHeader(http.StatusConflict)
 			return nil
 
@@ -136,8 +136,7 @@ func GetAccounts(storage localfs.Storage) func(c echo.Context) error {
 			if idx == len(accounts)-1 {
 				c.Response().Write([]byte(account))
 			} else {
-				c.Response().Write([]byte(account))
-				c.Response().Write([]byte("\n"))
+				c.Response().Write([]byte(account + "\n"))
 			}
 			c.Response().Flush()
 		}
