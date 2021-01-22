@@ -75,7 +75,9 @@ func TestAccount_Deserialize(t *testing.T) {
 		assert.Equal(t, true, entity.IsBalanceCheck)
 		assert.Equal(t, "1.0", entity.Balance.String())
 		assert.Equal(t, "2.0", entity.Promised.String())
-		assert.Equal(t, "[A,B]", entity.Promises.String())
+		assert.True(t, entity.Promises.Contains("A"))
+		assert.True(t, entity.Promises.Contains("B"))
+		assert.Equal(t, 2, entity.Promises.Size())
 		assert.Equal(t, int64(0), entity.SnapshotVersion)
 		assert.Equal(t, int64(0), entity.EventCounter)
 	}
@@ -101,7 +103,14 @@ func TestAccount_Serialize(t *testing.T) {
 		require.True(t, ok)
 
 		entity.Promises = NewPromises()
-		entity.Promises.Add("A", "B", "C", "D", "E", "F", "G", "H")
+		entity.Promises.Add("A")
+		entity.Promises.Add("B")
+		entity.Promises.Add("C")
+		entity.Promises.Add("D")
+		entity.Promises.Add("E")
+		entity.Promises.Add("F")
+		entity.Promises.Add("G")
+		entity.Promises.Add("H")
 
 		data := entity.Serialize()
 		require.NotNil(t, data)
@@ -175,7 +184,14 @@ func BenchmarkAccount_Serialize(b *testing.B) {
 	entity.Balance = *new(Dec)
 	entity.Promised = *new(Dec)
 	entity.Promises = NewPromises()
-	entity.Promises.Add("A", "B", "C", "D", "E", "F", "G", "H")
+	entity.Promises.Add("A")
+	entity.Promises.Add("B")
+	entity.Promises.Add("C")
+	entity.Promises.Add("D")
+	entity.Promises.Add("E")
+	entity.Promises.Add("F")
+	entity.Promises.Add("G")
+	entity.Promises.Add("H")
 	entity.SnapshotVersion = 0
 
 	b.ReportAllocs()
@@ -195,7 +211,14 @@ func BenchmarkAccount_Deserialize(b *testing.B) {
 	entity.Balance = Dec{}
 	entity.Promised = Dec{}
 	entity.Promises = NewPromises()
-	entity.Promises.Add("A", "B", "C", "D", "E", "F", "G", "H")
+	entity.Promises.Add("A")
+	entity.Promises.Add("B")
+	entity.Promises.Add("C")
+	entity.Promises.Add("D")
+	entity.Promises.Add("E")
+	entity.Promises.Add("F")
+	entity.Promises.Add("G")
+	entity.Promises.Add("H")
 	entity.SnapshotVersion = 0
 
 	data := entity.Serialize()

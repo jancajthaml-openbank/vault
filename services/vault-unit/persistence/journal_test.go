@@ -112,7 +112,9 @@ func TestSnapshot_Promises(t *testing.T) {
 		Currency:        currency,
 		IsBalanceCheck:  isBalanceCheck,
 	}
-	snapshot.Promises.Add(expectedPromises...)
+	for _, value := range expectedPromises {
+		snapshot.Promises.Add(value)
+	}
 
 	err = UpdateAccount(storage, name, snapshot)
 	require.Nil(t, err)

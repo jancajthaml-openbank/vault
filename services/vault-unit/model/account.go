@@ -87,9 +87,9 @@ func (entity Account) Serialize() []byte {
 
 	buffer.WriteString(entity.Promised.String())
 
-	for i := 0; i < len(entity.Promises.keys); i++ {
+	for promise := range entity.Promises.Iterator() {
 		buffer.WriteString("\n")
-		buffer.WriteString(entity.Promises.values[entity.Promises.keys[i]])
+		buffer.WriteString(promise)
 	}
 
 	return buffer.Bytes()
