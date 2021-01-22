@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"math"
 	"strconv"
-	"strings"
 
 	"github.com/jancajthaml-openbank/vault-unit/model"
 	"github.com/jancajthaml-openbank/vault-unit/support/cast"
@@ -134,10 +133,8 @@ func LoadAccount(storage localfs.Storage, name string) (*model.Account, error) {
 // CreateAccount persist account entity state to storage
 func CreateAccount(storage localfs.Storage, name string, format string, currency string, isBalanceCheck bool) (*model.Account, error) {
 	entity := model.NewAccount(name)
-	// FIXME improve perf
-	entity.Format = strings.ToUpper(format)
-	// FIXME improve perf
-	entity.Currency = strings.ToUpper(currency)
+	entity.Format = format
+	entity.Currency = currency
 	entity.IsBalanceCheck = isBalanceCheck
 	data := entity.Serialize()
 	path := SnapshotPath(name, entity.SnapshotVersion)
