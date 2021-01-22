@@ -178,7 +178,7 @@ Feature: REST
       | status | 200   |
       """
       {
-        "format": "TEST",
+        "format": "test",
         "currency": "XXX",
         "balance": "0.0",
         "blocking": "0.0",

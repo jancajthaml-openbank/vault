@@ -73,8 +73,8 @@ func TestSnapshot_RefuseOverflow(t *testing.T) {
 	isBalanceCheck := true
 
 	snapshotLast := &model.Account{
-		Balance:         *new(model.Dec),
-		Promised:        *new(model.Dec),
+		Balance:         model.Dec{},
+		Promised:        model.Dec{},
 		Promises:        model.NewPromises(),
 		SnapshotVersion: int64(math.MaxInt32),
 		EventCounter:    0,
@@ -103,8 +103,8 @@ func TestSnapshot_Promises(t *testing.T) {
 	expectedPromises := []string{"A", "B", "C", "D"}
 
 	var snapshot = &model.Account{
-		Balance:         *new(model.Dec),
-		Promised:        *new(model.Dec),
+		Balance:         model.Dec{},
+		Promised:        model.Dec{},
 		Promises:        model.NewPromises(),
 		SnapshotVersion: 0,
 		Name:            name,
@@ -112,7 +112,9 @@ func TestSnapshot_Promises(t *testing.T) {
 		Currency:        currency,
 		IsBalanceCheck:  isBalanceCheck,
 	}
-	snapshot.Promises.Add(expectedPromises...)
+	for _, value := range expectedPromises {
+		snapshot.Promises.Add(value)
+	}
 
 	err = UpdateAccount(storage, name, snapshot)
 	require.Nil(t, err)
@@ -147,8 +149,17 @@ func BenchmarkAccountLoad(b *testing.B) {
 	storage, _ := localfs.NewPlaintextStorage(tmpdir)
 
 	account, err := CreateAccount(storage, "bench", "format", "BNC", false)
-	require.Nil(b, err)
+	require.NoError(b, err)
 	require.NotNil(b, account)
+
+	amount := new(model.Dec)
+	amount.SetString("1.0")
+
+	require.NoError(b, PersistPromise(storage, *account, amount, "trn1"))
+	require.NoError(b, PersistCommit(storage, *account, amount, "trn1"))
+	require.NoError(b, PersistPromise(storage, *account, amount, "trn2"))
+	require.NoError(b, PersistRollback(storage, *account, amount, "trn2"))
+
 
 	b.ReportAllocs()
 	b.ResetTimer()

@@ -26,27 +26,42 @@ func TestPromises(t *testing.T) {
 
 func TestPromises_Add(t *testing.T) {
 	s := NewPromises()
-	s.Add("A", "B", "C", "D", "X", "Y", "E", "F")
-	s.Add("G")
-	actualOutput := s.String()
-	expectedOutput := "[A,B,C,D,X,Y,E,F,G]"
-	assert.Equal(t, expectedOutput, actualOutput)
+	values := []string{"A", "B", "C", "D", "X", "Y", "E", "F", "G"}
+	for _, value := range values {
+		s.Add(value)
+	}
+	for _, value := range values {
+		assert.True(t, s.Contains(value))
+	}
+	assert.Equal(t, len(values), s.Size())
 }
 
 func TestPromises_Remove(t *testing.T) {
 	s := NewPromises()
-	s.Add("A", "B", "C", "D", "X", "Y", "E", "F")
-
-	s.Remove("X", "Y")
-
-	actualOutput := s.String()
-	expectedOutput := "[A,B,C,D,E,F]"
-	assert.Equal(t, expectedOutput, actualOutput)
+	s.Add("X")
+	s.Add("Y")
+	values := []string{"A", "B", "C", "D", "E", "F", "G"}
+	for _, value := range values {
+		s.Add(value)
+	}
+	for _, value := range values {
+		assert.True(t, s.Contains(value))
+	}
+	s.Remove("X")
+	s.Remove("Y")
+	assert.Equal(t, len(values), s.Size())
 }
 
 func TestPromises_Contains(t *testing.T) {
 	s := NewPromises()
-	s.Add("A", "B", "C", "D", "X", "Y", "E", "F")
+	s.Add("A")
+	s.Add("B")
+	s.Add("C")
+	s.Add("D")
+	s.Add("X")
+	s.Add("Y")
+	s.Add("E")
+	s.Add("F")
 	s.Add("G")
 
 	table := []struct {
@@ -58,109 +73,111 @@ func TestPromises_Contains(t *testing.T) {
 	}
 
 	for _, test := range table {
-		actualOutput := s.Contains(test.input...)
-		assert.Equal(t, test.expectedOutput, actualOutput)
+		for _, value := range test.input {
+			actualOutput := s.Contains(value)
+			assert.Equal(t, test.expectedOutput, actualOutput)
+		}
 	}
-}
-
-func TestPromises_Values(t *testing.T) {
-	s := NewPromises()
-	s.Add("A", "B", "C", "D", "X", "Y", "E", "F")
-	s.Add("G")
-
-	actualOutput := s.String()
-	expectedOutput := "[A,B,C,D,X,Y,E,F,G]"
-
-	assert.Equal(t, expectedOutput, actualOutput)
 }
 
 func TestPromises_Size(t *testing.T) {
 	s := NewPromises()
 	require.Equal(t, s.Size(), 0)
 
-	s.Add("A", "B", "C", "D", "X", "Y", "E", "F")
+	s.Add("A")
+	s.Add("B")
+	s.Add("C")
+	s.Add("D")
+	s.Add("X")
+	s.Add("Y")
+	s.Add("E")
+	s.Add("F")
 	assert.Equal(t, s.Size(), 8)
 
-	s.Add("A", "B", "C", "D", "X", "Y", "E", "F", "G")
+	s.Add("A")
+	s.Add("B")
+	s.Add("C")
+	s.Add("D")
+	s.Add("X")
+	s.Add("Y")
+	s.Add("E")
+	s.Add("F")
+	s.Add("G")
 	assert.Equal(t, s.Size(), 9)
 
-	s.Remove("A", "B", "C", "D", "X", "Y", "E", "F", "G")
+	s.Remove("A")
+	s.Remove("B")
+	s.Remove("C")
+	s.Remove("D")
+	s.Remove("X")
+	s.Remove("Y")
+	s.Remove("E")
+	s.Remove("F")
+	s.Remove("G")
 	assert.Equal(t, s.Size(), 0)
-}
-
-func TestPromises_String(t *testing.T) {
-	t.Log("empty")
-	{
-		s := NewPromises()
-		require.Equal(t, s.String(), "[]")
-	}
-
-	t.Log("non empty")
-	{
-		s := NewPromises()
-		s.Add("A", "B")
-		require.Equal(t, s.String(), "[A,B]")
-	}
 }
 
 func BenchmarkPromises_Add(b *testing.B) {
 	s := NewPromises()
 
+	fixture := make([]string, 1000)
+	for i := 0; i < 1000; i++ {
+		fixture[i] = fmt.Sprintf("%d", i)
+	}
+
 	b.ReportAllocs()
 	b.ResetTimer()
+
 	for i := 0; i < b.N; i++ {
-		s.Add(fmt.Sprintf("%d", i))
+		s.Add(fixture[i%1000])
 	}
 }
 
 func BenchmarkPromises_Remove(b *testing.B) {
 	s := NewPromises()
+
+	fixture := make([]string, 1000)
 	for i := 0; i < 1000; i++ {
-		s.Add(fmt.Sprintf("%d", i))
+		fixture[i] = fmt.Sprintf("%d", i)
+		s.Add(fixture[i])
 	}
 
 	b.ReportAllocs()
 	b.ResetTimer()
+
 	for i := 0; i < b.N; i++ {
-		s.Remove(fmt.Sprintf("%d", i))
+		s.Remove(fixture[i%1000])
 	}
 }
 
 func BenchmarkPromises_Contains(b *testing.B) {
 	s := NewPromises()
+
+	fixture := make([]string, 1000)
 	for i := 0; i < 1000; i++ {
-		s.Add(fmt.Sprintf("%d", i))
+		fixture[i] = fmt.Sprintf("%d", i)
+		s.Add(fixture[i])
 	}
 
 	b.ReportAllocs()
 	b.ResetTimer()
+
 	for i := 0; i < b.N; i++ {
-		s.Contains(fmt.Sprintf("%d", i))
+		s.Contains(fixture[i%1000])
 	}
 }
 
 func BenchmarkPromises_Size(b *testing.B) {
 	s := NewPromises()
+
 	for i := 0; i < 1000; i++ {
 		s.Add(fmt.Sprintf("%d", i))
 	}
 
 	b.ReportAllocs()
 	b.ResetTimer()
+
 	for i := 0; i < b.N; i++ {
 		s.Size()
-	}
-}
-
-func BenchmarkPromises_String(b *testing.B) {
-	s := NewPromises()
-	for i := 0; i < 1000; i++ {
-		s.Add(fmt.Sprintf("%d", i))
-	}
-
-	b.ReportAllocs()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		s.String()
 	}
 }

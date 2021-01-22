@@ -18,28 +18,28 @@ import (
 	"fmt"
 	"math"
 	"strconv"
-	"strings"
 
 	"github.com/jancajthaml-openbank/vault-unit/model"
+	"github.com/jancajthaml-openbank/vault-unit/support/cast"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
 )
 
 // LoadAccount rehydrates account entity state from storage
 func LoadAccount(storage localfs.Storage, name string) (*model.Account, error) {
-	allPath := SnapshotsPath(name)
+	path := SnapshotsPath(name)
 
-	snapshots, err := storage.ListDirectory(allPath, false)
+	snapshots, err := storage.ListDirectory(path, false)
 	if err != nil || len(snapshots) == 0 {
 		return nil, err
 	}
 
-	data, err := storage.ReadFileFully(allPath + "/" + snapshots[0])
+	data, err := storage.ReadFileFully(path + "/" + snapshots[0])
 	if err != nil {
 		return nil, err
 	}
 
-	version, err := strconv.ParseInt(snapshots[0], 10, 64)
+	version, err := cast.StringToPositiveInteger(snapshots[0])
 	if err != nil {
 		return nil, err
 	}
@@ -51,46 +51,79 @@ func LoadAccount(storage localfs.Storage, name string) (*model.Account, error) {
 	result.EventCounter = 0
 
 	events, err := storage.ListDirectory(EventPath(name, result.SnapshotVersion), false)
-	if err == nil {
-		for _, event := range events {
-			s := strings.SplitN(event, "_", 3)
-			kind, amountString, transaction := s[0], s[1], s[2]
+	if err != nil {
+		return result, nil
+	}
 
-			amount := new(model.Dec)
-			if !amount.SetString(amountString) {
-				return nil, fmt.Errorf("invalid amount %s", amountString)
+	for idx := range events {
+		i := 0
+		j := 0
+		l := len(events[idx])
+
+		amount := new(model.Dec)
+
+		var kind string
+		var transaction string
+
+		for i<l {
+			if events[idx][i] == '_' {
+				kind = events[idx][0:i]
+				i++
+				break
 			}
+			i++
+		}
+		j = i
 
-			switch kind {
-
-			case EventPromise:
-				result.Promises.Add(transaction)
-				result.Promised.Add(amount)
-
-			case EventCommit:
-				result.Promises.Remove(transaction)
-				result.Promised.Sub(amount)
-				result.Balance.Add(amount)
-
-			case EventRollback:
-				result.Promises.Remove(transaction)
-				result.Promised.Sub(amount)
-
+		for i<l {
+			if events[idx][i] == '_' {
+				if !amount.SetString(events[idx][j:i]) {
+					return nil, fmt.Errorf("invalid amount in %s", events[idx])
+				}
+				i++
+				break
 			}
+			i++
+		}
 
-			eventData, err := storage.ReadFileFully(EventPath(name, result.SnapshotVersion) + "/" + event)
-			if err != nil {
-				return nil, err
-			}
+		if i < l {
+			transaction = events[idx][i:]
+		} else {
+			return nil, fmt.Errorf("invalid transaction in %s", events[idx])
+		}
 
-			eventCounter, err := strconv.ParseInt(string(eventData), 10, 64)
-			if err != nil {
-				return nil, err
-			}
+		switch kind {
 
-			if eventCounter > result.EventCounter {
-				result.EventCounter = eventCounter
-			}
+		case EventPromise:
+			result.Promises.Add(transaction)
+			result.Promised.Add(amount)
+
+		case EventCommit:
+			result.Promises.Remove(transaction)
+			result.Promised.Sub(amount)
+			result.Balance.Add(amount)
+
+		case EventRollback:
+			result.Promises.Remove(transaction)
+			result.Promised.Sub(amount)
+
+		default:
+			return nil, fmt.Errorf("invalid kind in %s", events[idx])
+
+		}
+
+		eventData, err := storage.ReadFileFully(EventPath(name, result.SnapshotVersion) + "/" + events[idx])
+		if err != nil {
+			return nil, err
+		}
+
+		eventCounter, err := cast.StringToPositiveInteger(cast.BytesToString(eventData))
+		if err != nil {
+			return nil, err
+		}
+
+		if eventCounter > result.EventCounter {
+			result.EventCounter = eventCounter
 		}
 	}
 
@@ -100,8 +133,8 @@ func LoadAccount(storage localfs.Storage, name string) (*model.Account, error) {
 // CreateAccount persist account entity state to storage
 func CreateAccount(storage localfs.Storage, name string, format string, currency string, isBalanceCheck bool) (*model.Account, error) {
 	entity := model.NewAccount(name)
-	entity.Format = strings.ToUpper(format)
-	entity.Currency = strings.ToUpper(currency)
+	entity.Format = format
+	entity.Currency = currency
 	entity.IsBalanceCheck = isBalanceCheck
 	data := entity.Serialize()
 	path := SnapshotPath(name, entity.SnapshotVersion)

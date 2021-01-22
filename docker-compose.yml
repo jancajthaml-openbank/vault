@@ -112,6 +112,7 @@ services:
       IMAGE_VERSION: ${VERSION:-latest}-${META:-main}
       UNIT_VERSION: ${VERSION:-latest}
       UNIT_ARCH: amd64
+      ACCOUNTS_CREATED: 10000
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:rw
       - /var/lib/docker/containers:/var/lib/docker/containers:rw

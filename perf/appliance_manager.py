@@ -139,7 +139,7 @@ class ApplianceManager(object):
   def configure(self) -> None:
     options = {
       'STORAGE': '/data',
-      'LOG_LEVEL': 'DEBUG',
+      'LOG_LEVEL': 'WARN',
       'SNAPSHOT_SATURATION_TRESHOLD': '1000',
       'HTTP_PORT': '443',
       'SERVER_KEY': '/etc/vault/secrets/domain.local.key',

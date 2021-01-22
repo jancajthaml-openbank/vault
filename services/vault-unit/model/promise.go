@@ -14,94 +14,66 @@
 
 package model
 
-import "bytes"
-
 // Promises is stable set datastructure for promised transaction Ids
 type Promises struct {
-	keys   []int
-	values map[int]string
-	index  map[string]int
-	tail   int
+	keys       []string
+	values     map[string]bool
 }
 
 // NewPromises returns a fascade for promises
 func NewPromises() Promises {
 	return Promises{
-		index:  make(map[string]int),
-		keys:   make([]int, 0),
-		values: make(map[int]string),
-		tail:   0,
+		keys: make([]string, 0),
+		values: make(map[string]bool),
 	}
 }
 
 // Add adds items to set if not already present
-func (s *Promises) Add(items ...string) {
+func (s *Promises) Add(item string) {
 	if s == nil {
 		return
 	}
-	for idx := range items {
-		if _, found := s.index[items[idx]]; found {
-			continue
-		}
-		s.keys = append(s.keys, s.tail)
-		s.values[s.tail] = items[idx]
-		s.index[items[idx]] = s.tail
-		s.tail++
+	if !s.values[item] {
+		s.keys = append(s.keys, item)
 	}
+	s.values[item] = true
 }
 
-// Contains returns true if all items are present in set
-func (s Promises) Contains(items ...string) bool {
-	for idx := range items {
-		if _, found := s.index[items[idx]]; !found {
-			return false
-		}
-	}
-	return true
+// Contains returns true if item is present in set
+func (s Promises) Contains(item string) bool {
+	return s.values[item]
 }
 
 // Remove removes items from set
-func (s *Promises) Remove(items ...string) {
+func (s *Promises) Remove(item string) {
 	if s == nil {
 		return
 	}
-	for idx := range items {
-		index, found := s.index[items[idx]]
-		if !found {
-			continue
-		}
-
-		delete(s.index, items[idx])
-		delete(s.values, index)
-
-		for i := range s.keys {
-			if s.keys[i] == index {
-				s.keys = append(s.keys[:i], s.keys[i+1:]...)
-				break
-			}
+	if !s.values[item] {
+		return
+	}
+	for i, k := range s.keys {
+		if k == item {
+			s.keys = append(s.keys[:i], s.keys[i+1:]...)
+			break
 		}
 	}
+	delete(s.values, item)
 }
 
 // Size returns number of items in set
 func (s Promises) Size() int {
-	return len(s.values)
+	return len(s.keys)
 }
 
-// String serializes promises
-func (s Promises) String() string {
-	if len(s.keys) == 0 {
-		return "[]"
-	}
-	var buffer bytes.Buffer
-
-	buffer.WriteString("[")
-	for idx := range s.keys {
-		buffer.WriteString(s.values[s.keys[idx]])
-		buffer.WriteString(",")
-	}
-	buffer.Truncate(buffer.Len() - 1)
-	buffer.WriteString("]")
-
-	return buffer.String()
+// Iterator returns values iterator
+func (s Promises) Iterator() <-chan string {
+	chnl := make(chan string, len(s.keys))
+	go func() {
+		defer close(chnl)
+		for idx := range s.keys {
+			chnl <- s.keys[idx]
+		}
+    }()
+    return chnl
 }
