@@ -21,17 +21,10 @@ import (
 	"strings"
 
 	"github.com/jancajthaml-openbank/vault-unit/model"
+	"github.com/jancajthaml-openbank/vault-unit/support/cast"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
 )
-
-/*
-old:
-BenchmarkAccountLoad   	   62396	     20020 ns/op	    9153 B/op	      19 allocs/op
-
-new:
-BenchmarkAccountLoad   	   61527	     18577 ns/op	    9153 B/op	      19 allocs/op
-*/
 
 // LoadAccount rehydrates account entity state from storage
 func LoadAccount(storage localfs.Storage, name string) (*model.Account, error) {
@@ -47,8 +40,7 @@ func LoadAccount(storage localfs.Storage, name string) (*model.Account, error) {
 		return nil, err
 	}
 
-	// FIXME improve perf
-	version, err := strconv.ParseInt(snapshots[0], 10, 64)
+	version, err := cast.StringToPositiveInteger(snapshots[0])
 	if err != nil {
 		return nil, err
 	}
@@ -97,8 +89,7 @@ func LoadAccount(storage localfs.Storage, name string) (*model.Account, error) {
 			return nil, err
 		}
 
-		// FIXME improve perf
-		eventCounter, err := strconv.ParseInt(string(eventData), 10, 64)
+		eventCounter, err := cast.StringToPositiveInteger(cast.BytesToString(eventData))
 		if err != nil {
 			return nil, err
 		}

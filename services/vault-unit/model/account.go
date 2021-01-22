@@ -148,7 +148,6 @@ func (entity *Account) Deserialize(data []byte) {
 		return
 	}
 	
-
 	i = j
 	for ;j < l; j++ {
 		if data[j] == '\n' {

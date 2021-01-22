@@ -15,6 +15,7 @@
 package cast
 
 import (
+	"fmt"
 	"reflect"
 	"unsafe"
 )
@@ -38,4 +39,41 @@ func StringToBytes(s string) []byte {
 		Len:  stringHeader.Len,
 		Cap:  stringHeader.Len,
 	}))
+}
+
+
+// StringToPositiveInteger converts natural numeric string to int64
+func StringToPositiveInteger(s string) (int64, error) {
+	l := len(s)
+	if l == 0 {
+		return 0, fmt.Errorf("not a number")
+	}
+	x := int64(0)
+	for i := 0; i < l; i++ {
+		switch s[i] {
+		case '0':
+			x = x * 10
+		case '1':
+			x = x * 10 + 1
+		case '2':
+			x = x * 10 + 2
+		case '3':
+			x = x * 10 + 3
+		case '4':
+			x = x * 10 + 4
+		case '5':
+			x = x * 10 + 5
+		case '6':
+			x = x * 10 + 6
+		case '7':
+			x = x * 10 + 7
+		case '8':
+			x = x * 10 + 8
+		case '9':
+			x = x * 10 + 9
+		default:
+			return 0, fmt.Errorf("invalid digit %q", s[i])
+		}
+	}
+	return x, nil
 }

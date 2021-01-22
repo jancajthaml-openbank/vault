@@ -29,8 +29,8 @@ func parseMessage(msg string) (interface{}, error) {
 	idx := 0
 	i := 0
 	for i < end && idx < 4 {
-		if msg[i] == 32 {
-			if !(start == i && msg[start] == 32) {
+		if msg[i] == ' ' {
+			if !(start == i && msg[start] == ' ') {
 				parts[idx] = msg[start:i]
 				idx++
 			}
@@ -38,7 +38,7 @@ func parseMessage(msg string) (interface{}, error) {
 		}
 		i++
 	}
-	if idx < 4 && msg[start] != 32 && len(msg[start:]) > 0 {
+	if idx < 4 && msg[start] != ' ' && len(msg[start:]) > 0 {
 		parts[idx] = msg[start:]
 		idx++
 	}
