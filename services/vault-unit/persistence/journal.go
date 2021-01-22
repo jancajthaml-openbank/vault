@@ -57,14 +57,40 @@ func LoadAccount(storage localfs.Storage, name string) (*model.Account, error) {
 	}
 
 	for idx := range events {
-		// FIXME improve perf
-		s := strings.SplitN(events[idx], "_", 3)
-
-		kind, amountString, transaction := s[0], s[1], s[2]
+		i := 0
+		j := 0
+		l := len(events[idx])
 
 		amount := new(model.Dec)
-		if !amount.SetString(amountString) {
-			return nil, fmt.Errorf("invalid amount %s", amountString)
+
+		var kind string
+		var transaction string
+
+		for i<l {
+			if events[idx][i] == '_' {
+				kind = events[idx][0:i]
+				i++
+				break
+			}
+			i++
+		}
+		j = i
+
+		for i<l {
+			if events[idx][i] == '_' {
+				if !amount.SetString(events[idx][j:i]) {
+					return nil, fmt.Errorf("invalid amount in %s", events[idx])
+				}
+				i++
+				break
+			}
+			i++
+		}
+
+		if i < l {
+			transaction = events[idx][i:]
+		} else {
+			return nil, fmt.Errorf("invalid transaction in %s", events[idx])
 		}
 
 		switch kind {
@@ -81,6 +107,9 @@ func LoadAccount(storage localfs.Storage, name string) (*model.Account, error) {
 		case EventRollback:
 			result.Promises.Remove(transaction)
 			result.Promised.Sub(amount)
+
+		default:
+			return nil, fmt.Errorf("invalid kind in %s", events[idx])
 
 		}
 
@@ -105,7 +134,9 @@ func LoadAccount(storage localfs.Storage, name string) (*model.Account, error) {
 // CreateAccount persist account entity state to storage
 func CreateAccount(storage localfs.Storage, name string, format string, currency string, isBalanceCheck bool) (*model.Account, error) {
 	entity := model.NewAccount(name)
+	// FIXME improve perf
 	entity.Format = strings.ToUpper(format)
+	// FIXME improve perf
 	entity.Currency = strings.ToUpper(currency)
 	entity.IsBalanceCheck = isBalanceCheck
 	data := entity.Serialize()
