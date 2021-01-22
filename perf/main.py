@@ -66,7 +66,7 @@ def main():
     info('creating {:,.0f} accounts throught vault'.format(i))
     with timeit('create {:,.0f} accounts'.format(i)):
       with metrics(manager, 'create_accounts_{}'.format(i)):
-        integration.create_random_accounts('one', 'acc{}'.format(j), i)
+        integration.create_random_accounts('one', str(j), i)
     i *= 10
     j += 1
 
