@@ -15,7 +15,7 @@ Feature: Persistent journal
       | promiseBuffer  |       |
       | accountName    |  Euro |
       | isBalanceCheck | false |
-      | format         |  TEST |
+      | format         |  test |
       | currency       |   EUR |
 
     When active XRP account JOURNAL/Ripple is created
@@ -27,5 +27,5 @@ Feature: Persistent journal
       | promiseBuffer  |        |
       | accountName    | Ripple |
       | isBalanceCheck |   true |
-      | format         |   TEST |
+      | format         |   test |
       | currency       |    XRP |

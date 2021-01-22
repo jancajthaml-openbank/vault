@@ -13,7 +13,7 @@ Feature: Messaging behaviour
     Then lake responds with "VaultRest VaultUnit/MSG2 req account AN"
 
     When lake recieves "VaultUnit/MSG2 VaultRest account req GS"
-    Then lake responds with "VaultRest VaultUnit/MSG2 req account S0 TEST EUR f 0.0 0.0"
+    Then lake responds with "VaultRest VaultUnit/MSG2 req account S0 test EUR f 0.0 0.0"
 
     When lake recieves "VaultUnit/MSG2 VaultRest account_x req GS"
     Then lake responds with "VaultRest VaultUnit/MSG2 req account_x S1"
@@ -70,7 +70,7 @@ Feature: Messaging behaviour
     Then lake responds with "VaultRest VaultUnit/MSG6 req account EE"
 
     When lake recieves "VaultUnit/MSG6 VaultRest account req GS"
-    Then lake responds with "VaultRest VaultUnit/MSG6 req account S0 TEST CZK f 0.0 1.0"
+    Then lake responds with "VaultRest VaultUnit/MSG6 req account S0 test CZK f 0.0 1.0"
 
   Scenario: negotiate transaction refuse to commit unknown promise
     Given tenant MSG7 is onboarded
@@ -82,7 +82,7 @@ Feature: Messaging behaviour
     Then lake responds with "VaultRest VaultUnit/MSG7 req account EE"
 
     When lake recieves "VaultUnit/MSG7 VaultRest account req GS"
-    Then lake responds with "VaultRest VaultUnit/MSG7 req account S0 TEST CZK t 0.0 0.0"
+    Then lake responds with "VaultRest VaultUnit/MSG7 req account S0 test CZK t 0.0 0.0"
 
   Scenario: negotiate transaction refuse to rollback unknown promise
     Given tenant MSG8 is onboarded
@@ -94,4 +94,4 @@ Feature: Messaging behaviour
     Then lake responds with "VaultRest VaultUnit/MSG8 req account EE"
 
     When lake recieves "VaultUnit/MSG8 VaultRest account req GS"
-    Then lake responds with "VaultRest VaultUnit/MSG8 req account S0 TEST CZK t 0.0 0.0"
+    Then lake responds with "VaultRest VaultUnit/MSG8 req account S0 test CZK t 0.0 0.0"
