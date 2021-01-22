@@ -12,7 +12,7 @@ export COMPOSE_PROJECT_NAME = vault
 .PHONY: armhf
 
 .PHONY: all
-all: bootstrap sync test package bbtest
+all: bootstrap sync test package bbtest perf
 
 .PHONY: package
 package:
