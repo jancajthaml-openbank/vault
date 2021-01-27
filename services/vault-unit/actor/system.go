@@ -38,7 +38,7 @@ func NewActorSystem(tenant string, endpoint string, maxEventsInSnapshot int, roo
 	}
 	sys, err := system.New("VaultUnit/"+tenant, endpoint)
 	if err != nil {
-		log.Error().Msgf("Failed to register actor system %+v", err)
+		log.Error().Err(err).Msg("Failed to register actor system")
 		return nil
 	}
 	result := new(System)

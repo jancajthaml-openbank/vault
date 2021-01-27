@@ -132,7 +132,7 @@ func (server *Server) Work() {
 	if server == nil {
 		return
 	}
-	log.Info().Msgf("Server listening on %s", server.underlying.Addr)
+	log.Info().Str("listen", server.underlying.Addr).Msg("Server")
 	tlsListener := tls.NewListener(tcpKeepAliveListener{server.listener}, server.underlying.TLSConfig)
 	err := server.underlying.Serve(tlsListener)
 	if err != nil && err != http.ErrServerClosed {
