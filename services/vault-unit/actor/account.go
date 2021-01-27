@@ -50,7 +50,7 @@ func NonExistAccount(s *System) func(interface{}, system.Context) {
 			entity, err := persistence.CreateAccount(s.Storage, state.Name, msg.Format, msg.Currency, msg.IsBalanceCheck)
 			if err != nil {
 				s.SendMessage(FatalError, context.Sender, context.Receiver)
-				log.Warn().Msgf("%s/NonExist/CreateAccount Error %+v", state.Name, err)
+				log.Warn().Err(err).Msgf("%s/NonExist/CreateAccount Error", state.Name)
 				return
 			}
 
@@ -131,7 +131,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 						context.Sender,
 						context.Receiver,
 					)
-					log.Warn().Msgf("%s/Exist/Promise Error could not persist %+v", state.Name, err)
+					log.Warn().Err(err).Msgf("%s/Exist/Promise Error could not persist", state.Name)
 					state.Promised.Sub(msg.Amount)
 					state.Promises.Remove(promiseHash)
 					state.EventCounter--
@@ -144,7 +144,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 				if state.EventCounter >= s.EventCounterTreshold {
 					err := persistence.UpdateAccount(s.Storage, state.Name, &state)
 					if err != nil {
-						log.Warn().Msgf("%s/Exist/Promise Error unable to update snapshot %+v", state.Name, err)
+						log.Warn().Err(err).Msgf("%s/Exist/Promise Error unable to update snapshot", state.Name)
 					} else {
 						state.SnapshotVersion++
 						state.EventCounter = 0
@@ -203,7 +203,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 					context.Sender,
 					context.Receiver,
 				)
-				log.Warn().Msgf("%s/Exist/Commit Error could not persist %+v", state.Name, err)
+				log.Warn().Err(err).Msgf("%s/Exist/Commit Error could not persist", state.Name)
 				state.Balance.Sub(msg.Amount)
 				state.Promised.Add(msg.Amount)
 				state.Promises.Add(promiseHash)
@@ -217,7 +217,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 			if state.EventCounter >= s.EventCounterTreshold {
 				err := persistence.UpdateAccount(s.Storage, state.Name, &state)
 				if err != nil {
-					log.Warn().Msgf("%s/Exist/Commit Error unable to update snapshot %+v", state.Name, err)
+					log.Warn().Err(err).Msgf("%s/Exist/Commit Error unable to update snapshot", state.Name)
 				} else {
 					state.SnapshotVersion++
 					state.EventCounter = 0
@@ -250,7 +250,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 					context.Sender,
 					context.Receiver,
 				)
-				log.Warn().Msgf("%s/Exist/Rollback Error could not persist %+v", state.Name, err)
+				log.Warn().Err(err).Msgf("%s/Exist/Rollback Error could not persist", state.Name)
 				state.Promised.Add(msg.Amount)
 				state.Promises.Add(promiseHash)
 				state.EventCounter--
@@ -263,7 +263,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 			if state.EventCounter >= s.EventCounterTreshold {
 				err := persistence.UpdateAccount(s.Storage, state.Name, &state)
 				if err != nil {
-					log.Warn().Msgf("%s/Exist/Rollback Error unable to update snapshot %+v", state.Name, err)
+					log.Warn().Err(err).Msgf("%s/Exist/Rollback Error unable to update snapshot", state.Name)
 				} else {
 					state.SnapshotVersion++
 					state.EventCounter = 0
