@@ -3,7 +3,6 @@ Feature: System control
   Scenario: check units presence
     Then  systemctl contains following active units
       | name             | type    |
-      | vault            | path    |
       | vault            | service |
       | vault-rest       | service |
 
@@ -42,6 +41,5 @@ Feature: System control
       | vault-unit@ipsum | service |
     And systemctl contains following active units
       | name             | type    |
-      | vault            | path    |
       | vault            | service |
       | vault-rest       | service |
