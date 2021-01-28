@@ -1,5 +1,5 @@
 [Unit]
-Description=openbank account vault services control group
+Description=openbank account vault control group
 After=inetd.service
 ConditionPathExists=/etc/vault/conf.d/init.conf
 
