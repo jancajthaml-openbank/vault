@@ -1,10 +1,10 @@
 Feature: Persistent journal
 
   Scenario: create account
-    Given tenant JOURNAL is onboarded
-    And   vault is configured with
+    Given vault is configured with
       | property                     | value |
       | SNAPSHOT_SATURATION_TRESHOLD |     2 |
+    And tenant JOURNAL is onboarded
 
     When pasive EUR account JOURNAL/Euro is created
     Then snapshot JOURNAL/Euro version 0 should be
