@@ -54,15 +54,15 @@ def step_impl(context):
 @given('unit "{unit}" is running')
 @then('unit "{unit}" is running')
 def unit_running(context, unit):
-  @eventually(10)
+  @eventually(20)
   def wait_for_unit_state_change():
     (code, result, error) = execute(["systemctl", "show", "-p", "SubState", unit])
     assert code == 0, str(result) + ' ' + str(error)
-    assert 'SubState=running' in result, result
+    assert 'SubState=running' in result, '{} {}'.format(unit, result)
 
   wait_for_unit_state_change()
-  # fixme instead of 500ms fixed sleep try lake handshake
-  time.sleep(0.5) # fixme better
+
+  time.sleep(1)
 
 
 @given('unit "{unit}" is not running')
@@ -72,7 +72,7 @@ def unit_not_running(context, unit):
   def wait_for_unit_state_change():
     (code, result, error) = execute(["systemctl", "show", "-p", "SubState", unit])
     assert code == 0, str(result) + ' ' + str(error)
-    assert 'SubState=running' not in result, str(result) + ' ' + str(error)
+    assert 'SubState=running' not in result, '{} {}'.format(unit, result)
 
   wait_for_unit_state_change()
 
@@ -81,9 +81,7 @@ def unit_not_running(context, unit):
 @when('{operation} unit "{unit}"')
 def operation_unit(context, operation, unit):
   (code, result, error) = execute(["systemctl", operation, unit])
-  assert code == 0, str(result) + ' ' + str(error)
-  if operation == 'restart':
-    unit_running(context, unit)
+  assert code == 0, str(code) + ' ' + str(result) + ' ' + str(error)
 
 
 @given('{unit} is configured with')

@@ -2,7 +2,6 @@ Feature: High level Lifecycle
 
   Scenario: create account
     Given tenant BLACKBOX is onboarded
-    And   restart unit "vault-rest.service"
     Then  BLACKBOX/testAccount should not exist
 
     When  pasive EUR account BLACKBOX/testAccount is created

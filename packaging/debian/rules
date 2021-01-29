@@ -10,14 +10,16 @@ SUBSTVARS = -Vshlibs:Depends="libc6"
 	+dh $@ -P debian/target/${DEB_HOST_ARCH_OS}-${DEB_HOST_ARCH_CPU} --with=systemd
 
 override_dh_systemd_enable:
-	dh_systemd_enable -pvault --name=vault vault.path
 	dh_systemd_enable -pvault --name=vault vault.service
+	dh_systemd_enable -pvault --name=vault-watcher vault-watcher.path
+	dh_systemd_enable -pvault --name=vault-watcher vault-watcher.service
 	dh_systemd_enable -pvault --name=vault-rest vault-rest.service
 	dh_systemd_enable -pvault --name=vault-unit@ vault-unit@.service
 
 override_dh_systemd_start:
-	dh_systemd_start -pvault --name=vault vault.path
 	dh_systemd_start -pvault --name=vault vault.service
+	dh_systemd_start -pvault --name=vault-watcher vault-watcher.path
+	dh_systemd_start -pvault --name=vault-watcher vault-watcher.service
 	dh_systemd_start -pvault --name=vault-rest vault-rest.service
 
 override_dh_installinit:
