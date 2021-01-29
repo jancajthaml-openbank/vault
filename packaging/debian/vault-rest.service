@@ -2,7 +2,7 @@
 Description=openbank account vault REST service
 PartOf=vault.service
 After=vault.service
-ConditionPathExists=/etc/vault/conf.d/init.conf
+Requires=vault.service
 
 [Service]
 Type=notify
@@ -22,4 +22,4 @@ KillMode=process
 KillSignal=SIGTERM
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=vault.service
