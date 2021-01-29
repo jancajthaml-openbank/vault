@@ -3,7 +3,7 @@
 import docker
 from utils import info, print_daemon
 from helpers.shell import execute
-from systemd.vault import Vault
+from unit.vault import Vault
 import platform
 import tarfile
 import tempfile
