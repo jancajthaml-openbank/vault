@@ -98,7 +98,7 @@ func (entity Account) Serialize() []byte {
 // Deserialize Account entity from persistable data
 func (entity *Account) Deserialize(data []byte) {
 	var (
-		i = 0
+		i int
 		j = 4
 		l = len(data)
 	)
@@ -113,10 +113,11 @@ func (entity *Account) Deserialize(data []byte) {
 		return
 	}
 
-	entity.Currency = cast.BytesToString(data[0 : 3])
+	entity.Currency = cast.BytesToString(data[0:3])
 
 	i = j
-	for ;j < l && data[j] != '\n' ; j++ {}
+	for ; j < l && data[j] != '\n'; j++ {
+	}
 
 	entity.IsBalanceCheck = (data[j-1] != byte('F'))
 	entity.Format = cast.BytesToString(data[i : j-2])
@@ -127,7 +128,8 @@ func (entity *Account) Deserialize(data []byte) {
 	}
 
 	i = j
-	for ;j < l && data[j] != '\n' ; j++ {}
+	for ; j < l && data[j] != '\n'; j++ {
+	}
 	if j < l {
 		j++
 	}
@@ -136,9 +138,10 @@ func (entity *Account) Deserialize(data []byte) {
 	if j >= l {
 		return
 	}
-	
+
 	i = j
-	for ;j < l && data[j] != '\n' ; j++ {}
+	for ; j < l && data[j] != '\n'; j++ {
+	}
 	if j < l {
 		j++
 	}
@@ -147,9 +150,9 @@ func (entity *Account) Deserialize(data []byte) {
 	if j >= l {
 		return
 	}
-	
+
 	i = j
-	for ;j < l; j++ {
+	for ; j < l; j++ {
 		if data[j] == '\n' {
 			entity.Promises.Add(cast.BytesToString(data[i:j]))
 			i = j + 1

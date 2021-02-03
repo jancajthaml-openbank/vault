@@ -65,7 +65,7 @@ func LoadAccount(storage localfs.Storage, name string) (*model.Account, error) {
 		var kind string
 		var transaction string
 
-		for i<l {
+		for i < l {
 			if events[idx][i] == '_' {
 				kind = events[idx][0:i]
 				i++
@@ -75,7 +75,7 @@ func LoadAccount(storage localfs.Storage, name string) (*model.Account, error) {
 		}
 		j = i
 
-		for i<l {
+		for i < l {
 			if events[idx][i] == '_' {
 				if !amount.SetString(events[idx][j:i]) {
 					return nil, fmt.Errorf("invalid amount in %s", events[idx])

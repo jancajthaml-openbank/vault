@@ -160,7 +160,6 @@ func BenchmarkAccountLoad(b *testing.B) {
 	require.NoError(b, PersistPromise(storage, *account, amount, "trn2"))
 	require.NoError(b, PersistRollback(storage, *account, amount, "trn2"))
 
-
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {

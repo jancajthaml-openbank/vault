@@ -16,14 +16,14 @@ package model
 
 // Promises is stable set datastructure for promised transaction Ids
 type Promises struct {
-	keys       []string
-	values     map[string]bool
+	keys   []string
+	values map[string]bool
 }
 
 // NewPromises returns a fascade for promises
 func NewPromises() Promises {
 	return Promises{
-		keys: make([]string, 0),
+		keys:   make([]string, 0),
 		values: make(map[string]bool),
 	}
 }
@@ -74,6 +74,6 @@ func (s Promises) Iterator() <-chan string {
 		for idx := range s.keys {
 			chnl <- s.keys[idx]
 		}
-    }()
-    return chnl
+	}()
+	return chnl
 }
