@@ -113,8 +113,10 @@ func ProcessMessage(s *System) system.ProcessMessage {
 	return func(msg string, to system.Coordinates, from system.Coordinates) {
 		message, err := parseMessage(msg)
 		if err != nil {
-			log.Warn().Msgf("%s [remote %v -> local %v]", err, from, to)
-			s.SendMessage(FatalError, from, to)
+			if from != to && to.Name != "" {
+				log.Warn().Err(err).Msgf("Failed to parse message [remote %v -> local %v]", from, to)
+				s.SendMessage(FatalError, from, to)
+			}
 			return
 		}
 		ref, err := s.ActorOf(to.Name)
@@ -122,8 +124,10 @@ func ProcessMessage(s *System) system.ProcessMessage {
 			ref, err = NewAccountActor(s, to.Name)
 		}
 		if err != nil {
-			log.Warn().Msgf("Actor not found for message [remote %v -> local %v]", from, to)
-			s.SendMessage(FatalError, from, to)
+			if from != to && to.Name != "" {
+				log.Warn().Err(err).Msgf("Deadletter [remote %v -> local %v] %s", from, to, msg)
+				s.SendMessage(FatalError, from, to)
+			}
 			return
 		}
 		ref.Tell(message, to, from)
@@ -135,7 +139,7 @@ func NewAccountActor(s *System, name string) (*system.Actor, error) {
 	envelope := system.NewActor(name, model.NewAccount(name))
 	err := s.RegisterActor(envelope, NilAccount(s))
 	if err != nil {
-		log.Warn().Msgf("Unable to register %s actor", name)
+		log.Warn().Err(err).Msgf("Unable to register %s actor", name)
 		return nil, err
 	}
 	log.Debug().Msgf("Actor %s registered", name)

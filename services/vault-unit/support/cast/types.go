@@ -41,7 +41,6 @@ func StringToBytes(s string) []byte {
 	}))
 }
 
-
 // StringToPositiveInteger converts natural numeric string to int64
 func StringToPositiveInteger(s string) (int64, error) {
 	l := len(s)
@@ -54,23 +53,23 @@ func StringToPositiveInteger(s string) (int64, error) {
 		case '0':
 			x = x * 10
 		case '1':
-			x = x * 10 + 1
+			x = x*10 + 1
 		case '2':
-			x = x * 10 + 2
+			x = x*10 + 2
 		case '3':
-			x = x * 10 + 3
+			x = x*10 + 3
 		case '4':
-			x = x * 10 + 4
+			x = x*10 + 4
 		case '5':
-			x = x * 10 + 5
+			x = x*10 + 5
 		case '6':
-			x = x * 10 + 6
+			x = x*10 + 6
 		case '7':
-			x = x * 10 + 7
+			x = x*10 + 7
 		case '8':
-			x = x * 10 + 8
+			x = x*10 + 8
 		case '9':
-			x = x * 10 + 9
+			x = x*10 + 9
 		default:
 			return 0, fmt.Errorf("invalid digit %q", s[i])
 		}
