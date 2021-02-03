@@ -25,7 +25,7 @@ def account_exists(context, tenant, account):
     try:
       response = urllib.request.urlopen(request, timeout=10, context=ctx)
       assert response.status == 200
-    except ConnectionRefusedError:
+    except socket.error:
       do_req()
 
   do_req()
@@ -50,7 +50,7 @@ def account_not_exists(context, tenant, account):
       pass
     except urllib.error.HTTPError as err:
       assert err.code in [404, 504]
-    except ConnectionRefusedError:
+    except socket.error:
       do_req()
 
   do_req()
@@ -82,7 +82,7 @@ def create_account(context, activity, currency, tenant, account):
       assert response.status == 200
     except (http.client.RemoteDisconnected, socket.timeout):
       raise AssertionError('timeout')
-    except ConnectionRefusedError:
+    except socket.error:
       do_req()
 
   do_req()
@@ -121,7 +121,7 @@ def perform_http_request(context, uri):
       context.http_response['status'] = str(err.code)
       context.http_response['body'] = err.read().decode('utf-8')
       context.http_response['content-type'] = 'text-plain'
-    except ConnectionRefusedError:
+    except socket.error:
       do_req()
 
   do_req()
