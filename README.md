@@ -3,9 +3,9 @@
 Service responsible for account integrity, amount blockations and ledger promises realisation.
 
 ![Health Check](https://github.com/jancajthaml-openbank/vault/workflows/Health%20Check/badge.svg)
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fjancajthaml-openbank%2Fvault.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fjancajthaml-openbank%2Fvault?ref=badge_shield)
+[![CircleCI](https://circleci.com/gh/jancajthaml-openbank/vault/tree/main.svg?style=shield)](https://circleci.com/gh/jancajthaml-openbank/vault/tree/main)
 
-[![godoc for jancajthaml-openbank/vault](https://godoc.org/github.com/nathany/looper?status.svg)](https://godoc.org/github.com/jancajthaml-openbank/vault) [![CircleCI](https://circleci.com/gh/jancajthaml-openbank/vault/tree/main.svg?style=shield)](https://circleci.com/gh/jancajthaml-openbank/vault/tree/main)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fjancajthaml-openbank%2Fvault.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fjancajthaml-openbank%2Fvault?ref=badge_shield)
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/jancajthaml-openbank/vault)](https://goreportcard.com/report/github.com/jancajthaml-openbank/vault) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/a7937e961c7d453288ef469a1ecdac7a)](https://www.codacy.com/app/jancajthaml-openbank/vault?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=jancajthaml-openbank/vault&amp;utm_campaign=Badge_Grade) [![codebeat badge](https://codebeat.co/badges/01fcc4c7-cb8a-4964-94e9-03b4b65500dc)](https://codebeat.co/projects/github-com-jancajthaml-openbank-vault-main)
 
