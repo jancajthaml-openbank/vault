@@ -17,8 +17,10 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 
 	"github.com/jancajthaml-openbank/vault-rest/actor"
 	"github.com/jancajthaml-openbank/vault-rest/model"
@@ -33,12 +35,22 @@ func GetAccount(system *actor.System) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 
-		tenant := c.Param("tenant")
+		unescapedTenant, err := url.PathUnescape(c.Param("tenant"))
+		if err != nil {
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
+		}
+		tenant := strings.TrimSpace(unescapedTenant)
 		if tenant == "" {
 			c.Response().WriteHeader(http.StatusNotFound)
 			return nil
 		}
-		id := c.Param("id")
+		unescapedId, err := url.PathUnescape(c.Param("id"))
+		if err != nil {
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
+		}
+		id := strings.TrimSpace(unescapedId)
 		if id == "" {
 			c.Response().WriteHeader(http.StatusNotFound)
 			return nil
@@ -74,7 +86,12 @@ func GetAccount(system *actor.System) func(c echo.Context) error {
 // CreateAccount creates new account for given tenant
 func CreateAccount(system *actor.System) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		tenant := c.Param("tenant")
+		unescapedTenant, err := url.PathUnescape(c.Param("tenant"))
+		if err != nil {
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
+		}
+		tenant := strings.TrimSpace(unescapedTenant)
 		if tenant == "" {
 			c.Response().WriteHeader(http.StatusNotFound)
 			return nil
@@ -118,7 +135,12 @@ func CreateAccount(system *actor.System) func(c echo.Context) error {
 // GetAccounts return existing accounts of given tenant
 func GetAccounts(storage localfs.Storage) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		tenant := c.Param("tenant")
+		unescapedTenant, err := url.PathUnescape(c.Param("tenant"))
+		if err != nil {
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
+		}
+		tenant := strings.TrimSpace(unescapedTenant)
 		if tenant == "" {
 			c.Response().WriteHeader(http.StatusNotFound)
 			return nil
