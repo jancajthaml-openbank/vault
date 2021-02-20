@@ -16,7 +16,7 @@ package config
 
 import (
 	"strings"
-	"github.com/jancajthaml-openbank/vault-rest/env"
+	"github.com/jancajthaml-openbank/vault-rest/support/env"
 )
 
 // Configuration of application
