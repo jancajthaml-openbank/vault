@@ -14,7 +14,10 @@
 
 package config
 
-import "strings"
+import (
+	"github.com/jancajthaml-openbank/vault-unit/support/env"
+	"strings"
+)
 
 // Configuration of application
 type Configuration struct {
@@ -36,11 +39,11 @@ type Configuration struct {
 // LoadConfig loads application configuration
 func LoadConfig() Configuration {
 	return Configuration{
-		Tenant:                     envString("VAULT_TENANT", ""),
-		LakeHostname:               envString("VAULT_LAKE_HOSTNAME", "127.0.0.1"),
-		RootStorage:                envString("VAULT_STORAGE", "/data") + "/" + "t_" + envString("VAULT_TENANT", ""),
-		LogLevel:                   strings.ToUpper(envString("VAULT_LOG_LEVEL", "INFO")),
-		SnapshotSaturationTreshold: envInteger("VAULT_SNAPSHOT_SATURATION_TRESHOLD", 100),
-		MetricsStastdEndpoint:      envString("VAULT_STATSD_ENDPOINT", "127.0.0.1:8125"),
+		Tenant:                     env.String("VAULT_TENANT", ""),
+		LakeHostname:               env.String("VAULT_LAKE_HOSTNAME", "127.0.0.1"),
+		RootStorage:                env.String("VAULT_STORAGE", "/data") + "/" + "t_" + env.String("VAULT_TENANT", ""),
+		LogLevel:                   strings.ToUpper(env.String("VAULT_LOG_LEVEL", "INFO")),
+		SnapshotSaturationTreshold: env.Int("VAULT_SNAPSHOT_SATURATION_TRESHOLD", 100),
+		MetricsStastdEndpoint:      env.String("VAULT_STATSD_ENDPOINT", "127.0.0.1:8125"),
 	}
 }
