@@ -22,11 +22,13 @@ def account_exists(context, tenant, account):
   request.add_header('Accept', 'application/json')
 
   def do_req():
-    try:
-      response = urllib.request.urlopen(request, timeout=10, context=ctx)
-      assert response.status == 200
-    except socket.error:
-      do_req()
+    while True:
+      try:
+        response = urllib.request.urlopen(request, timeout=10, context=ctx)
+        assert response.status == 200
+        return
+      except socket.error:
+        pass
 
   do_req()
 
@@ -43,15 +45,18 @@ def account_not_exists(context, tenant, account):
   request.add_header('Accept', 'application/json')
 
   def do_req():
-    try:
-      response = urllib.request.urlopen(request, timeout=10, context=ctx)
-      assert response.status in [404, 504]
-    except (http.client.RemoteDisconnected, socket.timeout):
-      pass
-    except urllib.error.HTTPError as err:
-      assert err.code in [404, 504]
-    except socket.error:
-      do_req()
+    while True:
+      try:
+        response = urllib.request.urlopen(request, timeout=10, context=ctx)
+        assert response.status in [404, 504]
+        return
+      except (http.client.RemoteDisconnected, socket.timeout):
+        return
+      except urllib.error.HTTPError as err:
+        assert err.code in [404, 504]
+        return
+      except socket.error:
+        pass
 
   do_req()
 
@@ -77,13 +82,15 @@ def create_account(context, activity, currency, tenant, account):
   request.data = json.dumps(payload).encode('utf-8')
 
   def do_req():
-    try:
-      response = urllib.request.urlopen(request, timeout=10, context=ctx)
-      assert response.status == 200
-    except (http.client.RemoteDisconnected, socket.timeout):
-      raise AssertionError('timeout')
-    except socket.error:
-      do_req()
+    while True:
+      try:
+        response = urllib.request.urlopen(request, timeout=10, context=ctx)
+        assert response.status == 200
+        return
+      except (http.client.RemoteDisconnected, socket.timeout):
+        raise AssertionError('timeout')
+      except socket.error:
+        pass
 
   do_req()
 
@@ -108,21 +115,25 @@ def perform_http_request(context, uri):
   context.http_response = dict()
 
   def do_req():
-    try:
-      response = urllib.request.urlopen(request, timeout=10, context=ctx)
-      context.http_response['status'] = str(response.status)
-      context.http_response['body'] = response.read().decode('utf-8')
-      context.http_response['content-type'] = response.info().get_content_type()
-    except (http.client.RemoteDisconnected, socket.timeout):
-      context.http_response['status'] = '504'
-      context.http_response['body'] = ""
-      context.http_response['content-type'] = 'text-plain'
-    except urllib.error.HTTPError as err:
-      context.http_response['status'] = str(err.code)
-      context.http_response['body'] = err.read().decode('utf-8')
-      context.http_response['content-type'] = 'text-plain'
-    except socket.error:
-      do_req()
+    while True:
+      try:
+        response = urllib.request.urlopen(request, timeout=10, context=ctx)
+        context.http_response['status'] = str(response.status)
+        context.http_response['body'] = response.read().decode('utf-8')
+        context.http_response['content-type'] = response.info().get_content_type()
+        return
+      except (http.client.RemoteDisconnected, socket.timeout):
+        context.http_response['status'] = '504'
+        context.http_response['body'] = ""
+        context.http_response['content-type'] = 'text-plain'
+        return
+      except urllib.error.HTTPError as err:
+        context.http_response['status'] = str(err.code)
+        context.http_response['body'] = err.read().decode('utf-8')
+        context.http_response['content-type'] = 'text-plain'
+        return
+      except socket.error:
+        pass
 
   do_req()
 
