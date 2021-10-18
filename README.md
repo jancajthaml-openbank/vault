@@ -7,7 +7,8 @@ Service responsible for account integrity, amount blockations and ledger promise
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fjancajthaml-openbank%2Fvault.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fjancajthaml-openbank%2Fvault?ref=badge_shield)
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/jancajthaml-openbank/vault)](https://goreportcard.com/report/github.com/jancajthaml-openbank/vault) [![![codebeat badge](https://codebeat.co/badges/b839a27e-bda0-4629-b748-43b5f38a6034)](https://codebeat.co/projects/github-com-jancajthaml-openbank-vault-main)
+[![Go Report Card](https://goreportcard.com/badge/github.com/jancajthaml-openbank/vault)](https://goreportcard.com/report/github.com/jancajthaml-openbank/vault) [![codebeat badge](https://codebeat.co/badges/e9005c86-3d5f-4a79-809c-994223f09823)](https://codebeat.co/projects/github-com-jancajthaml-openbank-vault-main)
+
 
 ## License
 
