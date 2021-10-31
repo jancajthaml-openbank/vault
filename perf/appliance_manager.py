@@ -37,14 +37,14 @@ class ApplianceManager(object):
       "apt-get", "install", "-f", "-qq", "-o=Dpkg::Use-Pty=0", "-o=Dpkg::Options::=--force-confdef", "-o=Dpkg::Options::=--force-confnew", filename
     ])
 
-    if code != 0:
+    if code != 'OK':
       raise RuntimeError('code: {}, stdout: [{}], stderr: [{}]'.format(code, result, error))
 
     (code, result, error) = execute([
       "systemctl", "-t", "service", "--all", "--no-legend"
     ])
 
-    if code != 0:
+    if code != 'OK':
       raise RuntimeError('code: {}, stdout: [{}], stderr: [{}]'.format(code, result, error))
 
     self.services = set([item.replace('*', '').strip().split(' ')[0].split('@')[0].split('.service')[0] for item in result.split(os.linesep)])
