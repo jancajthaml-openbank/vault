@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 
 from behave import *
-import ssl
-import urllib.request
 import json
 import os
 import glob
+from helpers.http import Request
 
 
 @then('snapshot {tenant}/{account} version {version} should be')
@@ -66,10 +65,10 @@ def check_account_integrity(context, tenant, account):
   ctx.check_hostname = False
   ctx.verify_mode = ssl.CERT_NONE
 
-  request = urllib.request.Request(method='GET', url=uri)
+  request = Request(method='GET', url=uri)
   request.add_header('Accept', 'application/json')
 
-  response = urllib.request.urlopen(request, timeout=10, context=ctx)
+  response = request.do()
 
   assert response.status == 200, str(response.status)
 
