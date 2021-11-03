@@ -44,7 +44,7 @@ def check_account_integrity(context, tenant, account):
 
   latest = snapshots[-1]
 
-  assert os.path.isfile(latest) is True, 'file not found {}'.format(latest)
+  assert os.path.isfile(latest), 'file not found {}'.format(latest)
 
   actual = dict()
   with open(latest, 'r') as fd:
