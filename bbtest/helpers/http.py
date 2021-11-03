@@ -50,10 +50,6 @@ class Request(object):
     self.__underlying.data = value
 
   def do(self):
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
-
     timeout = 10
 
     last_exception = None
@@ -61,6 +57,9 @@ class Request(object):
     deadline = time.monotonic() + timeout
     while deadline > time.monotonic():
       try:
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
         return urllib.request.urlopen(self.__underlying, timeout=timeout, context=ctx)
       except (http.client.RemoteDisconnected, socket.timeout):
         return StubResponse(504, StringIO(''))
