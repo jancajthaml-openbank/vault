@@ -59,10 +59,12 @@ func GetAccount(system *actor.System) func(c echo.Context) error {
 		switch result := actor.GetAccount(system, tenant, id).(type) {
 
 		case *actor.AccountMissing:
+			log.Debug().Msgf("Account %s/%s Does Not Exists", tenant, id)
 			c.Response().WriteHeader(http.StatusNotFound)
 			return nil
 
 		case *model.Account:
+			log.Debug().Msgf("Account %s/%s Does Exists", tenant, id)
 			chunk, err := json.Marshal(result)
 			if err != nil {
 				return err
@@ -73,6 +75,7 @@ func GetAccount(system *actor.System) func(c echo.Context) error {
 			return nil
 
 		case *actor.ReplyTimeout:
+			log.Debug().Msgf("Account %s/%s Timeout", tenant, id)
 			c.Response().WriteHeader(http.StatusGatewayTimeout)
 			return nil
 
@@ -119,12 +122,12 @@ func CreateAccount(system *actor.System) func(c echo.Context) error {
 			return nil
 
 		case *actor.ReplyTimeout:
-			log.Warn().Msgf("Account %s/%s Accepted for Processing (Timeout)", tenant, req.Name)
+			log.Debug().Msgf("Account %s/%s Accepted for Processing (Timeout)", tenant, req.Name)
 			c.Response().WriteHeader(http.StatusGatewayTimeout)
 			return nil
 
 		default:
-			log.Info().Msgf("Account %s/%s Already Exists", tenant, req.Name)
+			log.Debug().Msgf("Account %s/%s Already Exists", tenant, req.Name)
 			c.Response().WriteHeader(http.StatusConflict)
 			return nil
 
