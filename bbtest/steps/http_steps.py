@@ -2,63 +2,31 @@
 # -*- coding: utf-8 -*-
 
 from behave import *
-import ssl
-import urllib.request
-import socket
-import http
 import json
 import time
+from helpers.http import Request
 
 
 @then('{tenant}/{account} should exist')
 def account_exists(context, tenant, account):
   uri = "https://127.0.0.1/account/{}/{}".format(tenant, account)
 
-  ctx = ssl.create_default_context()
-  ctx.check_hostname = False
-  ctx.verify_mode = ssl.CERT_NONE
-
-  request = urllib.request.Request(method='GET', url=uri)
+  request = Request(method='GET', url=uri)
   request.add_header('Accept', 'application/json')
 
-  def do_req():
-    while True:
-      try:
-        response = urllib.request.urlopen(request, timeout=10, context=ctx)
-        assert response.status == 200
-        return
-      except socket.error:
-        pass
-
-  do_req()
+  response = request.do()
+  assert response.status == 200, str(response.status)
 
 
 @then('{tenant}/{account} should not exist')
 def account_not_exists(context, tenant, account):
   uri = "https://127.0.0.1/account/{}/{}".format(tenant, account)
 
-  ctx = ssl.create_default_context()
-  ctx.check_hostname = False
-  ctx.verify_mode = ssl.CERT_NONE
-
-  request = urllib.request.Request(method='GET', url=uri)
+  request = Request(method='GET', url=uri)
   request.add_header('Accept', 'application/json')
 
-  def do_req():
-    while True:
-      try:
-        response = urllib.request.urlopen(request, timeout=10, context=ctx)
-        assert response.status in [404, 504]
-        return
-      except (http.client.RemoteDisconnected, socket.timeout):
-        return
-      except urllib.error.HTTPError as err:
-        assert err.code in [404, 504]
-        return
-      except socket.error:
-        pass
-
-  do_req()
+  response = request.do()
+  assert response.status in [404, 504], str(response.status)
 
 
 @when('{activity} {currency} account {tenant}/{account} is created')
@@ -72,27 +40,13 @@ def create_account(context, activity, currency, tenant, account):
 
   uri = "https://127.0.0.1/account/{}".format(tenant)
 
-  ctx = ssl.create_default_context()
-  ctx.check_hostname = False
-  ctx.verify_mode = ssl.CERT_NONE
-
-  request = urllib.request.Request(method='POST', url=uri)
+  request = Request(method='POST', url=uri)
   request.add_header('Accept', 'application/json')
   request.add_header('Content-Type', 'application/json')
   request.data = json.dumps(payload).encode('utf-8')
 
-  def do_req():
-    while True:
-      try:
-        response = urllib.request.urlopen(request, timeout=10, context=ctx)
-        assert response.status == 200
-        return
-      except (http.client.RemoteDisconnected, socket.timeout):
-        raise AssertionError('timeout')
-      except socket.error:
-        pass
-
-  do_req()
+  response = request.do()
+  assert response.status == 200, str(response.status)
 
 
 @when('I request HTTP {uri}')
@@ -102,40 +56,18 @@ def perform_http_request(context, uri):
     for row in context.table:
       options[row['key']] = row['value']
 
-  ctx = ssl.create_default_context()
-  ctx.check_hostname = False
-  ctx.verify_mode = ssl.CERT_NONE
-
-  request = urllib.request.Request(method=options['method'], url=uri)
+  request = Request(method=options['method'], url=uri)
   request.add_header('Accept', 'application/json')
   if context.text:
     request.add_header('Content-Type', 'application/json')
     request.data = context.text.encode('utf-8')
 
-  context.http_response = dict()
-
-  def do_req():
-    while True:
-      try:
-        response = urllib.request.urlopen(request, timeout=10, context=ctx)
-        context.http_response['status'] = str(response.status)
-        context.http_response['body'] = response.read().decode('utf-8')
-        context.http_response['content-type'] = response.info().get_content_type()
-        return
-      except (http.client.RemoteDisconnected, socket.timeout):
-        context.http_response['status'] = '504'
-        context.http_response['body'] = ""
-        context.http_response['content-type'] = 'text-plain'
-        return
-      except urllib.error.HTTPError as err:
-        context.http_response['status'] = str(err.code)
-        context.http_response['body'] = err.read().decode('utf-8')
-        context.http_response['content-type'] = 'text-plain'
-        return
-      except socket.error:
-        pass
-
-  do_req()
+  response = request.do()
+  context.http_response = {
+    'status': str(response.status),
+    'body': response.read().decode('utf-8'),
+    'content-type': response.info().get_content_type()
+  }
 
 
 @then('HTTP response is')

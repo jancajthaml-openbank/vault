@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 
 from behave import *
-import ssl
-import urllib.request
 import json
 import os
 import glob
+from helpers.http import Request
 
 
 @then('snapshot {tenant}/{account} version {version} should be')
@@ -32,7 +31,7 @@ def check_account_snapshot(context, tenant, account, version):
     })
 
   for row in context.table:
-    assert row['key'] in actual
+    assert row['key'] in actual, '{} missing in {}'.format(row['key'], actual)
     assert actual[row['key']] == row['value'], "value {} differs, actual: {}, expected: {}".format(row['key'], actual[row['key']], row['value'])
 
 
@@ -45,7 +44,7 @@ def check_account_integrity(context, tenant, account):
 
   latest = snapshots[-1]
 
-  assert os.path.isfile(latest) is True
+  assert os.path.isfile(latest), 'file not found {}'.format(latest)
 
   actual = dict()
   with open(latest, 'r') as fd:
@@ -62,21 +61,17 @@ def check_account_integrity(context, tenant, account):
 
   uri = "https://127.0.0.1/account/{}/{}".format(tenant, account)
 
-  ctx = ssl.create_default_context()
-  ctx.check_hostname = False
-  ctx.verify_mode = ssl.CERT_NONE
-
-  request = urllib.request.Request(method='GET', url=uri)
+  request = Request(method='GET', url=uri)
   request.add_header('Accept', 'application/json')
 
-  response = urllib.request.urlopen(request, timeout=10, context=ctx)
+  response = request.do()
 
-  assert response.status == 200
+  assert response.status == 200, str(response.status)
 
   body = json.loads(response.read().decode('utf-8'))
 
-  assert body['format'] == actual['format']
-  assert body['balance'] == actual['balance']
-  assert body['currency'] == actual['currency']
-  assert body['blocking'] == actual['blocking']
-  assert body['isBalanceCheck'] == actual['isBalanceCheck']
+  assert body['format'] == actual['format'], 'format mismatch expected {} actual {}'.format(body['format'], actual['format'])
+  assert body['balance'] == actual['balance'], 'balance mismatch expected {} actual {}'.format(body['balance'], actual['balance'])
+  assert body['currency'] == actual['currency'], 'currency mismatch expected {} actual {}'.format(body['currency'], actual['currency'])
+  assert body['blocking'] == actual['blocking'], 'blocking mismatch expected {} actual {}'.format(body['blocking'], actual['blocking'])
+  assert body['isBalanceCheck'] == actual['isBalanceCheck'], 'isBalanceCheck mismatch expected {} actual {}'.format(body['isBalanceCheck'], actual['isBalanceCheck'])
