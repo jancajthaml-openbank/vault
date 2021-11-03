@@ -7,6 +7,7 @@ import signal
 import time
 import os
 import re
+from utils import print_daemon
 
 
 class Deadline(threading.Thread):
@@ -28,8 +29,10 @@ class Deadline(threading.Thread):
     self.join()
 
 
-def execute(command, timeout=60) -> None:
+def execute(command, timeout=30, silent=False) -> None:
   ansi_escape = re.compile(r'(\x9B|\x1B\[)[0-?]*[ -/]*[@-~]', flags=re.IGNORECASE)
+  if not silent:
+    print_daemon(' '.join(command))
   try:
     p = subprocess.Popen(
       command,

@@ -9,7 +9,6 @@ import time
 import math
 import itertools
 from multiprocessing import Process
-import os
 
 
 class Integration(object):

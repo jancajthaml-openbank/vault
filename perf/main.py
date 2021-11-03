@@ -56,13 +56,6 @@ def main():
   integration = Integration(manager)
   integration.wait_for_healthy()
 
-  #print(manager.certificate.keyfile)
-  #print(manager.certificate.cafile)
-  #print(manager.certificate.certfile)
-
-  #time.sleep(10000000)
-  #info("start")
-
   accounts_to_create = int(os.environ.get('ACCOUNTS_CREATED', '10000'))
 
   j = 0
