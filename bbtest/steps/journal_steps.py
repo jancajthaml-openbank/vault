@@ -61,10 +61,6 @@ def check_account_integrity(context, tenant, account):
 
   uri = "https://127.0.0.1/account/{}/{}".format(tenant, account)
 
-  ctx = ssl.create_default_context()
-  ctx.check_hostname = False
-  ctx.verify_mode = ssl.CERT_NONE
-
   request = Request(method='GET', url=uri)
   request.add_header('Accept', 'application/json')
 
