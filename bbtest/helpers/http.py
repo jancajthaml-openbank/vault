@@ -51,7 +51,6 @@ class Request(object):
 
   def do(self):
     timeout = 10
-
     last_exception = None
 
     deadline = time.monotonic() + timeout
