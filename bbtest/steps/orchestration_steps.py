@@ -6,6 +6,7 @@ from behave import *
 from helpers.shell import execute
 import os
 from helpers.eventually import eventually
+from helpers.http import Request
 
 
 @given('package {package} is {operation}')
@@ -62,7 +63,15 @@ def unit_running(context, unit):
 
   wait_for_unit_state_change()
 
-  time.sleep(1)
+  if 'vault-rest' in unit:
+    request = Request(method='GET', url="https://127.0.0.1/health")
+
+    @eventually(5)
+    def wait_for_healthy():
+      response = request.do()
+      assert response.status == 200, str(response.status)
+
+    wait_for_healthy()
 
 
 @given('unit "{unit}" is not running')

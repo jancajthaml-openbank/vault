@@ -9,15 +9,18 @@ import time
 import math
 import itertools
 from multiprocessing import Process
+import os
 
 
 class Integration(object):
 
-  def __init__(self):
+  def __init__(self, appliance):
     self.__endpoint = 'https://127.0.0.1'
-    self.ctx = ssl.create_default_context()
-    self.ctx.check_hostname = False
-    self.ctx.verify_mode = ssl.CERT_NONE
+    self.__cafile = appliance.certificate.cafile
+
+  def wait_for_healthy(self):
+    request = urllib.request.Request(method='GET', url='{}/health'.format(self.__endpoint))
+    self.__do_req(request)
 
   def create_random_accounts(self, tenant, prefix, number_of_accounts):
     running_tasks = []
@@ -33,8 +36,11 @@ class Integration(object):
 
   def __do_req(self, request):
     try:
-      response = urllib.request.urlopen(request, timeout=120, context=self.ctx)
-      assert response.status == 200
+      ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+      ctx.check_hostname = True
+      ctx.load_verify_locations(self.__cafile)
+      response = urllib.request.urlopen(request, timeout=120, context=ctx)
+      assert response.status == 200, str(response.status)
     except (http.client.RemoteDisconnected, socket.timeout):
       self.__do_req(request)
 

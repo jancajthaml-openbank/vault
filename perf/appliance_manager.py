@@ -9,6 +9,7 @@ import tarfile
 import tempfile
 import errno
 import os
+from helpers.encrypt import SelfSignedCeritifate
 
 
 class ApplianceManager(object):
@@ -21,6 +22,9 @@ class ApplianceManager(object):
     }.get(platform.uname().machine, 'amd64')
 
   def __init__(self):
+    self.certificate = SelfSignedCeritifate('vault')
+    self.certificate.generate()
+
     self.configure()
     self.arch = self.get_arch()
 
@@ -142,8 +146,8 @@ class ApplianceManager(object):
       'LOG_LEVEL': 'WARN',
       'SNAPSHOT_SATURATION_TRESHOLD': '1000',
       'HTTP_PORT': '443',
-      'SERVER_KEY': '/etc/vault/secrets/domain.local.key',
-      'SERVER_CERT': '/etc/vault/secrets/domain.local.crt',
+      'SERVER_KEY': self.certificate.keyfile,
+      'SERVER_CERT': self.certificate.certfile,
       'LAKE_HOSTNAME': '127.0.0.1',
       'MEMORY_THRESHOLD': '0',
       'STORAGE_THRESHOLD': '0',
@@ -202,3 +206,8 @@ class ApplianceManager(object):
     else:
       for name in list(self.units):
         del self[name]
+  
+  def cleanup(self) -> None:
+    self.certificate.cleanup()
+    self.teardown()
+

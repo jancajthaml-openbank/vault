@@ -15,7 +15,6 @@ from integration.http import Integration
 from appliance_manager import ApplianceManager
 from messaging.relay import Relay
 from logs.collector import LogsCollector
-
 import multiprocessing
 import traceback
 import time
@@ -49,14 +48,20 @@ def main():
   logs_collector.start()
 
   relay = Relay()
-  integration = Integration()
+  relay.start()
 
   manager = ApplianceManager()
   manager.bootstrap()
 
-  relay.start()
+  integration = Integration(manager)
+  integration.wait_for_healthy()
 
-  info("start")
+  #print(manager.certificate.keyfile)
+  #print(manager.certificate.cafile)
+  #print(manager.certificate.certfile)
+
+  #time.sleep(10000000)
+  #info("start")
 
   accounts_to_create = int(os.environ.get('ACCOUNTS_CREATED', '10000'))
 
@@ -74,7 +79,7 @@ def main():
 
   relay.stop()
   logs_collector.stop()
-  manager.teardown()
+  manager.cleanup()
 
   info("stop")
 

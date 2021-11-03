@@ -7,7 +7,6 @@ import signal
 import time
 import os
 import re
-from utils import print_daemon
 
 
 class Deadline(threading.Thread):
@@ -29,11 +28,8 @@ class Deadline(threading.Thread):
     self.join()
 
 
-def execute(command, timeout=30, silent=False) -> None:
+def execute(command, timeout=60) -> None:
   ansi_escape = re.compile(r'(\x9B|\x1B\[)[0-?]*[ -/]*[@-~]', flags=re.IGNORECASE)
-  if not silent:
-    print_daemon(' '.join(command))
-
   try:
     p = subprocess.Popen(
       command,
@@ -48,6 +44,7 @@ def execute(command, timeout=30, silent=False) -> None:
       for sig in [signal.SIGTERM, signal.SIGQUIT, signal.SIGKILL, signal.SIGKILL]:
         if p.poll():
           break
+
         try:
           os.kill(p.pid, sig)
         except OSError:
@@ -61,11 +58,17 @@ def execute(command, timeout=30, silent=False) -> None:
     result = result.decode('utf-8').strip() if result else ''
     result = ansi_escape.sub('', result)
     error = error.decode('utf-8').strip() if error else ''
-    error = ansi_escape.sub('', result)
-    code = p.returncode
+    error = ansi_escape.sub('', error)
+
+    if p.returncode == 0:
+      code = 'OK'
+    elif p.returncode < 0:
+      code = signal.Signals(-p.returncode).name
+    else:
+      code = signal.Signals(p.returncode).name
 
     del p
 
     return (code, result, error)
   except subprocess.CalledProcessError:
-    return (-1, None, None)
+    return ('SIGQUIT', None, None)
