@@ -1,10 +1,9 @@
 [Unit]
 Description=openbank account vault configuration watcher
-Wants=observer.service
 After=vault.service
 
 [Path]
-PathChanged=/etc/vault/conf.d/init.conf
+PathChanged=/etc/vault/conf.d
 Unit=vault-watcher.service
 
 [Install]
