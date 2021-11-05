@@ -185,7 +185,7 @@ executors:
 
   testbed:
     machine:
-      image: circleci/classic:201808-01
+      image: cimg/base:2021.04
       docker_layer_caching: false
 
 # ---------------------------------------------------------------------------- #
