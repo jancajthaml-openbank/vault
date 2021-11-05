@@ -18,8 +18,8 @@ def lake_recieves(context, data):
 @then('lake responds with "{data}"')
 def lake_responds_with(context, data):
   pivot = data.encode('utf-8')
-  @eventually(5)
-  def impl():
+  @eventually(10)
+  def wait_for_message():
     assert pivot in context.zmq.backlog, "{} not found in zmq backlog {}".format(pivot, context.zmq.backlog)
     context.zmq.ack(pivot)
-  impl()
+  wait_for_message()
