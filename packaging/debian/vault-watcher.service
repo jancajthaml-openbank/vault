@@ -3,8 +3,9 @@ Description=openbank account vault configuration watcher
 StartLimitBurst=5
 
 [Service]
-Type=oneshot
+Type=simple
+ExecStartPre=echo 'restarting vault (configuration has changed)'
 ExecStart=/bin/sh -c 'systemctl restart vault.service'
 
 [Install]
-WantedBy=multi-user.target 
+WantedBy=vault.service
