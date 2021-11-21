@@ -10,9 +10,9 @@ services:
     image: jancajthaml/go
     tty: true
     volumes:
-      - .:/project
-      - ./services/vault-unit:/go/src/github.com/jancajthaml-openbank/vault-unit
-      - ./services/vault-rest:/go/src/github.com/jancajthaml-openbank/vault-rest
+      - .:/project:delegated
+      - ./services/vault-unit:/go/src/github.com/jancajthaml-openbank/vault-unit:delegated
+      - ./services/vault-rest:/go/src/github.com/jancajthaml-openbank/vault-rest:delegated
     working_dir: /project
     environment:
       - GOOS
@@ -26,7 +26,7 @@ services:
     image: jancajthaml/debian-packager
     tty: true
     volumes:
-      - .:/project
+      - .:/project:delegated
     working_dir: /project
 
   # -------------------------------------------------------------------------- #
@@ -88,11 +88,10 @@ services:
   # -------------------------------------------------------------------------- #
 
   bbtest:
-    image: jancajthaml/bbtest:amd64
+    image: jancajthaml/bbtest:${ARCH}
     environment:
       IMAGE_VERSION: ${VERSION:-latest}-${META:-main}
       UNIT_VERSION: ${VERSION:-latest}
-      UNIT_ARCH: amd64
       CI: ${CI:-false}
     tmpfs:
       - /tmp
@@ -106,11 +105,10 @@ services:
   # ---------------------------------------------------------------------------- #
 
   perf:
-    image: jancajthaml/bbtest:amd64
+    image: jancajthaml/bbtest:${ARCH}
     environment:
       IMAGE_VERSION: ${VERSION:-latest}-${META:-main}
       UNIT_VERSION: ${VERSION:-latest}
-      UNIT_ARCH: amd64
       ACCOUNTS_CREATED: 10000
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:rw
