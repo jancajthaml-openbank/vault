@@ -32,8 +32,8 @@ FROM --platform=linux/arm64/v8 arm64v8/debian:sid-slim
 
 COPY --from=0 /opt/artifacts /opt/artifacts
 
-COPY --from=0 /usr/lib/aarch64-linux-gnu /usr/lib/x86_64-linux-gnu
-COPY --from=0 /lib/aarch64-linux-gnu /lib/x86_64-linux-gnu
+COPY --from=0 /usr/lib/aarch64-linux-gnu /usr/lib/aarch64-linux-gnu
+COPY --from=0 /lib/aarch64-linux-gnu /lib/aarch64-linux-gnu
 
 RUN ln -s /opt/artifacts/vault-rest-linux-arm64 /usr/bin/vault-rest && \
     ln -s /opt/artifacts/vault-unit-linux-arm64 /usr/bin/vault-unit
