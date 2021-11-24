@@ -15,7 +15,7 @@
 # ---------------------------------------------------------------------------- #
 # stage 0 bootstrap dependencies
 
-FROM amd64/debian:sid-slim
+FROM --platform=linux/amd64 amd64/debian:sid-slim
 
 COPY packaging/bin/* /opt/artifacts/
 
@@ -28,7 +28,7 @@ RUN find /opt/artifacts -name vault_*_amd64.deb | xargs -I{} -tx apt-get install
 # ---------------------------------------------------------------------------- #
 # stage 1 link files
 
-FROM amd64/debian:sid-slim
+FROM --platform=linux/amd64 amd64/debian:sid-slim
 
 COPY --from=0 /opt/artifacts /opt/artifacts
 
