@@ -63,8 +63,6 @@ lifecycle::go::build() {
     return
   fi
 
-
-
   case ${ARCH} in
 
     arm64)
