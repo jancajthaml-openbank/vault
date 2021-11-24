@@ -23,7 +23,7 @@ USER root
 
 RUN apt-get update
 
-RUN find /opt/artifacts -name vault_*_amd64.deb | xargs -I{} -tx apt-get install -y -f {}
+RUN find /opt/artifacts -name vault_*_arm64.deb | xargs -I{} -tx apt-get install -y -f {}
 
 # ---------------------------------------------------------------------------- #
 # stage 1 link files
@@ -35,7 +35,7 @@ COPY --from=0 /opt/artifacts /opt/artifacts
 COPY --from=0 /usr/lib/aarch64-linux-gnu /usr/lib/x86_64-linux-gnu
 COPY --from=0 /lib/aarch64-linux-gnu /lib/x86_64-linux-gnu
 
-RUN ln -s /opt/artifacts/vault-rest-linux-amd64 /usr/bin/vault-rest && \
-    ln -s /opt/artifacts/vault-unit-linux-amd64 /usr/bin/vault-unit
+RUN ln -s /opt/artifacts/vault-rest-linux-arm64 /usr/bin/vault-rest && \
+    ln -s /opt/artifacts/vault-unit-linux-arm64 /usr/bin/vault-unit
 
 ENTRYPOINT [ "vault-rest" ]
