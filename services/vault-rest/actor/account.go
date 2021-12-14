@@ -23,16 +23,21 @@ import (
 	system "github.com/jancajthaml-openbank/actor-system"
 )
 
+func receive(sys *System, channel chan<- interface{}) system.ReceiverFunction {
+	return func(context system.Context) system.ReceiverFunction {
+		channel <- context.Data
+		return receive(sys, channel)
+	}
+}
+
 // CreateAccount creates new account for target tenant vault
 func CreateAccount(sys *System, tenant string, account model.Account) interface{} {
 	ch := make(chan interface{})
 
-	envelope := system.NewActor("relay/"+xid.New().String(), nil)
-	defer sys.UnregisterActor(envelope.Name)
+	envelope := system.NewActor("relay/"+xid.New().String(), receive(sys, ch))
 
-	sys.RegisterActor(envelope, func(state interface{}, context system.Context) {
-		ch <- context.Data
-	})
+	sys.RegisterActor(envelope)
+	defer sys.UnregisterActor(envelope.Name)
 
 	sys.SendMessage(
 		CreateAccountMessage(account.Format, account.Currency, account.IsBalanceCheck),
@@ -49,7 +54,7 @@ func CreateAccount(sys *System, tenant string, account model.Account) interface{
 	select {
 	case result := <-ch:
 		return result
-	case <-time.After(10 * time.Second):
+	case <-time.After(5 * time.Second):
 		return new(ReplyTimeout)
 	}
 }
@@ -58,12 +63,10 @@ func CreateAccount(sys *System, tenant string, account model.Account) interface{
 func GetAccount(sys *System, tenant string, name string) interface{} {
 	ch := make(chan interface{})
 
-	envelope := system.NewActor("relay/"+xid.New().String(), nil)
-	defer sys.UnregisterActor(envelope.Name)
+	envelope := system.NewActor("relay/"+xid.New().String(), receive(sys, ch))
 
-	sys.RegisterActor(envelope, func(state interface{}, context system.Context) {
-		ch <- context.Data
-	})
+	sys.RegisterActor(envelope)
+	defer sys.UnregisterActor(envelope.Name)
 
 	sys.SendMessage(
 		ReqAccountState,

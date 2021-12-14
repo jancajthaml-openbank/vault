@@ -136,8 +136,8 @@ func ProcessMessage(s *System) system.ProcessMessage {
 
 // NewAccountActor returns new account Actor
 func NewAccountActor(s *System, name string) (*system.Actor, error) {
-	envelope := system.NewActor(name, model.NewAccount(name))
-	err := s.RegisterActor(envelope, NilAccount(s))
+	envelope := system.NewActor(name, NilAccount(s, model.NewAccount(name)))
+	err := s.RegisterActor(envelope)
 	if err != nil {
 		log.Warn().Err(err).Msgf("Unable to register %s actor", name)
 		return nil, err

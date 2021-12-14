@@ -38,8 +38,8 @@ class Integration(object):
       ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
       ctx.check_hostname = True
       ctx.load_verify_locations(self.__cafile)
-      response = urllib.request.urlopen(request, timeout=120, context=ctx)
-      assert response.status == 200, str(response.status)
+      response = urllib.request.urlopen(request, timeout=10, context=ctx)
+      assert response.status == 200, 'unexpected response status {}'.format(response.status)
     except (http.client.RemoteDisconnected, socket.timeout):
       self.__do_req(request)
 
