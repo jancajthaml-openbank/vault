@@ -119,4 +119,3 @@ def check_http_response(context):
       diff('', expected, actual)
     except AssertionError as ex:
       raise AssertionError('{} with response {}'.format(ex, response['body']))
-
