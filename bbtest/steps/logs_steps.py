@@ -16,7 +16,7 @@ def step_impl(context, unit):
   def get_unit_description():
     (code, result, error) = execute(["systemctl", "status", unit])
     result = ansi_escape.sub('', result)
-    assert len(result), str(result) + ' ' + str(error)
+    assert len(result), str(code) + ' ' + str(result) + ' ' + str(error)
     result = result.split(os.linesep)[0]
     pivot = "{} - ".format(unit)
     idx = result.rfind(pivot)

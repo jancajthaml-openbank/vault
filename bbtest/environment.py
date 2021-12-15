@@ -15,6 +15,7 @@ def before_feature(context, feature):
 
 
 def before_scenario(context, scenario):
+  context.zmq.clear()
   context.log.info('')
   context.log.info('  (SCENARIO) {}'.format(scenario.name))
   context.log.info('')
@@ -22,10 +23,6 @@ def before_scenario(context, scenario):
 
 def after_scenario(context, scenario):
   context.unit.collect_logs()
-
-
-def after_feature(context, feature):
-  context.zmq.clear()
 
 
 def before_all(context):

@@ -30,7 +30,7 @@ def step_impl(context, package, operation):
 @then('systemctl contains following active units')
 def step_impl(context):
   (code, result, error) = execute(["systemctl", "list-units", "--all", "--no-legend", "--state=active"])
-  assert code == 'OK', str(result) + ' ' + str(error)
+  assert code == 'OK', str(code) + ' ' + str(result) + ' ' + str(error)
   items = []
   for row in context.table:
     items.append(row['name'] + '.' + row['type'])
@@ -43,7 +43,7 @@ def step_impl(context):
 @then('systemctl does not contain following active units')
 def step_impl(context):
   (code, result, error) = execute(["systemctl", "list-units", "--all", "--no-legend", "--state=active"])
-  assert code == 'OK', str(result) + ' ' + str(error)
+  assert code == 'OK', str(code) + ' ' + str(result) + ' ' + str(error)
   items = []
   for row in context.table:
     items.append(row['name'] + '.' + row['type'])
@@ -58,7 +58,7 @@ def unit_running(context, unit):
   @eventually(10)
   def wait_for_unit_state_change():
     (code, result, error) = execute(["systemctl", "show", "-p", "SubState", unit])
-    assert code == 'OK', str(result) + ' ' + str(error)
+    assert code == 'OK', str(code) + ' ' + str(result) + ' ' + str(error)
     assert 'SubState=running' in result, result
 
   wait_for_unit_state_change()
@@ -80,7 +80,7 @@ def unit_not_running(context, unit):
   @eventually(10)
   def wait_for_unit_state_change():
     (code, result, error) = execute(["systemctl", "show", "-p", "SubState", unit])
-    assert code == 'OK', str(result) + ' ' + str(error)
+    assert code == 'OK', str(code) + ' ' + str(result) + ' ' + str(error)
     assert 'SubState=dead' in result, result
 
   wait_for_unit_state_change()
@@ -121,7 +121,7 @@ def offboard_unit(context, tenant):
 @given('tenant {tenant} is onboarded')
 def onboard_unit(context, tenant):
   (code, result, error) = execute(["systemctl", 'enable', 'vault-unit@{}'.format(tenant)])
-  assert code == 'OK', str(result) + ' ' + str(error)
+  assert code == 'OK', str(code) + ' ' + str(result) + ' ' + str(error)
   (code, result, error) = execute(["systemctl", 'start', 'vault-unit@{}'.format(tenant)])
-  assert code == 'OK', str(result) + ' ' + str(error)
+  assert code == 'OK', str(code) + ' ' + str(result) + ' ' + str(error)
   unit_running(context, 'vault-unit@{}'.format(tenant))
