@@ -17,7 +17,7 @@ package metrics
 import (
 	"sync/atomic"
 
-	"github.com/DataDog/datadog-go/statsd"
+	"github.com/DataDog/datadog-go/statsd"	// FIXME use atomics
 )
 
 // Metrics provides helper function for metrics

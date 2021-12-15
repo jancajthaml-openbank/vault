@@ -22,27 +22,23 @@ import (
 )
 
 // NilAccount represents account that is neither existing neither non existing
-func NilAccount(s *System) func(interface{}, system.Context) {
-	return func(t_state interface{}, context system.Context) {
-		state := t_state.(model.Account)
-
+func NilAccount(s *System, state model.Account) system.ReceiverFunction {
+	return func(context system.Context) system.ReceiverFunction {
+		context.Self.Tell(context.Data, context.Receiver, context.Sender)
 		entity, err := persistence.LoadAccount(s.Storage, state.Name)
 		if err != nil {
-			context.Self.Become(state, NonExistAccount(s))
 			log.Debug().Msgf("%s/Nil -> %s/NonExist", state.Name, state.Name)
+			return NonExistAccount(s, state)
 		} else {
-			context.Self.Become(*entity, ExistAccount(s))
 			log.Debug().Msgf("%s/Nil -> %s/Exist", state.Name, state.Name)
+			return ExistAccount(s, *entity)
 		}
-
-		context.Self.Receive(context)
 	}
 }
 
 // NonExistAccount represents account that does not exist
-func NonExistAccount(s *System) func(interface{}, system.Context) {
-	return func(t_state interface{}, context system.Context) {
-		state := t_state.(model.Account)
+func NonExistAccount(s *System, state model.Account) system.ReceiverFunction {
+	return func(context system.Context) system.ReceiverFunction {
 
 		switch msg := context.Data.(type) {
 
@@ -51,48 +47,48 @@ func NonExistAccount(s *System) func(interface{}, system.Context) {
 			if err != nil {
 				s.SendMessage(FatalError, context.Sender, context.Receiver)
 				log.Warn().Err(err).Msgf("%s/NonExist/CreateAccount Error", state.Name)
-				return
+				return NonExistAccount(s, state)
 			}
-
-			s.Metrics.AccountCreated()
 			s.SendMessage(RespCreateAccount, context.Sender, context.Receiver)
-
+			s.Metrics.AccountCreated()
 			log.Info().Msgf("Account %s created", state.Name)
 			log.Debug().Msgf("%s/NonExist/CreateAccount OK", state.Name)
-
-			context.Self.Become(*entity, ExistAccount(s))
+			return ExistAccount(s, *entity)
 
 		case Rollback:
 			s.SendMessage(RollbackAccepted, context.Sender, context.Receiver)
 			log.Debug().Msgf("%s/NonExist/Rollback OK", state.Name)
+			return NonExistAccount(s, state)
 
 		case GetAccountState:
 			s.SendMessage(RespAccountMissing, context.Sender, context.Receiver)
 			log.Debug().Msgf("%s/NonExist/GetAccountState Error", state.Name)
+			return NonExistAccount(s, state)
 
 		default:
 			s.SendMessage(FatalError, context.Sender, context.Receiver)
 			log.Debug().Msgf("%s/NonExist/Unknown Error", state.Name)
+			return NonExistAccount(s, state)
 		}
 
-		return
 	}
 }
 
 // ExistAccount represents account that does exist
-func ExistAccount(s *System) func(interface{}, system.Context) {
-	return func(t_state interface{}, context system.Context) {
-		state := t_state.(model.Account)
+func ExistAccount(s *System, state model.Account) system.ReceiverFunction {
+	return func(context system.Context) system.ReceiverFunction {
 
 		switch msg := context.Data.(type) {
 
 		case GetAccountState:
 			s.SendMessage(AccountStateMessage(state), context.Sender, context.Receiver)
 			log.Debug().Msgf("%s/Exist/GetAccountState OK", state.Name)
+			return ExistAccount(s, state)
 
 		case CreateAccount:
 			s.SendMessage(FatalError, context.Sender, context.Receiver)
 			log.Debug().Msgf("%s/Exist/CreateAccount Error", state.Name)
+			return ExistAccount(s, state)
 
 		case Promise:
 			promiseHash := msg.Transaction + "_" + msg.Currency + "_" + msg.Amount.String()
@@ -100,7 +96,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 			if state.Promises.Contains(promiseHash) {
 				s.SendMessage(PromiseAccepted, context.Sender, context.Receiver)
 				log.Debug().Msgf("%s/Exist/Promise OK Already Accepted", state.Name)
-				return
+				return ExistAccount(s, state)
 			}
 
 			if state.Currency != msg.Currency {
@@ -110,7 +106,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 					context.Receiver,
 				)
 				log.Debug().Msgf("%s/Exist/Promise Error Currency Mismatch", state.Name)
-				return
+				return ExistAccount(s, state)
 			}
 
 			nextBalance := new(model.Dec)
@@ -135,11 +131,11 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 					state.Promised.Sub(msg.Amount)
 					state.Promises.Remove(promiseHash)
 					state.EventCounter--
-					return
+					return ExistAccount(s, state)
 				}
 
-				s.Metrics.PromiseAccepted()
 				s.SendMessage(PromiseAccepted, context.Sender, context.Receiver)
+				s.Metrics.PromiseAccepted()
 
 				if state.EventCounter >= s.EventCounterTreshold {
 					err := persistence.UpdateAccount(s.Storage, state.Name, &state)
@@ -152,10 +148,10 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 					}
 				}
 
-				context.Self.Become(state, ExistAccount(s))
+				//context.Self.Become(state, ExistAccount(s))
 				log.Info().Msgf("Account %s promised %s %s", state.Name, msg.Amount.String(), state.Currency)
 				log.Debug().Msgf("%s/Exist/Promise OK", state.Name)
-				return
+				return ExistAccount(s, state)
 			}
 
 			nextBalance = new(model.Dec)
@@ -169,7 +165,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 					context.Receiver,
 				)
 				log.Debug().Msgf("%s/Exist/Promise Error insufficient funds", state.Name)
-				return
+				return ExistAccount(s, state)
 			}
 
 			s.SendMessage(
@@ -179,7 +175,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 			)
 
 			log.Warn().Msgf("%s/Exist/Promise bounced", state.Name)
-			return
+			return ExistAccount(s, state)
 
 		case Commit:
 
@@ -188,7 +184,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 			if !state.Promises.Contains(promiseHash) {
 				s.SendMessage(FatalError, context.Sender, context.Receiver)
 				log.Debug().Msgf("%s/Exist/Commit Error unknown promise to commit", state.Name)
-				return
+				return ExistAccount(s, state)
 			}
 
 			state.Balance.Add(msg.Amount)
@@ -208,11 +204,11 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 				state.Promised.Add(msg.Amount)
 				state.Promises.Add(promiseHash)
 				state.EventCounter--
-				return
+				return ExistAccount(s, state)
 			}
 
-			s.Metrics.CommitAccepted()
 			s.SendMessage(CommitAccepted, context.Sender, context.Receiver)
+			s.Metrics.CommitAccepted()
 
 			if state.EventCounter >= s.EventCounterTreshold {
 				err := persistence.UpdateAccount(s.Storage, state.Name, &state)
@@ -225,9 +221,8 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 				}
 			}
 
-			context.Self.Become(state, ExistAccount(s))
 			log.Debug().Msgf("%s/Exist/Commit OK", state.Name)
-			return
+			return ExistAccount(s, state)
 
 		case Rollback:
 
@@ -236,7 +231,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 			if !state.Promises.Contains(promiseHash) {
 				s.SendMessage(FatalError, context.Sender, context.Receiver)
 				log.Debug().Msgf("%s/Exist/Rollback Error unknown promise to rollback", state.Name)
-				return
+				return ExistAccount(s, state)
 			}
 
 			state.Promised.Sub(msg.Amount)
@@ -254,7 +249,7 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 				state.Promised.Add(msg.Amount)
 				state.Promises.Add(promiseHash)
 				state.EventCounter--
-				return
+				return ExistAccount(s, state)
 			}
 
 			s.SendMessage(RollbackAccepted, context.Sender, context.Receiver)
@@ -271,17 +266,16 @@ func ExistAccount(s *System) func(interface{}, system.Context) {
 				}
 			}
 
-			context.Self.Become(state, ExistAccount(s))
 			log.Info().Msgf("Account %s rejected %s %s", state.Name, msg.Amount.String(), state.Currency)
 			log.Debug().Msgf("%s/Exist/Rollback OK", state.Name)
-			return
+			return ExistAccount(s, state)
 
 		default:
 			s.SendMessage(FatalError, context.Sender, context.Receiver)
 			log.Warn().Msgf("%s/Exist/Unknown Error", state.Name)
+			return ExistAccount(s, state)
 
 		}
 
-		return
 	}
 }
