@@ -15,6 +15,9 @@ def account_exists(context, tenant, account):
   request.add_header('Accept', 'application/json')
 
   response = request.do()
+  if response.status == 504:
+    response = request.do()
+
   assert response.status == 200, str(response.status)
 
 
@@ -46,6 +49,9 @@ def create_account(context, activity, currency, tenant, account):
   request.data = json.dumps(payload)
 
   response = request.do()
+  if response.status == 504:
+    response = request.do()
+
   assert response.status == 200, str(response.status)
 
 
