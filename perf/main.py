@@ -65,6 +65,11 @@ def main():
     with timeit('create {:,.0f} accounts'.format(i)):
       with metrics(manager, 'create_accounts_{}'.format(i)):
         integration.create_random_accounts('one', str(j), i)
+
+      info('generating graph for {:,.0f} accounts'.format(i))
+      with timeit('{:,.0f} graph plotting'.format(i)):
+        Graph(Metrics('{}/../reports/perf-tests/metrics/metrics.create_accounts_{}.json'.format(cwd, i)))
+
     i *= 10
     j += 1
 

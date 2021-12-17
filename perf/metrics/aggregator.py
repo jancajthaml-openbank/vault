@@ -5,6 +5,7 @@ import socket
 import threading
 import time
 import re
+from collections import OrderedDict
 
 
 class MetricsAggregator(threading.Thread):
@@ -12,7 +13,7 @@ class MetricsAggregator(threading.Thread):
   def __init__(self):
     threading.Thread.__init__(self)
     self.__cancel = threading.Event()
-    self.__store = dict()
+    self.__store = OrderedDict()
 
   def start(self):
     self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -27,8 +28,26 @@ class MetricsAggregator(threading.Thread):
         self.__process_change(data.decode('utf-8'))
       except:
         return
+  
+  def strip_trailing_zero_values(self) -> None:
+    to_delete = list()
+    last_not_nil = None
+    in_deletion_stage = False
+    for key, value in self.__store.items():
+      if value['c'] != 0:
+        last_not_nil = key
+    for key in self.__store.keys():
+      if key == last_not_nil:
+        in_deletion_stage = True
+      elif in_deletion_stage:
+        to_delete.append(key)
 
-  def get_metrics(self) -> dict:
+    for key in to_delete:
+      del self.__store[key]
+    
+    return self.__store
+
+  def get_metrics(self) -> OrderedDict:
     return self.__store
 
   def __process_change(self, data) -> None:
