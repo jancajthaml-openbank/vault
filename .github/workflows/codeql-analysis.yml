@@ -29,13 +29,5 @@ jobs:
       run: |
         rm -f Makefile
   
-    - name: Sync vault-rest
-      run: |
-        ./dev/lifecycle/sync --source ./services/vault-rest
-
-    - name: Sync vault-unit
-      run: |
-        ./dev/lifecycle/sync --source ./services/vault-unit
-
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
