@@ -25,14 +25,16 @@ jobs:
       with:
         languages: go
 
-    - name: Autobuild
-      run: |
-        make bootstrap
-        make package
-
     - name: Unlink makefile
       run: |
         rm -f Makefile
+
+    - name: Package
+      run: |
+        ./dev/lifecycle/package
+          --arch linux/amd64 \
+          --source ./services/vault-rest \
+          --output ./packaging/bin
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
