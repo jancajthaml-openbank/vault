@@ -30,6 +30,9 @@ jobs:
 
     - name: Autobuild
       uses: github/codeql-action/autobuild@v1
+      run: |
+        make bootstrap
+        make package
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
