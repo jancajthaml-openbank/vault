@@ -29,19 +29,13 @@ jobs:
       run: |
         rm -f Makefile
   
-    - name: Install dynamic dependencies
+    - name: Sync vault-rest
       run: |
-        wget https://github.com/zeromq/libzmq/releases/download/v4.3.1/zeromq-4.3.1.tar.gz -O /tmp/zeromq.tar.gz
-        tar -xzvf /tmp/zeromq.tar.gz -C /tmp && cd /tmp/zeromq-* && mkdir build && cd build
-        cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DENABLE_CURVE=ON .. && make && sudo make install
+        ./dev/lifecycle/sync --source ./services/vault-rest
 
-    - name: Package vault-rest
+    - name: Sync vault-unit
       run: |
-        ./dev/lifecycle/package --arch linux/amd64 --source ./services/vault-rest --output ./packaging/bin
-
-    - name: Package vault-unit
-      run: |
-        ./dev/lifecycle/package --arch linux/amd64 --source ./services/vault-unit --output ./packaging/bin
+        ./dev/lifecycle/sync --source ./services/vault-unit
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
