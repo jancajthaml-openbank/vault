@@ -29,12 +29,13 @@ jobs:
       run: |
         rm -f Makefile
 
-    - name: Package
+    - name: Package vault-rest
       run: |
-        ./dev/lifecycle/package
-          --arch linux/amd64 \
-          --source ./services/vault-rest \
-          --output ./packaging/bin
+        ./dev/lifecycle/package --arch linux/amd64 --source ./services/vault-rest --output ./packaging/bin
+
+    - name: Package vault-unit
+      run: |
+        ./dev/lifecycle/package --arch linux/amd64 --source ./services/vault-unit --output ./packaging/bin
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
