@@ -128,7 +128,6 @@ func CreateAccount(system *actor.System) func(c echo.Context) error {
 
 		default:
 			log.Debug().Msgf("Account %s/%s Already Exists", tenant, req.Name)
-			// FIXME check if existing account is same as requested if so return 200 otherwise return conflict
 			c.Response().WriteHeader(http.StatusConflict)
 			return nil
 
