@@ -86,6 +86,11 @@ func ExistAccount(s *System, state model.Account) system.ReceiverFunction {
 			return ExistAccount(s, state)
 
 		case CreateAccount:
+			if (msg.Format == state.Format && msg.Currency == state.Currency && msg.IsBalanceCheck == state.IsBalanceCheck) {
+				s.SendMessage(RespCreateAccount, context.Sender, context.Receiver)
+				log.Debug().Msgf("%s/Exist/CreateAccount Already Exist", state.Name)
+				return ExistAccount(s, state)
+			}
 			s.SendMessage(FatalError, context.Sender, context.Receiver)
 			log.Debug().Msgf("%s/Exist/CreateAccount Error", state.Name)
 			return ExistAccount(s, state)

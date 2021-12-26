@@ -102,7 +102,7 @@ Feature: REST
       | method | POST  |
       """
       {
-        "name": "yyy",
+        "name": "A",
         "format": "test",
         "currency": "XXX",
         "isBalanceCheck": false
@@ -117,7 +117,22 @@ Feature: REST
       | method | POST  |
       """
       {
-        "name": "yyy",
+        "name": "A",
+        "format": "test",
+        "currency": "XXX",
+        "isBalanceCheck": true
+      }
+      """
+    Then HTTP response is
+      | key    | value |
+      | status |   409 |
+
+    When I request HTTP https://127.0.0.1/account/API
+      | key    | value |
+      | method | POST  |
+      """
+      {
+        "name": "A",
         "format": "test",
         "currency": "XXX",
         "isBalanceCheck": false
@@ -125,7 +140,7 @@ Feature: REST
       """
     Then HTTP response is
       | key    | value |
-      | status |   409 |
+      | status |   200 |
 
     When I request HTTP https://127.0.0.1/account/API
       | key    | value |
@@ -160,7 +175,7 @@ Feature: REST
       | method | POST  |
       """
       {
-        "name": "xxx",
+        "name": "C",
         "format": "test",
         "currency": "XXX",
         "isBalanceCheck": false
@@ -170,7 +185,7 @@ Feature: REST
       | key    | value |
       | status | 200   |
 
-    When I request HTTP https://127.0.0.1/account/API/xxx
+    When I request HTTP https://127.0.0.1/account/API/C
       | key    | value |
       | method | GET   |
     Then HTTP response is
