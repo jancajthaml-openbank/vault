@@ -111,6 +111,7 @@ services:
     environment:
       IMAGE_VERSION: ${ARCH}-${VERSION}.${META}
       UNIT_VERSION: ${VERSION}
+      CI: ${CI:-false}
       ACCOUNTS_CREATED: 10000
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:rw
