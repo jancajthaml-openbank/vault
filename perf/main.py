@@ -50,6 +50,8 @@ def main():
   relay = Relay()
   relay.start()
 
+  info("bootstrap")
+
   manager = ApplianceManager()
   manager.bootstrap()
 
@@ -81,23 +83,17 @@ def main():
 
   info("stop")
 
-  sys.exit(0)
-
 ################################################################################
 
 if __name__ == "__main__":
-  failed = False
-  with timeit('test run'):
-    try:
-      main()
-    except KeyboardInterrupt:
-      interrupt_stdout()
-      warn('Interrupt')
-    except Exception as ex:
-      failed = True
-      print(''.join(traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)))
-    finally:
-      if failed:
-        sys.exit(1)
-      else:
-        sys.exit(0)
+  try:
+    main()
+    os._exit(0)
+  except KeyboardInterrupt:
+    interrupt_stdout()
+    warn('Interrupt')
+    os._exit(0)
+  except Exception as ex:
+    failed = True
+    print(''.join(traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)))
+    os._exit(1)

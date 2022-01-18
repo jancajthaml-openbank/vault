@@ -5,7 +5,7 @@ from behave import *
 import json
 import os
 import glob
-from helpers.http import Request
+from openbank_testkit import Request
 
 
 @then('snapshot {tenant}/{account} version {version} should be')

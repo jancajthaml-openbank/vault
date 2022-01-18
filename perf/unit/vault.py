@@ -23,8 +23,8 @@ class Vault(object):
   def teardown(self):
     units = ['vault-rest'] + ['vault-unit@{}'.format(tenant) for tenant in self.tenants]
     for unit in units:
-      execute(['systemctl', 'stop', unit])
-      (code, result, error) = execute([
+      Shell.run(['systemctl', 'stop', unit])
+      (code, result, error) = Shell.run([
         'journalctl', '-o', 'cat', '-u', '{}.service'.format(unit), '--no-pager'
       ], True)
       if code != 'OK' or not result:
@@ -36,17 +36,17 @@ class Vault(object):
   def onboard(self, tenant) -> None:
     unit = 'vault-unit@{}'.format(tenant)
 
-    (code, result, error) = execute(["systemctl", 'enable', unit])
+    (code, result, error) = Shell.run(["systemctl", 'enable', unit])
     assert code == 'OK', str(result) + ' ' + str(error)
 
-    (code, result, error) = execute(["systemctl", 'start', unit])
+    (code, result, error) = Shell.run(["systemctl", 'start', unit])
     assert code == 'OK', str(result) + ' ' + str(error)
 
     self.tenants.append(tenant)
 
     @eventually(30)
     def wait_for_running():
-      (code, result, error) = execute([
+      (code, result, error) = Shell.run([
         "systemctl", "show", "-p", "SubState", unit
       ])
       assert code == 'OK', str(result) + ' ' + str(error)
@@ -57,12 +57,12 @@ class Vault(object):
     units = ['vault-rest'] + ['vault-unit@{}'.format(tenant) for tenant in self.tenants]
 
     for unit in units:
-      (code, result, error) = execute(['systemctl', 'restart', unit])
+      (code, result, error) = Shell.run(['systemctl', 'restart', unit])
       assert code == 'OK', str(result) + ' ' + str(error)
 
       @eventually(30)
       def wait_for_running():
-        (code, result, error) = execute([
+        (code, result, error) = Shell.run([
           "systemctl", "show", "-p", "SubState", unit
         ])
         assert code == 'OK', str(result) + ' ' + str(error)
@@ -73,19 +73,19 @@ class Vault(object):
     units = ['vault-rest'] + ['vault-unit@{}'.format(tenant) for tenant in self.tenants]
 
     for unit in units:
-      (code, result, error) = execute(['systemctl', 'stop', unit])
+      (code, result, error) = Shell.run(['systemctl', 'stop', unit])
       assert code == 'OK', str(result) + ' ' + str(error)
 
   def start(self) -> bool:
     units = ['vault-rest'] + ['vault-unit@{}'.format(tenant) for tenant in self.tenants]
 
     for unit in units:
-      (code, result, error) = execute(['systemctl', 'start', unit])
+      (code, result, error) = Shell.run(['systemctl', 'start', unit])
       assert code == 'OK', str(result) + ' ' + str(error)
 
       @eventually(30)
       def wait_for_running():
-        (code, result, error) = execute([
+        (code, result, error) = Shell.run([
           "systemctl", "show", "-p", "SubState", unit
         ])
         assert code == 'OK', str(result) + ' ' + str(error)
