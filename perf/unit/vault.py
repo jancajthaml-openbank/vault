@@ -1,13 +1,7 @@
 #!/usr/bin/env python3
 
 from helpers.eventually import eventually
-from helpers.shell import execute
-import subprocess
-import multiprocessing
-import string
-import threading
-import signal
-import time
+from openbank_testkit import Shell
 import os
 
 
