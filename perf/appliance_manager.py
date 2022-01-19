@@ -1,50 +1,38 @@
 #!/usr/bin/env python3
 
-import docker
 from utils import info, print_daemon
-from helpers.shell import execute
+from openbank_testkit import Shell, Package, Platform, SelfSignedCeritifate
 from unit.vault import Vault
-import platform
-import tarfile
-import tempfile
-import errno
 import os
-from helpers.encrypt import SelfSignedCeritifate
 
 
 class ApplianceManager(object):
 
-  def get_arch(self):
-    return {
-      'x86_64': 'amd64',
-      'armv8': 'arm64',
-      'aarch64': 'arm64'
-    }.get(platform.uname().machine, 'amd64')
-
   def __init__(self):
     self.certificate = SelfSignedCeritifate('vault')
     self.certificate.generate()
-
-    self.configure()
-    self.arch = self.get_arch()
-
-    self.store = {}
-    self.image_version = None
-    self.debian_version = None
     self.units = {}
     self.services = []
-    self.docker = docker.from_env()
-    self.__download()
 
-  def __install(self, filename):
-    (code, result, error) = execute([
+  def __install(self):
+    version = os.environ.get('VERSION', '')
+    if version.startswith('v'):
+      version = version[1:]
+
+    assert version, 'VERSION not provided'
+
+    cwd = os.path.realpath('{}/../..'.format(os.path.dirname(__file__)))
+
+    filename = '{}/packaging/bin/vault_{}_{}.deb'.format(cwd, version, Platform.arch)
+
+    (code, result, error) = Shell.run([
       "apt-get", "install", "-f", "-qq", "-o=Dpkg::Use-Pty=0", "-o=Dpkg::Options::=--force-confdef", "-o=Dpkg::Options::=--force-confnew", filename
     ])
 
     if code != 'OK':
       raise RuntimeError('code: {}, stdout: [{}], stderr: [{}]'.format(code, result, error))
 
-    (code, result, error) = execute([
+    (code, result, error) = Shell.run([
       "systemctl", "-t", "service", "--all", "--no-legend"
     ])
 
@@ -53,76 +41,21 @@ class ApplianceManager(object):
 
     self.services = set([item.replace('*', '').strip().split(' ')[0].split('@')[0].split('.service')[0] for item in result.split(os.linesep)])
 
-
   def __download(self):
-    self.image_version = os.environ.get('IMAGE_VERSION', '')
-    self.debian_version = os.environ.get('UNIT_VERSION', '')
+    version = os.environ.get('VERSION', '')
+    meta = os.environ.get('META', '')
 
-    if self.debian_version.startswith('v'):
-      self.debian_version = self.debian_version[1:]
+    if version.startswith('v'):
+      version = version[1:]
 
-    assert self.image_version, 'IMAGE_VERSION not provided'
-    assert self.debian_version, 'UNIT_VERSION not provided'
+    assert version, 'VERSION not provided'
+    assert meta, 'META not provided'
 
-    self.binary = os.path.realpath('{}/../packaging/bin/vault_{}_{}.deb'.format(os.path.dirname(__file__), self.debian_version, self.arch))
+    package = Package('vault')
 
-    if os.path.exists(self.binary):
-      self.__install(self.binary)
-      return
+    cwd = os.path.realpath('{}/../..'.format(os.path.dirname(__file__)))
 
-    os.makedirs(os.path.dirname(self.binary), exist_ok=True)
-
-    failure = None
-    image = 'openbank/vault:{}'.format(self.image_version)
-    package = '/opt/artifacts/vault_{}_{}.deb'.format(self.debian_version, self.arch)
-    temp = tempfile.NamedTemporaryFile(delete=True)
-
-    try:
-      with open(temp.name, 'w') as fd:
-        fd.write(str(os.linesep).join([
-          'FROM alpine',
-          'COPY --from={} {} {}'.format(image, package, self.binary)
-        ]))
-
-      image, stream = self.docker.images.build(fileobj=temp, rm=True, pull=False, tag='perf_artifacts-scratch')
-      for chunk in stream:
-        if not 'stream' in chunk:
-          continue
-        for line in chunk['stream'].splitlines():
-          l = line.strip(os.linesep)
-          if not len(l):
-            continue
-
-      scratch = self.docker.containers.run('perf_artifacts-scratch', ['/bin/true'], detach=True)
-
-      tar_name = tempfile.NamedTemporaryFile(delete=True)
-      with open(tar_name.name, 'wb') as fd:
-        bits, stat = scratch.get_archive(self.binary)
-        for chunk in bits:
-          fd.write(chunk)
-
-      archive = tarfile.TarFile(tar_name.name)
-      archive.extract(os.path.basename(self.binary), os.path.dirname(self.binary))
-
-      del archive
-
-      self.__install(self.binary)
-      scratch.remove()
-
-      del scratch
-
-    except Exception as ex:
-      failure = ex
-    finally:
-      temp.close()
-      del temp
-      try:
-        self.docker.images.remove('perf_artifacts-scratch', force=True)
-      except:
-        pass
-
-    if failure:
-      raise failure
+    assert package.download(version, meta, '{}/packaging/bin'.format(cwd)), 'unable to download package vault'
 
   def __len__(self):
     return sum([len(x) for x in self.units.values()])
@@ -140,7 +73,7 @@ class ApplianceManager(object):
       node.teardown()
     del self.units[str(key)]
 
-  def configure(self) -> None:
+  def __configure(self) -> None:
     options = {
       'STORAGE': '/data',
       'LOG_LEVEL': 'WARN',
@@ -194,6 +127,10 @@ class ApplianceManager(object):
       node.restart()
 
   def bootstrap(self) -> None:
+    self.__configure()
+    self.__download()
+    self.__install()
+
     assert 'vault' in self.services
     if not self['vault']:
       unit = Vault()
@@ -208,6 +145,5 @@ class ApplianceManager(object):
         del self[name]
   
   def cleanup(self) -> None:
-    self.certificate.cleanup()
+    del self.certificate
     self.teardown()
-
