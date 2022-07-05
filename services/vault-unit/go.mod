@@ -7,7 +7,7 @@ require (
 	github.com/jancajthaml-openbank/actor-system v1.5.6
 	github.com/jancajthaml-openbank/local-fs v1.2.8
 	github.com/rs/zerolog v1.27.0
-	github.com/stretchr/testify v1.7.5
+	github.com/stretchr/testify v1.8.0
 )
 
 require (
