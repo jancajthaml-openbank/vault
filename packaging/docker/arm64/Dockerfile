@@ -20,7 +20,7 @@ COPY packaging/bin/* /opt/artifacts/
 
 USER root
 
-RUN apt-get -oDebug::pkgAcquire::Worker=1 -y update
+RUN apt-get -oDebug::pkgAcquire::Worker=1 -y --allow-releaseinfo-change update
 
 RUN find /opt/artifacts -name vault_*_arm64.deb | xargs -I{} -tx apt-get install -y -f {}
 
