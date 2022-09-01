@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2021, Jan Cajthaml <jan.cajthaml@gmail.com>
+# Copyright (c) 2017-2022, Jan Cajthaml <jan.cajthaml@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ COPY packaging/bin/* /opt/artifacts/
 
 USER root
 
-RUN apt-get -oDebug::pkgAcquire::Worker=1 -o DPkg::Lock::Timeout=60 -y update
+RUN apt-get -oDebug::pkgAcquire::Worker=1 -y update
 
 RUN find /opt/artifacts -name vault_*_arm64.deb | xargs -I{} -tx apt-get install -y -f {}
 
