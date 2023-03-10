@@ -33,25 +33,29 @@ jobs:
         cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DENABLE_CURVE=ON .. && make && sudo make install
 
     - name: Install static dependencies (unit)
+      env:
+        GO111MODULE: on
+      working-directory: services/vault-unit
       run: |
-        cd services/vault-unit
-        GO111MODULE=on go mod verify
-        GO111MODULE=on go mod tidy
-        GO111MODULE=on go mod vendor
+        go mod verify
+        go mod tidy
+        go mod vendor
 
     - name: Install static dependencies (rest)
+      env:
+        GO111MODULE: on
+      working-directory: services/vault-rest
       run: |
-        cd services/vault-rest
-        GO111MODULE=on go mod verify
-        GO111MODULE=on go mod tidy
-        GO111MODULE=on go mod vendor
+        go mod verify
+        go mod tidy
+        go mod vendor
 
     - name: Unit Test (unit)
+      working-directory: services/vault-unit
       run:  |
-        cd services/vault-unit
         go test -v ./... -timeout=10s
 
     - name: Unit Test (rest)
+      working-directory: services/vault-rest
       run:  |
-        cd services/vault-rest
         go test -v ./... -timeout=10s
